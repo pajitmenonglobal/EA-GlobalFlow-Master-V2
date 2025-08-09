@@ -1,0 +1,596 @@
+
+
+Technical Specification: EA GlobalFlow Pro v8.0
+
+
+
+
+Introduction
+
+
+This document provides the complete technical specification for the Expert Advisor (EA) designated as EA GlobalFlow Pro v8.0. It serves as the definitive architectural blueprint, translating a sophisticated set of strategic trading requirements into a coherent and actionable framework for development. The system is designed as an institutional-grade automated trading solution, integrating advanced multi-asset analysis, external data feeds, comprehensive risk management, and robust operational protocols.
+The specification synthesizes all rules, logic, and protocols from the project's foundational documents into a single source of truth. It codifies the final, confirmed decisions, resolving all prior ambiguities to ensure the resulting implementation is a precise and resilient embodiment of the strategic vision. The core trading
+logic-encompassing the Triple Enhancement filter, the 34 sequential entry conditions, the STR-EXIT confirmation, and the STR-based dynamic trailing stop loss-is treated as inviolate and forms the strategic heart of the system.
+This document is structured to guide the development of a complete, turnkey system, culminating in a single, consolidated MQL5 source file ready for immediate compilation and deployment. It details not only the trading strategy but also the critical non-functional requirements for error handling, state persistence, platform integration, and operational resilience, ensuring the final product meets the highest standards of reliability and performance.
+
+
+
+Part I: System Architecture and Market Integration
+
+This part of the specification defines the EA's foundational architecture and its interaction with the market environment. It details the non-functional, structural backbone of the system, focusing on code organization, stability, data management, and operational integrity.
+
+
+Section 1: Foundational Architecture and Operational Integrity
+
+
+The architecture of EA GlobalFlow Pro v8.0 is engineered for complexity management, resilience, and professional operational oversight. The design choices prioritize stability and maintainability, recognizing that a sophisticated trading system requires a robust foundation to function reliably.
+
+
+1.1. Codebase Structure: Modular Design with.mqh Inclusions
+
+
+To manage the system's inherent complexity and promote long-term maintainability, the EA will be constructed using a modular design pattern. The main program logic will be contained within the primary EA_Globa1Flow_Pro_v8.mq5 file. However, distinct functional domains will be encapsulated within separate include files (.mqh), creating a clean separation of concerns.
+This modular structure is not merely an organizational convenience; it is an architectural necessity. It allows for independent development, testing, and maintenance of different system components, significantly reducing the risk that a change in one area-such as the user dashboard-will inadvertently introduce bugs into another, like the core risk calculations.
+
+The specified file structure is as follows :
+• EA_Globa1Flow_Pro_v8.mq5: The main EA file. It will handle the primary event functions (Onlnit, OnDeinit, OnTick, OnTimer) and coordinate the actions of the various modules.
+• GlobalFlow_Dashboard.mqh: Contains all code related to the creation, updating, and management of the dual on-chart dashboard systems for F&O and Non-F&O markets.
+
+• GlobalFlow_lndicators.mqh: Houses the custom logic and calculations for the six core indicators that form the basis of the trading strategy.
+• GlobalFlow_Trading.mqh: Implements the logic for the 34 sequential entry conditions, the Triple Enhancement filter, and the trade execution commands.
+• GlobalFlow_Risk.mqh: Contains the complete risk management framework, including position sizing, correlation limits, and emergency protocols.
+• GlobalFlow_FnO.mqh: Encapsulates all specialized logic for Futures & Options trading, such as option chain parsing, strike selection, and dynamic chart management.
+• GlobalFlow_Bridge.mqh: Manages the communication protocol, connection, and data flow between the MQL5 environment and the external Python bridge.
+
+
+
+1.2. Critical Error Handling Protocol: The "Freeze Mode"
+
+
+The system is designed to fail gracefully. In the event of a critical, unrecoverable software error (e.g., a memory access violation, a corrupted data structure), the EA will not simply crash or cease to function. Instead, it will enter a predefined "FREEZE MODE" to protect capital and maintain control over existing positions.
+
+Upon entering this state, the following sequence of events will occur automatically:
+1. The on-chart status display will immediately change to: "ERROR MODE - Existing Positions Only". This provides a clear and unambiguous visual notification of the system's health.
+2. All logic related to scanning for new trading opportunities will be halted. No new trades will be initiated under any circumstances.
+3. The EA's functionality will be reduced to a single, critical task: managing open positions. It will continue to monitor the STR-EXIT level on the 1-Hour timeframe for all open trades and will execute exit orders as required. All other processing, including indicator calculations for new signals and dashboard updates, will cease.
+4. An immediate, high-priority alert will be dispatched via the configured WhatsApp and Email channels to notify the operator of the critical failure, enabling timely intervention.
+
+This protocol ensures that even in a failure state, the EA's primary responsibility-the management of risk for open trades-is preserved.
+
+
+
+
+1.3. Live Compilation and State Persistence Protocol
+
+
+To address the practical challenge of updating or recompiling an EA during live trading, a specific state persistence protocol is mandated. This protocol prevents the loss of trade context and ensures a seamless transition between EA versions without requiring manual intervention or closing of active positions.
+When a re-compilation event is detected on a chart where the EA is running, it will execute the following automated procedure:
+1. Auto-Save State: The EA will immediately serialize its complete current state and save it to a structured JSON file named Globa1Flow_State_v8.json. This state file will include all critical information: details of all open positions managed by the EA, the current status of the 3-trade limit counters, the one-time-use status of all 34 entry conditions for the day, and any other dynamic variables essential for correct operation.
+2. Enter Freeze Mode: The EA will enter a temporary, safe freeze state, displaying the status: "COMPILATION MODE - No New Actions".
+3. Send Alert: A notification will be sent via WhatsApp/Email: "EA entering compilation mode. Existing positions protected."
+4. Auto-Load State: After the new version of the EA successfully initializes, its first action will be to detect the presence of the Globa1Flow_State_v8.json file. If found, it will parse the file and restore its internal state to precisely match the state of the previous instance, seamlessly re-adopting management of all open trades.
+5. Send Completion Alert: A final alert will be sent to confirm the successful transition: "EA compilation complete. Normal operation resumed."
+This architecture transforms EA updates from a high-risk manual procedure into a controlled, automated process, reflecting the operational standards required for a professional-grade trading system.
+
+
+Section 2: Market Universe and Data Management
+
+
+This section details how the EA identifies, connects to, and processes data from its
+
+defined market universe. The design exhibits a profound emphasis on data integrity, especially for the specialized data required for Indian F&O markets.
+
+
+2.1. Primary Data Integration: The TrueData API Protocol
+
+
+The strategy's effectiveness in the Indian Futures & Options (F&O) market is critically dependent on high-quality, real-time data for Open Interest (01), volumes, and the full option chain. To meet this requirement, the EA will rely exclusively on the TrueData API for all F&O-related data.
+This architectural decision to use a single, specialized data source leads to a crucial risk management protocol: there is no backup data feed for F&O data. The system operates under the principle that trading with incomplete or potentially inaccurate data from a secondary source (like a standard broker feed) poses a greater risk than pausing trading altogether. The strategy's analytical edge is inextricably linked to the quality of the TrueData feed; without it, the edge is presumed to be nullified.
+Consequently, a specific failure protocol is defined for handling disruptions to the TrueData connection :
+• Status Change: The F&O dashboard status will update to: "TRUEDATA OFFLINE
+- F&O Trading Paused".
+• Trading Halt: All scanning for new F&O opportunities will be suspended. No new F&O trades will be opened.
+• Position Management: Existing F&O positions will continue to be managed for STR-EXIT based closures.
+• Auto-Reconnect: The EA will attempt to re-establish a connection to the TrueData API every 30 seconds.
+• Alerting: An alert will be dispatched upon the initial disconnection and again upon successful reconnection, ensuring the operator is fully aware of the system's data-dependent status.
+
+
+2.2. Dynamic Symbol Naming and Management
+
+
+To ensure forward compatibility and resilience against changes in broker or data
+
+provider conventions, the EA will not use hardcoded symbol names. It will dynamically query and adapt to the precise naming format provided by the connected APls.
+For F&O markets, it will parse the symbol list from the TrueData feed, expecting formats such as NIFTY25JANFUT for futures and NIFTY25000CE for options. This dynamic approach obviates the need for manual updates if a provider changes its symbology, making the system more robust and reducing the maintenance burden.
+
+
+2.3. Market Group Segregation: F&O and Non-F&O Ecosystems
+
+
+A critical architectural principle of EA GlobalFlow Pro v8.0 is the complete logical separation of its two primary market groups. These groups operate as independent, parallel ecosystems within the EA, each with its own dashboard, trade logic parameters, and enhancement scoring.
+• Dashboard 1 (Fyers Integration): Manages the Indian F&O markets. Its operations are governed by the TrueData feed, specialized F&O rules (expiry, 01), and the NRI regulatory framework.
+• Dashboard 2 (IC Markets Integration): Manages all non-F&O markets, including Forex, Commodities, and CFDs. Its operations are governed by the parameters and rules specific to these asset classes.
+This segregation is absolute. During market hours when both groups are active (e.g., the 1:30 PM - 3:30 PM 1ST overlap), they run in parallel without interaction. An enhancement score calculated for a NIFTY option trade will never compete with or be influenced by an enhancement score for a EURUSD trade. This design prevents unintended logical conflicts and simplifies the overall system by ensuring that
+market-specific rules are contained within their respective domains.
+
+
+
+2.4. F&O Market Scanning Protocol
+
+
+The EA employs a comprehensive scanning protocol for the Indian F&O markets, governed by a precise set of rules.
+• Scanning Scope: By default, the EA is configured to scan ALL available Index Options/Futures and Stock Options/Futures. Trading in Currency and Commodity
+
+derivatives is disabled by default but can be enabled via the EA's input parameters.
+• Expiry Priority: This rule applies exclusively to the Indian F&O markets. The EA will only ever trade the NEAREST EXPIRY contract available. To manage this, an automated rollover process is initiated 7 days before the current contract's expiry date. When both weekly and monthly expiries are available, the weekly contract will always be given priority.
+• Open Interest (01) Threshold: A non-negotiable 30% Open Interest bias is required for the EA to consider an option strike for trading. This value is a customizable input parameter but serves as a fundamental filter for trade qualification. The calculation method is detailed in Section 4.1.
+• Scanning Frequency: The EA will monitor market data on a tick-by-tick basis to maintain a real-time view. However, all complex calculations and trade entry decisions will be made only at the close of a price bar on the relevant entry timeframe. Following a qualifying bar close, the option chain will be read and analyzed within 5 minutes to select a specific strike.
+
+
+Part II: Core Trading and Risk Logic
+
+
+This part delves into the strategic heart of the EA, detailing the hierarchical logic for trade selection, the specific signal generation engine, the rigorous pre-trade qualification process, and the multi-dimensional risk management framework.
+
+
+Section 3: Trade Selection and Execution Framework
+
+
+Before the EA analyzes any of its 34 specific entry conditions, it first applies a series of high-level filters to establish a valid market context. This top-down, hierarchical filtering process ensures that computational resources are not wasted analyzing signals in unfavorable or prohibited conditions.
+
+
+3.1. Multi-Timeframe Trend Analysis Engine
+
+
+
+
+The EA's first filter is a multi-layered trend analysis engine designed to ensure trades are only considered when there is a clear, confirmed directional bias.
+• Major Trend Confirmation: The long-term trend is considered confirmed if a directional trend is identified on EITHER the Daily (D1) timeframe OR the 4-Hour (H4) timeframe. The logic is a simple OR condition; agreement between both is not required.
+• Middle Trend Confirmation: The medium-term trend is confirmed if a directional trend is identified on EITHER the 1-Hour (H1) timeframe OR the 30-Minute (M30) timeframe.
+• Conflict Resolution Protocol: This is a critical rule. If the established Major Trend and Middle Trend are in conflict (e.g., Major Trend is Bullish, Middle Trend is Bearish), the EA will enter a "wait" state for that specific asset. It will skip all entry signals and cease further analysis for that asset until both the Major and Middle trends are aligned in the same direction. No trades will ever be taken during periods of such trend disagreement.
+
+
+3.2. Trading Path Logic: Sequential Evaluation of CT and PB Paths
+
+
+The EA utilizes two distinct trading methodologies, or "paths": Counter-Trend (CT) and Pullback (PB). The system evaluates these paths in a strict, predefined sequence.
+1. Sequential Check: At each new bar close, the EA first scans for valid CT signals.
+2. If a qualifying CT signal is found and passes all subsequent filters, the trade is executed, and the analysis for that asset on that bar concludes.
+3. Only if no valid CT signals are found does the EA proceed to scan for PB signals.
+
+This sequential logic prevents any conflict between the two paths and establishes CT as the primary trading path.
+
+Furthermore, the system adheres to a strict Path Commitment rule. Once a trade is entered on a specific path (e.g., a CT Buy), the EA is considered "committed" to that trade's lifecycle. It will ignore all new entry signals on that chart, including any subsequent PB signals or opposing CT signals, until the initial trade is closed by one of the defined exit mechanisms (primarily the STR-EXIT).
+
+
+
+
+3.3. Regulatory and Position Management Framework
+
+
+The EA incorporates a sophisticated framework for managing position limits that is highly dependent on the user's regulatory status and the specific market being traded. A "3-Trade Quality Limit" is applied per chart, but its implementation is nuanced.1
+An input parameter, AccountType, will be available in the EA's settings, allowing the user to select between ACCOUNT_NRI (Non-Resident Indian, the default) and ACCOUNT_RESIDENT (Resident Indian). The EA's behavior will change dynamically based on this setting, enforcing the rules specified in the following logic matrix to ensure full regulatory compliance.
+The development of this matrix is a direct result of clarifying a series of complex, interdependent rules. The initial "3-trade limit" was a simple concept, but the introduction of the NRI/Resident distinction, followed by the realization that NRI rules differ significantly across asset classes (stock options vs. index options vs. commodities), created a multi-dimensional challenge. This table consolidates these rules into a single, unambiguous specification, separating the complex policy from the code implementation and making the logic verifiable at a glance.
+
+Table 1: NRI vs. Resident Trading Rules Matrix
+
+PlatformAsset ClassAccount TypeMax Buy TradesMax Sell TradesNotesFyersStock OptionsACCOUNT N RI30 (Blocked)NRI accounts can only buy stock options; selling is prohibited.FyersStock OptionsACCOUNT R ESIDENT33Full
+bi-directiona I trading is permitted.
+
+FyersIndex OptionsACCOUNT N
+RI33Bi-directiona I trading is allowed for index options.FyersIndex OptionsACCOUNT_R ESIDENT33Full
+bi-directiona I trading is permitted.FyersCurrency DerivativesACCOUNT N
+RI33Only for allowed pairs (USD-INR, GBP-INR, JPY-INR, EUR-INR).
+Others are blocked.FyersCurrency DerivativesACCOUNT R ESIDENT33All currency derivative pairs are allowed.FyersCommodity DerivativesACCOUNT N RI0 (Blocked)0 (Blocked)NRI accounts are completely prohibited from trading commodity derivatives.FyersCommodity DerivativesACCOUNT R ESIDENT33Full
+bi-directiona I trading is permitted.IC MarketsAll (Forex, etc.)ACCOUNT N RI33No regulatory restrictions apply on international
+
+platforms.IC MarketsAll (Forex, etc.)ACCOUNT R
+ESIDENT33No restrictions apply.
+
+Section 4: F&O Option Chain Analysis and Chart Lifecycle
+
+
+This section details the highly specialized logic dedicated to Indian F&O trading. It covers how the EA navigates the option chain to select specific contracts and how it manages the lifecycle of the dynamic charts created for their analysis.
+
+
+
+4.1. Strike Selection Criteria and Open Interest Validation
+
+
+The selection of an appropriate option strike is not arbitrary; it is governed by a strict, data-driven process centered on Open Interest (01).
+• 01 Threshold Filter: The primary gate for strike selection is the 30% 01 Bias requirement. This value is a customizable input parameter. During the option chain scan, if no available strikes meet this minimum bias threshold, the entire trade setup is skipped. The EA will not compromise this rule by selecting a suboptimal strike with low conviction.
+• 01 Calculation Methods: The EA can use one of two methods to calculate the 01 bias, depending on the trading path :
+o Path 1 (Directional Bias): This path uses a hybrid calculation method.
+¦ For At-The-Money (ATM) strikes, it uses a relative percentage formula: Relative Bias=(Call Ol+Put Ol)(Call 0I-Put Ol)x100.
+¦ For Out-of-The-Money (OTM) strikes, it uses an absolute method, requiring the 01 of the favored direction to be at least 30% greater than the opposing direction (e.g., for a bullish bias, Call Ol>Put Olx1.3).
+o Path 2 (Independent Bias): This path uses the relative percentage formula for both ATM and OTM strikes.
+
+
+
+
+4.2. Specialized Expiry Day Trading Protocol
+
+
+A stricter set of rules automatically engages on Tuesdays, which are specified as the F&O expiry day, to manage the unique risks associated with expiring contracts.
+• Strike Selection: Only At-The-Money (ATM) strikes are permitted for new trades. OTM strikes are forbidden.
+• 01 Check Frequency: The rate of 01 data scanning increases from every 15 minutes to every 5 minutes to react more quickly to rapidly changing market sentiment.
+• Hard Stop Time: No new trades will be initiated after 3:QQ PM 1ST.
+• Mandatory Chart Closure: All open F&O option charts are mandatorily and automatically closed at 3:29 PM 1ST, ceasing all analysis for the day.
+
+
+4.3. Dynamic Option Chart Management and Auto-Close Conditions
+
+
+The EA dynamically opens and closes secondary charts to perform detailed analysis on specific option contracts. This process is governed by a resource management system designed to balance performance with opportunity.
+• Chart Lifecycle and Naming: A strict No Reuse Policy is enforced. A new, clean chart is created for every unique, point-in-time signal. These charts are given a structured name for easy identification: _[CE/PE]_, for example,
+NIFTY-09JAN25-24500-CE-093045.
+• Visual Differentiation: To aid the operator, Call option charts will have a Forest
+Green background (HTML color #006400), while Put option charts will have a Deep Red background (#8B0000).
+• Adaptive Resource Management: The system recognizes that analyzing an unlimited number of charts is computationally prohibitive and can destabilize the trading platform. It therefore employs a tiered management system to prioritize resources.
+o Global Limit: The system is optimized for a maximum of 20 concurrent secondary charts, with a hard emergency limit of 25.
+o Tier 1 (0-10 charts): Full feature processing is enabled. All indicators are
+
+active, and all signals are evaluated.
+o Tier 2 (11-15 charts): The system begins to prioritize. Processing resources are focused on charts that have active, open trades.
+o Tier 3 (16-20 charts): Only essential calculations (e.g., exit monitoring for open trades) are performed. The creation of new charts for new signals is suspended when more than 15 charts are already active, ensuring that the system focuses its resources on managing existing risk rather than seeking new opportunities when under heavy load.
+• Auto-Close Triggers: A dynamically created chart is a temporary workspace and will be automatically closed under several conditions to free up system resources
+
+o If no trade is initiated within 5 minutes of the chart's creation.
+o When all trades opened from that chart have been closed (primary trigger).
+o When the STR-EXIT level is triggered on the underlying parent asset.
+o If the signal's quality score drops below a 70% threshold before a trade is taken.
+
+
+Section 5: Signal Generation and Pre-Trade Qualification
+
+
+This section describes the engine room of the strategy: the specific conditions that generate entry signals and the rigorous, multi-layered filtering process they must pass before a trade is executed. The design philosophy is clearly one of quality over quantity.
+
+
+5.1. The Sequential Entry Condition Engine
+
+
+The EA is equipped with a bank of 34 discrete entry conditions, with 17 for Buy signals and 17 for Sell signals. These conditions, detailed in Appendix B, are derived from the system's six core indicators.1 The engine that processes these conditions operates on three key principles:
+1. Sequential Execution: The conditions are checked in a predefined sequence at the close of each bar.
+2. One Trade Per Bar: The EA will execute a maximum of one trade per bar close.
+
+The moment a condition is found that passes all subsequent filters and is executed, the scan for that asset on that bar ceases.
+3. One-Time Use Per Day: Each of the 34 conditions is treated as a unique opportunity. Once a specific condition (e.g., B5) has been used to successfully enter a trade on a specific strike, that same condition cannot be used again for that same strike for the remainder of the trading day. This prevents the EA from "spamming" entries based on a single, persistent technical signal.
+
+
+5.2. The Triple Enhancement Pre-Trade Filter (85% Score Threshold)
+
+
+A raw signal from the entry condition engine is not sufficient to trigger a trade. It must first pass through a mandatory, non-negotiable, pre-trade qualification gate known as the Triple Enhancement filter. This filter acts as the final arbiter of trade quality, and its purpose is to distill a wide range of potential signals down to a small number of high-probability setups.1
+The process flow is as follows:
+1. A base entry condition (e.g., B5 from the sequential engine) is met at a bar close.
+2. The signal is immediately passed to the Triple Enhancement system for scoring across three distinct layers:
+o Layer 1: Entry Condition: The base technical signal itself, which has an estimated standalone win rate of 65-70%.
+o Layer 2: ML Validation: The signal is processed by a statistical or
+machine-learning model (via the Python bridge), which provides a confidence score, aiming to add 10-15% to the win rate.
+o Layer 3: Candlestick + Volume Confirmation: The signal is validated against real-time price action and volume patterns to confirm market sentiment, also aiming to add 10-15% to the win rate.
+3. The scores from these layers are combined into a final enhancement score.
+4. Go/No-Go Decision: If the final combined score is greater than or equal to 85%, the trade is approved for execution. If the score is less than 85%, the signal is discarded, and the EA moves on.
+This entire filtering mechanism demonstrates that the strategy's true edge is not derived from the raw entry signals themselves, but from the rigorous, multi-layered qualification process that follows. The "edge" is in the filter, not the trigger.
+
+
+
+
+5.3. Cross-Asset Parameterization Framework
+
+
+A core principle of the EA is "Universal Configuration" with market-specific adjustments. The same 34 entry conditions and Triple Enhancement logic are used for all markets. However, the underlying parameters of the core indicators are tuned differently for each asset class to adapt to their unique volatility profiles, liquidity, and behavioral characteristics.1
+
+This adaptive approach is crucial. It shows the system is not a rigid, one-size-fits-all solution but an intelligent framework that respects the distinct personality of each market. The following table codifies these adjustments, providing a clear reference for how the universal strategy is tuned for specific environments.
+Table 2: Market-Specific Parameter Adjustments
+
+
+
+ParameterForex (Standard)Commodities (High Volatility)F&O Options (Leveraged)VIX AdjustmentSTR Multipliers1.0 I 1.51.2/1.80.8 / 1.2Multipliers increase by 20% for High VIX (>30) and decrease by 20% for Low VIX
+(<15).1TDI Levels32 I 6830 I 7035 I 65No Change.1Bollinger Band Period202515No Change.1Timeframe CascadeD1/H4-+ H1/M30-+ M15/M5D1/H4-+ H1/M30-+ M15/M5H4/H1-+ M30/M15-+ M5/M1No Change.1Min Conditions10 of 1712 of 1710 of 17Varies based on trend strength (e.g., 8 in strong
+
+trend, 12 in high volatility).1
+
+5.4. On-Chart Signal and Status Display Specifications
+
+
+To provide the operator with complete transparency into the EA's decision-making process, the on-chart dashboard will display real-time information about the signal generation and filtering status.1 The display will include:
+• Condition Trigger: The specific name of the last valid signal found (e.g., "B5-CT_TDI_Bull_High").
+• Enhancement Score: The final score achieved after passing through the Triple Enhancement filter (e.g., "Score: 92%").
+• Execution Status: A clear indicator of the outcome (e.g., "EXECUTED ",
+"REJECTED <85%", or "PENDING").
+• Next Check Timer: A countdown timer showing the time remaining until the next bar close, when the next scan will occur.
+
+
+Section 6: Comprehensive Risk Management Framework
+
+
+The risk management framework of EA GlobalFlow Pro v8.0 is multi-dimensional and hierarchical. It is designed to manage risk proactively at the individual trade level, the instrument level, the portfolio level, and the overall system level.
+
+
+6.1. Dynamic, Margin-Based Position Sizing Engine
+
+
+The EA eschews simple fixed-lot sizing in favor of a more sophisticated, dynamic approach. The base position size for any new trade is calculated based on 5% of the required margin for that trade.1 This method naturally scales the position size relative to the instrument's price and leverage.
+This base risk is not static. It is dynamically adjusted based on the prevailing
+
+market-wide volatility, as measured by the VIX (Volatility Index). This allows the EA to automatically reduce its exposure during periods of high uncertainty and "lean in" during calmer periods. The following matrix defines this dynamic risk response.
+
+Table 3: VIX-Based Risk Adjustment Matrix
+
+
+
+VIX LevelRisk MultiplierEA Mode< 201.0x (Normal Size)Live Trading20 - 300.8x (Reduced Size)Live Trading30 - 400.6x (Minimum Size)Live Trading> 40N/APaper Mode Only - No new live trades are executed.1
+
+6.2. Portfolio Correlation and Concentration Limits
+
+
+The framework extends beyond single-trade risk to manage portfolio-level risk, preventing over-concentration in correlated assets or a single market direction.1
+• Correlation Limits: NIFTY and BANKNIFTY are explicitly identified as highly correlated assets (correlation> 0.8). The EA will enforce a limit of a maximum of 3 combined positions across these correlated indices at any one time.
+• Concentration Limit: A hard limit of 10 total F&O positions is enforced across the entire portfolio.
+• Directional Bias Limit: To prevent an excessive directional bet, the portfolio will maintain a maximum 60/40 split between the total number of call positions and put positions.
+
+
+6.3. System-Wide Emergency and High-Volatility Protocols
+
+
+Separate from the VIX-based position sizing, the EA has a set of system-wide
+
+emergency protocols that are triggered by extreme levels of the VIX, acting as a "circuit breaker" for the entire system.1
+• Level 1 (Warning): VIX between 30 and 35. In this state, the EA will not just reduce new trade sizes but will actively seek to reduce its total open position count by 50%.
+• Level 2 (Critical): VIX greater than 35. This triggers a system-wide shutdown. The EA will close all open positions immediately and revert to Paper Mode, ceasing all live trading until the VIX subsides to a safer level.
+This layered approach demonstrates a deep understanding of risk. A single trade might appear safe in isolation, but a portfolio of ten such trades, all highly correlated, in a volatile market, represents an extreme risk. The EA is designed to see and react to this complete, hierarchical risk picture.
+
+
+
+Part Ill: Order, Exit, and System Operations
+
+
+This final part of the specification covers the operational mechanics of the EA: how it interacts with the broker to execute orders, how it manages trades to their conclusion, and the auxiliary systems that ensure its long-term robustness and maintainability.
+
+
+Section 7: Order Execution and Lifecycle Management
+
+
+This section defines the micro-level mechanics of order management, accounting for the real-world frictions of slippage, partial fills, and broker rejections. The design makes a clear distinction between the trading strategy and the mechanics of its execution.
+
+
+7.1. Adaptive Slippage and Spread Control Protocol
+
+
+Before any order is sent to the broker, the EA performs a final check on market
+
+conditions to ensure a quality execution price is possible.1
+• Spread Check: The EA first checks the current bid-ask spread. If the spread exceeds a maximum threshold of 5 points, the trade is skipped for that bar, as the entry cost is deemed too high.
+• Slippage Tolerance: If the spread is acceptable, the order is sent with a market-adaptive slippage tolerance:
+o Normal Conditions: For Forex, 2 pips base tolerance with a 3-pip maximum. For F&O, 0.3% base with a 0.5% maximum.
+o Volatile/News Conditions: These are auto-detected. The maximum tolerance increases to 5 pips for Forex and 1.0% for F&O.
+• If the broker fills the order at a price that exceeds the maximum allowed slippage, the order is rejected.
+
+
+7.2. Smart Fill Management for Partial Fills
+
+
+The system includes a protocol for intelligently handling partial fills. It is critical to note that this "smart" logic pertains only to the decision to accept or reject the partial fill. It does not, under any circumstances, involve altering the trade's stop loss.1
+The explicit rejection of adjusting the stop loss on a partial fill reveals a core design principle: execution challenges must not be allowed to compromise the technical integrity of the core strategy. The Trading module defines the stop loss level based on the STR-EXIT indicator; the Execution module's job is to get the order filled. If it cannot get a satisfactory fill, it must abort the trade rather than forcing the Trading module to alter its plan.
+The decision logic is as follows 1:
+• Fill>= 70%: ACCEPT. The partial fill is accepted, and the unfilled remainder of the order is canceled. The trade proceeds with the smaller position size. The monetary risk is naturally reduced, and the risk-reward ratio improves, but the technical stop-loss level remains unchanged.
+• Fill< 70%: REJECT. The trade is deemed to have failed execution. The unfilled remainder of the order is canceled, and the EA immediately sends an order to close the small portion that was filled. The system then waits for the next valid signal.
+
+
+
+
+7.3. Intelligent Order Retry Logic
+
+
+If an order fails for a transient reason, such as a temporary network issue or a "Re-quote" error, the EA will not immediately abandon the trade. It will engage an intelligent retry system.1
+• Maximum Attempts: The EA will retry the order a maximum of 3 times.
+• Progressive Delay: There is a progressive delay between attempts: 1 second after the first failure, 3 seconds after the second, and 5 seconds after the third.
+• Contextual Error Handling: This retry logic only applies to specific, recoverable errors. A fatal error like "Insufficient Margin" will not trigger a retry, as it is not a transient condition.
+
+
+Section 8: Trade Exit Management
+
+
+In stark contrast to its complex, multi-layered entry logic, the EA's exit management is defined by its disciplined and focused simplicity. This design implies absolute trust in a single technical indicator to manage the entire lifecycle of a trade from its conclusion to its exit.
+
+
+8.1. The STR-EXIT Confirmation Protocol
+
+
+The sole condition for exiting a trade is the confirmation of the STR-EXIT signal. This confirmation is achieved when a single bar closes beyond the STR-EXIT line on the 1-Hour timeframe.1
+There are no other filters or secondary conditions applied to this exit signal. No volume confirmation is required, no news calendar check is performed, and no other indicator needs to agree. The signal from the STR-EXIT indicator is treated as absolute and sufficient. Upon the close of the qualifying bar, the exit order is executed
+
+immediately.
+
+
+
+8.2. The STR-Based Dynamic Trailing Stop-Loss Mechanism
+
+
+This mechanism is the ONLY method of stop-loss, profit-taking, or trade management in the entire system.1
+The stop loss for a trade is not a fixed price. It is a dynamic trailing stop that moves in lockstep with the STR-EXIT line on the 1-Hour chart.
+• When a trade is opened, the initial stop loss is placed at the current STR-EXIT level (with a 0.25% buffer).
+• As the trade moves in a favorable direction, the STR-EXIT line will also move, trailing the price. The EA will modify the trade's stop loss on the broker's server to follow this line.
+• This mechanism effectively locks in profits as the trend progresses.
+• The stop loss will never move against the trade (i.e., increase the initial risk).
+• The trade is closed when the price finally retraces and a 1-Hour bar closes beyond the trailing STR-EXIT line.
+
+All other conventional forms of trade management, such as moving the stop to breakeven at a certain R:R multiple or using fixed profit targets, are explicitly excluded from this strategy. The entire entry system is designed to find a trade with the highest probability of embarking on a trend that can be successfully managed from start to finish by the STR-EXIT indicator alone.
+
+
+Section 9 to 12: Auxiliary Systems
+
+
+The final modules of the specification detail the supporting operational infrastructure. These systems are not directly involved in making trading decisions but are essential for the EA's robustness, transparency, and long-term maintainability. Their inclusion is indicative of a professional software development lifecycle (SDLC) approach, where the goal is not just a piece of code, but a reliable and maintainable product.
+
+
+
+
+Section 9: External System Integration: The Python Bridge
+
+
+The EA is designed to communicate with an external Python process, which is presumed to handle the machine-learning component of the Triple Enhancement filter. The bridge is designed with redundancy and graceful degradation in mind.1
+• Communication Protocol: The primary communication channel is Named Pipes for low-latency data transfer. TCP sockets serve as a reliable backup. All data is exchanged in a compressed JSON format, with sensitive information protected by AES-256 encryption.
+• Failure Handling: If the connection to the Python bridge is lost, the EA will continue to manage existing trades using their last known settings. However, it will block all new trades that require ML scoring. It will attempt to reconnect every 10 seconds. If the connection cannot be restored after 5 minutes, the EA will switch to a "MT5-only" mode (disabling the ML enhancement layer) and send an alert.
+
+
+Section 10: User Interface, Alerts, and Reporting
+
+
+This module ensures the operator remains fully informed of the EA's status and performance.1
+• Alerting System: A priority-based system dispatches alerts for different event types with varying frequencies:
+o Critical (Errors, Losses): Sent on every occurrence.
+o Trade Signals: Sent once per unique setup.
+o Summary Alerts: Sent every 2 hours with a portfolio overview.
+• Daily Report: A comprehensive daily summary report will be generated and emailed. It will include an executive summary, charts and analysis of the top 3 trades, a dashboard of key performance metrics, a list of upcoming high-impact news events, and an Al-generated risk exposure heat map.
+
+
+Section 11: Deployment, Validation, and Performance Benchmarking
+
+
+
+
+The EA is not intended to be deployed directly into a full-size live account. A mandatory, five-phase rollout plan is specified to progressively validate its performance in increasingly realistic environments. Each phase has specific,
+non-negotiable performance benchmarks that must be met before proceeding to the next.1
+Table 4: Phased Deployment Plan and Benchmarks
+
+PhaseEnvironmentDurationKey GoalMin Win RateMin Profit FactorPaper Mode14 DaysProve Core Logic & Strategy>80%>2.52Demo Account7 DaysTest with Real Spreads & Latency>75%>2.03Live Micro Lots7 DaysTest with Real Execution & Slippage>70%>1.84Live 25% Size7 DaysTest Psychologica I Impact & Scalability>75%>2.05Live Full SizeOngoingFull Production Deployment>75%>2.0
+
+Section 12: Operational Resilience and Maintenance
+
+
+This final module details the protocols for ensuring the EA's long-term operational
+
+resilience and ease of maintenance.1
+• Disaster Recovery: The EA's state is saved to a JSON file every 1 minute. These state files are to be backed up to multiple locations (e.g., local drive and a cloud service) to enable full position restoration in case of a catastrophic hardware or platform failure.
+• Holiday Handling: The EA will use an auto-updated holiday calendar. It will reduce position sizes pre-holiday, enter a monitor-only mode during the holiday, and gradually re-enter the market post-holiday.
+• Version Updates: The update process is designed to be seamless. The system will auto-backup existing settings before an update, allow for settings export, and provide a 24-hour one-click rollback option to the previous version.
+
+
+Appendices
+
+
+
+
+Appendix A: Consolidated MQLS Input Parameters
+
+
+This appendix lists the complete set of user-configurable input variables that will be available in the EA's settings window.
+
+
+
+Code snippet
+
+
+
+//--- General Settings sgroup("General Settings");
+input ulong MagicNumber = 112233; II Unique Magic Number for this EA instance input string TradeComment = "GlobalFlow Pro v8.0"; // Comment for trades
+
+//--- Account & Regulatory Settings sgroup("Account & Regulatory Settings");
+enum ENUM ACCOUNT TYPE { ACCOUNT NRI, ACCOUNT RESIDENT};
+input ENUM ACCOUNT TYPE AccountType = ACCOUNT NRI; // Account Type
+
+(NRI/Resident)
+
+//--- Market Scanning Scope sgroup("Market Scanning Scope");
+input bool Enable Forex Commodities = true; II Enable scanning for Forex/Commodities on IC Markets
+input bool Enable FnO_lndices =true;// Enable scanning for F&O Index Options/Futures on Fyers
+input bool Enable FnO Stocks = true; II Enable scanning for F&O Stock Options/Futures on Fyers
+input bool Enable FnO Currency = false; // Enable scanning for F&O Currency Derivatives on Fyers
+input bool Enable FnO Commodity = false; // Enable scanning for F&O Commodity Derivatives on Fyers
+
+//--- F&O Specific Settings sgroup("F&O Specific Settings");
+input double OI_Bias Threshold = 30.0; // Minimum Open Interest Bias % required input int Rollover Days Before Expiry = 7; // Days before expiry to roll over to next contract
+
+//--- Risk Management Settings sgroup("Risk Management Settings");
+input double Margin Risk Percentage = 5.0; II Position size as % of required margin
+[1]
+input double Max Portfolio Drawdown Percent= 15.0; II Max portfolio drawdown before halt [1]
+
+//--- Order Execution Settings sgroup("Order Execution Settings");
+input double Max Spread Points= 5.0; // Maximum allowed spread in points [1] input double Slippage Forex Pips= 3.0; // Max slippage for Forex in pips [1] input double Slippage FnO Percent= 0.5; II Max slippage for F&O in percent [1]
+
+//--- Alerting & Reporting sgroup("Alerting & Reporting");
+input bool Enable WhatsApp_Alerts =true;// Enable WhatsApp notifications input bool Enable Email_Alerts = true; II Enable Email notifications
+input string Email_Address = "your email@example.com"; II Email address for reports
+
+
+
+II--- Python Bridge Settings sgroup("Python Bridge Settings");
+input bool Enable Python Bridge= true; II Enable ML Validation via Python Bridge [1] input string Named Pipe Name= "\\\\.\\pipe\\GlobalFlow"; II Named Pipe for communication
+
+II--- Visual & Dashboard Settings sgroup("Visual & Dashboard Settings");
+input color Call_Chart Background= C'0,100,0'; II Background color for CALL option charts
+input color Put Chart Background= C'139,0,0'; II Background color for PUT option charts
+
+
+
+Appendix B: The 34 Entry Conditions - Detailed Logic
+
+
+The following table provides the detailed logic for the 34 sequential entry conditions as derived from the project documentation. The implementation will require the presence of the six core indicators (e.g., rsig, MB, TSL, VB_Low, VB_High, Kumo, SMMA, Bollinger Bands UpperBolllLowerBoll, CSpan).1
+Table 5: Detailed Breakdown of the 34 Entry Conditions
+
+Condition IDPath & TypeCondition Logic (Conceptual)S1CT-SELLBB_Squeeze Sell: Complex condition involving rsig < MB or rsig < TSL, CSpan < Low, price is below Kumo cloud, and price is below SMMA.S2CT-SELLBB Breakdown: Low <
+LowerBoll.S3CT-SELLKUMO_Cross Sell: Complex Kumo breakout to the downside with volume
+
+confirmation and rsig < TSL.S4CT-SELLSMMA Confirmation: Close <
+SMMA50.S5CT-SELLSTR-ENTRY-1 Sell (MB 32-50):
+rsig < TSL.S6CT-SELLSTR-ENTRY-1 Sell (MB 32-50):
+rsig < MB.S7CT-SELLSTR-ENTRY-1 Sell (MB 32-50): TSL < MB.S8CT-SELLSTR-ENTRY-1 Sell (MB 32-50):
+rsig < VB_Low.S9CT-SELLSTR-ENTRY-2 Sell (MB 50-68):
+rsig < TSL.S10CT-SELLSTR-ENTRY-2 Sell (MB 50-68):
+rsig < MB.S11CT-SELLSTR-ENTRY-2 Sell (MB 50-68): TSL < MB.S12CT-SELLSTR-ENTRY-2 Sell (MB 50-68):
+rsig < VB_Low.S13CT-SELLSTR-ENTRY-2 Sell (MB 50-68):
+rsig < VB_High.S14PB-SELLPullback Sell: Requires major/middle trend alignment, then rsig < VB_High.S15PB-SELLPullback Sell: Requires major/middle trend alignment, then rsig < TSL.S16PB-SELLPullback Sell: Requires
+
+major/middle trend alignment, then rsig < MB.S17PB-SELLPullback Sell: Requires major/middle trend alignment, then rsig < VB_Low.B1CT-BUYBB_Squeeze Buy: Complex condition involving rsig > MB or rsig > TSL, CSpan > High, price is above Kumo cloud, and price is above SMMA.B2CT-BUYBB_Breakout: High> UpperBoll.B3CT-BUYKUMO_Cross Buy: Complex Kumo breakout to the upside with volume confirmation and rsig > TSL.B4CT-BUYSMMA Confirmation: Close > SMMA50. (Note: Original document had error, corrected to >)BSCT-BUYSTR-ENTRY-1 Buy (MB 50-68):
+rsig > TSL.B6CT-BUYSTR-ENTRY-1 Buy (MB 50-68):
+rsig > MB.B7CT-BUYSTR-ENTRY-1 Buy (MB 50-68): TSL > MB.B8CT-BUYSTR-ENTRY-1 Buy (MB 50-68):
+rsig > VB_High.B9CT-BUYSTR-ENTRY-2 Buy (MB 32-50):
+rsig > MB.B10CT-BUYSTR-ENTRY-2 Buy (MB 32-50):
+
+rsig > VB_Low.B11CT-BUYSTR-ENTRY-2 Buy (MB 32-50): TSL > MB.B12CT-BUYSTR-ENTRY-2 Buy (MB 32-50):
+rsig > TSL.B13CT-BUYSTR-ENTRY-2 Buy (MB 32-50):
+rsig > VB_High.B14PB-BUYPullback Buy: Requires major/middle trend alignment, then rsig > VB_High.B15PB-BUYPullback Buy: Requires major/middle trend alignment, then rsig > TSL.B16PB-BUYPullback Buy: Requires major/middle trend alignment, then rsig > MB.B17PB-BUYPullback Buy: Requires major/middle trend alignment, then rsig > VB_Low.
+
+
+Appendix C: Platform Setup and Installation Guide
+
+
+This guide provides step-by-step instructions for installing and configuring the EA GlobalFlow Pro v8.0 on the MetaTrader 5 platform.
+1. File Placement:
+o Open MetaTrader 5.
+o Go to File -> Open Data Folder. A new window will open showing the MT5 installation directory.
+o Navigate to the MQL5 folder.
+o Place the main EA file, EA_Globa1Flow_Pro_v8.mq5, into the MQL5\Experts\
+
+folder.
+o Place all the include files (GlobalFlow_Dashboard.mqh, GlobalFlow_lndicators.mqh, etc.) into the MQL5\lnclude\ folder.
+2. Compile the Expert Advisor:
+o Return to the MetaTrader 5 terminal.
+o Open the Navigator window (View-> Navigator, or Ctrl+N).
+o Right-click on Expert Advisors and select Refresh.
+o Find EA_GlobaIFlow_Pro_v8 in the list. Double-click it or right-click and select Modify to open it in MetaEditor.
+o In MetaEditor, click the Compile button (or press F7). Ensure there are O errors and O warnings in the toolbox window at the bottom.
+3. Configure MetaTrader 5 Options:
+o In the MT5 terminal, go to Tools -> Options.
+o Select the Expert Advisors tab.
+o Check the box for Allow automated trading.
+o Crucially, check the box for Allow DLL imports. This is mandatory for the Python bridge functionality to work.1
+o Click OK.
+4. Attach the EA to a Chart:
+o Open a chart for any of the primary instruments you wish to trade (e.g., EURUSD for Forex, or the underlying index like NIFTY 50 for F&O). The EA will manage all other symbols and charts automatically.
+o From the Navigator window, drag EA_GlobaIFlow_Pro_v8 onto the chart.
+o The EA's properties window will appear.
+o In the Inputs tab, carefully review and set all parameters, especially AccountType, your email address, and the various Enable flags for the markets you wish to trade.
+o Click OK.
+5. Final Check:
+o Ensure the AutoTrading button in the main MT5 toolbar is clicked and shows a green "play" icon.
+o The EA's dashboard should appear on the chart, and a smiling face icon should be visible in the top-right corner, indicating it is running correctly.
+o Check the Experts tab in the Terminal window (Ctrl+T) for any initialization messages or errors.
+
+Works cited
+
+1.  24. core idea- Module v8.0-module 6 to 12.docx

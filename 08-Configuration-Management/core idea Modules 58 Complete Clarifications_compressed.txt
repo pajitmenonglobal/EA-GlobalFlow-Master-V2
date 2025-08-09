@@ -1,0 +1,194 @@
+EA GlobalFlow Pro v7.0 - Modules 5-8 Complete Clarifications
+?? MODULE 5: ENTRY CONDITIONS - COMPLETE ANSWERS
+5.1 34 Conditions Implementation
+Q5.1.1: Condition Priority Ranking
+Answer: Equal Weight with Quality-Based Enhancement  All 34 conditions have equal weight initially
+  Enhancement system provides the tier differentiation:
+ Tier 1: Conditions + Triple Enhancement (85%+) = Premium trades  Tier 2: Conditions only (65-75% win rate) = Standard trades
+  No dynamic weighting - sequential execution prevents complexity
+
+Q5.1.2: Minimum Condition Threshold
+Answer: Fixed 10 Minimum with Market-Specific Adjustments
+
+Standard Markets: 10 out of 17 conditions (same direction) F&O Options: 10 out of 17 (no change due to leverage) High Volatility (VIX >30): 12 out of 17 (increased threshold) Strong Trending: 8 out of 17 (reduced for clear momentum)
+
+Q5.1.3: Condition Conflict Resolution
+Answer: Sequential Logic Prevents Conflic  CT path checked first, then PB - no sim
+ Buy vs Sell within same path: Skip ass
+  Contradiction example: If B5 (CT-Buy)	er ? Skip this bar
+
+5.2 Candlestick Pattern Validation Q5.2.1: Pattern Recognition Timing Answer: Bar Close Validation with Next B
+
+Timing Sequence:
+1. Entry conditions met at bar close ?
+2. Candlestick pattern validated at same bar close ?
+3. Trade executed immediately (no next bar wait)
+4. Pattern strength determines position sizing
+
+Q5.2.2: Pattern Strength Scoring (0-100 Scale)
+Bullish Pattern Rankings:
+1. Three Line Strike (95-100 points) - Strongest reversal
+2. Three White Soldiers (85-95 points) - Strong momentum
+3. Morning Star (75-85 points) - Reliable reversal
+4. Three Inside Up (65-75 points) - Moderate strength
+Bearish Pattern Rankings:
+1. Three Black Crows (95-100 points) - Strongest bearish
+2. Evening Star (85-95 points) - Strong reversal
+3. Abandoned Baby (80-90 points) - High reliability
+4. Dark Cloud Cover (70-80 points) - Moderate bearish
+5. Bearish Harami (65-75 points) - Weak signal
+6. Two Black Gapping (75-85 points) - Gap significance
+
+Q5.2.3: Multiple Pattern Handling
+Answer: Select Strongest Pattern Only
+  Single pattern priority: Choose highest-scoring pattern
+  No pattern combination - avoids over-optimization
+  Multiple weak patterns < One strong pattern
+
+5.3 Sequential Execution Logic Q5.3.1: Entry Order with 3-Trade Limit Answer: Quality-Based Selection System
+
+python
+# 3-Trade Selection Algorithm
+def select_best_trades(all_signals): scored_signals = []
+for signal in all_signals:
+score = calculate_enhancement_score(signal) if score >= 85: # Minimum threshold
+scored_signals.append((signal, score))
+
+# Sort by score, select top 3
+best_3 = sorted(scored_signals, reverse=True)[:3] return best_3
+
+Q5.3.2: Time-Based Sequencing
+Answer: Same Bar Execution with Staggered Risk  All qualified entries within same bar close
+ Position sizing scaled: 1st trade 40%, 2nd trade 35%, 3rd trade 25%
+ Risk staggering prevents overexposure
+
+Q5.3.3: Cross-Asset Coordination
+Answer: Independent Limits per Strike/Asset
+
+F&O Structure:
+- 3 trades per Call chart (per strike)
+- 3 trades per Put chart (per strike)
+- Multiple strikes allowed
+- Total F&O portfolio limit: 20 charts (40-60 positions max)
+
+Non-F&O:
+- 3 trades per forex/commodity chart
+- Independent limits per asset
+
+5.4 Enhancement System Integration
+Q5.4.1: Layer Application Order
+Answer: Sequential Enhancement with 85% Minimum
+
+Flow: Entry Conditions ? Layer 1 ? Layer 2 ? Layer 3 ? Execute
+
+Layer 1: Candlestick Pattern (40% weight)
+Layer 2: Volume Profile (35% weight)
+Layer 3: Order Flow (25% weight)
+
+Calculation: (L1×0.4) + (L2×0.35) + (L3×0.25) = 85%
+
+Q5.4.2: Enhancement Failure Handling
+Answer: Log and Continue System
+  Score 70-84%: Log for analysis, skip trade
+  Score <70%: Reject immediately, no logging
+  No re-evaluation - avoid over-fitting
+  Alert for manual review if patterns emerge Q5.4.3: Options-Specific Enhancements Answer: Add F&O-Specific Layer 4
+Layer 4 (F&O Only): Greeks & IV Analysis
+- IV Rank: 30-70% optimal range (±15 points)
+- Delta Range: 0.30-0.70 optimal (±20 points)
+- Time Decay: >7 days to expiry (±10 points)
+- Combined F&O Score: L4 must be =60% for options Final F&O Score: [(L1+L2+L3)×0.75] + [L4×0.25] = 85%
+?? MODULE 6: RISK MANAGEMENT - COMPLETE ANSWERS
+6.1 Position Sizing with 3-Trade Limit
+Q6.1.1: Size Allocation Strategy
+Answer: Quality-Weighted Allocation
+
+Risk Distribution for 3 Trades:
+- Trade 1 (Highest Score): 0.4% risk
+- Trade 2 (Medium Score): 0.35% risk
+- Trade 3 (Lowest Score): 0.25% risk
+- Total Risk: 1.0% per chart
+
+Reserve Policy:
+- Keep 0.5% for emergency trades
+- Never exceed 1.5% total risk per asset
+
+Q6.1.2: Dynamic Sizing Adjustments
+Answer: VIX-Based Scaling
+
+VIX Adjustment Multipliers:
+- VIX <20: Normal sizing (1.0x)
+- VIX 20-30: Reduced sizing (0.8x)
+- VIX 30-40: Minimum sizing (0.6x)
+- VIX >40: Paper mode only
+
+Trend Adjustments:
+- Strong trend (>80 strength): 1.2x multiplier
+- Weak trend (<40 strength): 0.7x multiplier
+
+Q6.1.3: Multi-Strike Coordination
+Answer: Combined Risk with Delta Balancing
+
+Call + Put Risk Management:
+- Total combined risk: 1% (0.5% each side)
+- Delta exposure tracking
+- Automatic position balancing
+- Greeks-based exposure limits
+
+6.2 Daily/Global Loss Limits Q6.2.1: Loss Limit Hierarchy Answer: Tiered Loss Protection
+
+Daily Limits:
+- Warning: -1.5% (reduce position sizes to 50%)
+- Alert: -2.5% (no new trades, hold existing)
+- Emergency: -3.5% (close all positions)
+
+Weekly Limits:
+- -7% (paper mode for remainder of week)
+
+Monthly Limits:
+- -12% (full system review required)
+
+Q6.2.2: Limit Application
+Answer: Graduated Response System
+
+Response Actions:
+1. Warning Hit: Position size × 0.5
+2. Alert Hit: New trades blocked, trailing stops activated
+3. Emergency Hit: All positions closed immediately
+4. Recovery: Next day starts with 50% sizing until profitable
+
+Q6.2.3: Recovery Rules
+Answer: Gradual Recovery Protocol
+
+Recovery Steps:
+Day 1 after loss: 50% position sizing Day 2: 75% sizing if profitable day 1
+Day 3: 100% sizing if 2 consecutive profitable days
+Weekly profit: Full recovery allowed
+
+6.3 Portfolio-Level Controls Q6.3.1: Correlation Limits Answer: Sector and Asset Limits
+
+F&O Correlation Rules:
+- Maximum 3 similar sector stocks
+- NIFTY + BANKNIFTY: Combined exposure <40%
+- Individual stock: Maximum 2 strikes active
+
+Forex Correlation:
+- Maximum 3 USD pairs
+- No opposing hedge positions (EUR/USD + USD/CHF)
+
+Q6.3.2: Greeks Portfolio Limits
+Answer: Portfolio Greeks Management
+
+Portfolio Greeks Limits:
+- Total Delta: ±50 (neutral bias preferred)
+- Total Gamma: <500 (avoid gamma risk)
+- Daily Theta: <?2000 maximum time decay
+- Total Vega: <10 per 1% IV change
+
+Q6.3.3: Margin Utilization
+Answer: Conservative Margin Usage
+
+Margin Rules:
+- Maximum 60% of available margin
+- Reserve 40% for adverse moves
+- F

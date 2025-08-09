@@ -1,0 +1,173 @@
+EA GlobalFlow Pro v8.0 ULTIMATE - Module 6-12 Complete Answers Reference
+?? Session Summary
+ Date: Current Session
+  Purpose: Answered all remaining questions for Modules 6-12
+  Status: All modules clarified and ready for implementation
+ Next Step: Define 34 entry conditions (17 Buy + 17 Sell)
+
+MODULE 6: RISK MANAGEMENT - FINAL DECISIONS
+6.1 Position Size Calculation
+  Method: Margin-based calculation (not fixed lots)
+ Risk: 5% of required margin per trade
+  F&O Paper Mode: Calculate based on ?100,000 virtual capital
+  Formula: Position size = (Risk Amount) / (Margin Required per l
+VIX Adjustments:
+VIX <20: Normal sizing (1.0x) VIX 20-30: Reduced sizing (0.8x) VIX 30-40: Minimum sizing (0.6x) VIX >40: Paper mode only
+6.2 Correlation Limits
+ NIFTY & BANKNIFTY: Count as correla
+ Max Positions:
+ Same index family: 2 positions  Correlated indices: 3 combined  Total F&O: 10 positions
+ Calls: Max 5 globally  Puts: Max 5 globally
+  60/40 Rule: Maximum directional bias
+
+6.3 Emergency Close Scenarios
+VIX > 35: Switch to paper mode only
+  Technical Failure: Close all positions and alert
+  News-Based Halt: If economic calendar shows high impact
+  API Disconnection > 5 minutes: Emergency close all
+  Level 1 Warning: VIX 30-35, reduce positions 50%
+
+MODULE 7: ORDER EXECUTION - FINAL DECISIONS
+7.1 Slippage Handling
+ Minimum Spread: Least value of any asset in that market
+ Maximum Spread: 5 points (all markets)
+ Slippage Tolerance:
+ Forex: 2 pips base, 3 pips max  F&O: 0.3% base, 0.5% max
+ During news: Double the limits
+ Rule: If spread > 5 points, skip trade
+
+7.2 Partial Fills - Smart Fill Management
+  CRITICAL: Stop loss NEVER changes (always STR-EXIT based)
+ Acceptance Thresholds:
+ =70% filled: Accept and proceed
+ 50-69% filled: Evaluate momentum  <50% filled: Reject and cancel
+  Wait Time: 10 seconds maximum
+ Stop Loss: STR-EXIT on 1H timeframe (NO adjustments)
+
+7.3 Order Retry Logic
+ Maximum Attempts: 3
+ Wait Times: 1s, 3s, 5s (progressive)
+ After 3 Failures: Skip trade and alert user
+ Network Errors: Immediate retry
+
+Insufficient Margin: No retry
+
+MODULE 8: EXIT MANAGEMENT - FINAL DECISIONS
+8.1 STR-EXIT Confirmation
+  Confirmation: 1 bar close beyond STR-EXIT line
+  NO Additional Filters: STR-EXIT conditions are sufficient
+  Execution: Immediate on confirmation at bar close
+ Timeframe: 1-hour only
+
+8.2 Dynamic Stop Loss System
+  ONLY Dynamic Function: Stop loss moves WITH STR-EXIT line
+  Type: Trailing stop that follows STR-EXIT dynamically
+  Exit Trigger: When 1H bar closes beyond STR-EXIT
+  No Other Methods: No breakeven, no profit protection moves
+  Buffer: 0.25% below STR-EXIT line
+
+MODULE 9: PYTHON BRIDGE - FINAL DECISIONS
+9.1 Communication Protocol
+ Primary: Named pipes
+ Backup: TCP sockets
+ Format: JSON with compression
+  Encryption: AES-256 for sensitive data
+ Heartbeat: Every 5 seconds
+ Message Queue: For reliability
+
+9.2 Bridge Failure Handling
+  Existing Trades: Continue with last settings
+ New Trades: Blocked until reconnection
+ Auto-Reconnect: Every 10 seconds
+ After 5 Minutes: Switch to MT5-only mode
+ Alerts: Email/SMS on disconnection
+
+Recovery: Full state restoration
+
+MODULE 10: ALERTS & REPORTING - FINAL DECISIONS
+10.1 Alert Frequency
+  Critical Alerts: Every occurrence
+  Trade Signals: Once per unique setup
+ Same Condition: Once per 4 hours
+ Summary Alerts: Every 2 hours
+ Customizable: User-configurable thresholds
+
+10.2 Daily Report Contents
+  Format: Executive summary (1 page)
+ Contents:
+ Top 3 trades with mini charts  Key metrics dashboard
+ Next day's high-impact events  Performance metrics
+ Risk exposure heat map
+ Delivery: Email at market close
+
+MODULE 11: TESTING & DEPLOYMENT - FINAL DECISIONS
+11.1 Phased Deployment
+1. Paper Mode: 14 days (target 80%+ win rate)
+2. Demo Account: 7 days (real spreads)
+3. Micro Lots: 7 days (real money test)
+4. 25% Size: 7 days
+5. Full Deployment: After all benchmarks met
+
+11.2 Performance Benchmarks
+ Paper Mode: Win rate >80%, PF >2.5
+ Demo: Win rate >75%, PF >2.0
+
+Micro: Win rate >70%, PF >1.8 Full Size: Win rate >75%, PF >2.0 Max Drawdown: Always <15% Review: Monthly adjustment
+MODULE 12: SPECIAL SCENARIOS - FINAL DECISIONS
+12.1 Holiday Handling
+  Pre-Holiday: Reduce positions to 50%
+ During Holiday: Monitor only, no new trades
+  Post-Holiday: Gradual re-entry
+ Calendar: Auto-updated
+ Region-Specific: Yes
+
+12.2 Disaster Recovery
+  State File: JSON format, 1-minute updates
+ Location: MQL5\Files\GlobalFlow_Recovery.json
+ Backup: Local + cloud
+ Auto-Recovery: Full position restoration  Manual Override: Available but logged  Testing: Weekly automated
+12.3 Version Updates
+ Auto-Backup: Before update
+ Export Format: JSON + encrypted  Compatibility: 2 versions backward  Update Window: Weekends only
+ Rollback: 24-hour option
+ Change Log: Detailed documentation
+
+?? KEY DECISIONS SUMMARY
+1. Stop Loss: ALWAYS STR-EXIT based, moves dynamically, NO modifications
+
+2. Partial Fills: Smart acceptance (70%+), stop loss unchanged
+3. Risk Management: Margin-based, VIX-adjusted, correlation limits
+4. Emergency Protocols: Multi-level protection with VIX triggers
+5. Deployment: 5-phase rollout with strict benchmarks
+6. Recovery: Automated with 1-minute state saves
+
+?? CRITICAL REMINDERS
+1. STR-EXIT is Sacred: Never modify the stop loss logic
+2. Quality Over Quantity: Skip trades if conditions aren't perfect
+3. Phased Deployment: No shortcuts in testing phases
+4. Documentation: Log every decision and adjustment
+5. Target: 90%+ win rate through strict adherence to rules
+
+?? NEXT CHAT REQUIREMENTS
+Priority 1: Define 34 Entry Condition
+ B1-B17 (Buy conditions)  S1-S17 (Sell conditions)
+ Each with specific parameters
+  Minimum conditions logic (10+ mentio
+
+Priority 2: Confirm Indicator Setting
+ Ichimoku (9,26,52)?
+ TDI (RSI 13, Volatility 34)?
+ Bollinger Bands (20, 2.0)?
+ SMMA (50)?
+
+Priority 3: Begin EA Structure
+ File organization  Core functions
+ Indicator integration  API connections
+
+?? Reference Files to Include in Next Chat
+1. This document
+2. Previous rule documents (1-410+)
+3. Indicator MQL5 files
+4. Strategy flowcharts
+5. Risk management specifications
+Start next chat with: "Continue EA GlobalFlow Pro v8.0 development from Module 6-12 decisions. Need to define 34 entry conditions."

@@ -1,0 +1,35 @@
+DOES THIS TRUEDATA API AND ALL OTHER APl'S for this EA need installations ?
+
+No, APis themselves don't need "installation" -they are web services. Here's the difference:
+ What You Install vs What You Connect To:
+What Gets INSTALLED (on your VPS):
+ Python libraries (via pip install)
+• These are tools to CONNECT to APis
+
+• Like:	,
+
+What You DON'T Install Gust connect to):
+ APis (web services)
+• TrueData API	Lives on TrueData servers
+• Fyers API	Lives on Fyers servers
+• CFTC COT Data	Lives on government website
+
+ Think ofit like this:
+Python Library = Phone app (you install)
+API = Phone service (you connect to)
+
+For EA GlobalFlow Pro:
+1. You INSTALL:
+• Python libraries (pip install commands)
+• These create the "connection tools"
+
+2. You CONNECT TO:
+• TrueData servers (for market data)
+• Fyers servers (for trading)
+• No installation needed!
+
+3. You CONFIGURE:
+• API credentials (username/password)
+• Put these in EA settings
+
+Summary: APis are like websites - you don't install Google, you just connect to it. Same with trading APis!

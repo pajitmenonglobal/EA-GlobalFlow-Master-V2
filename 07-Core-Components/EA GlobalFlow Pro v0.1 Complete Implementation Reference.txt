@@ -1,0 +1,527 @@
+EA GlobalFlow Pro v0.1 - Complete Implementation Reference
+Reference File: Save as "EA_GlobaIFlow_Pro_v01_Complete_Reference.md" Status: Ready for MQL5 Implementation Date: Current Session - Complete Specification Memory Lock: PERMANENT REFERENCE
+- Core principles locked
+
+
+ CORE STRATEGY FRAMEWORK
+Strategy Name: lchimoku-TDI-PA-BBsqueeze-Kumocross Objective: Multi-market trading system for trending markets
+
+• Path 1: Continuation (CT) - trade with ongoing trends
+
+• Path 2: Pull-back (PB) - trade market reversals
+
+• Exit Rule: STR-EXIT trend change on 1-hour timeframe
+
+• Universal Entry Rule: ALWAYS enter with the trend in BOTH paths
+
+
+ WIN  RATE ARCHITECTURE {LOCKED)
+
+ TRIPLE ENHANCEMENT SYSTEM - 90-95% WIN RATE
+Layer 1: 34 Entry Conditions
+
+• Base Win Rate: 65-70%
+
+• Function: Basic screening - catches 70% of bad trades
+
+• Requirement: Minimum 10 conditions must be met
+
+Layer 2: ML Enhancement
+
+• Enhanced Win Rate: 80-85%
+
+• Function: Advanced filtering - catches another 15-20%
+
+• Requirement: ML confidence 2:: 75%
+
+Layer 3: Candlestick + Volume Validation
+
+• Final Win Rate: 90-95% 
+• Function: Final inspection - catches last 10-15%
+
+• Requirement: Strong candlestick pattern + volume confirmation
+
+ FALLBACK SYSTEM
+• When ML Fails: 34 Conditions+ MANDATORY Candlestick+ Volume= 80-85%
+
+• VIX >30: Disable ML, use strict candlestick patterns= 85%
+
+• Baseline: 34 conditions alone = 65-70%
+
+
+ CRITICAL EXCLUSIONS (NEVER IMPLEMENT)
+
+COMPLETELY EXCLUDED FROM EA LOGIC:
+•  Elliott Wave Analysis - All references removed
+•  Fibonacci Confluence - All Fibonacci components excluded
+•  Rules 1-399 - Outdated/superseded concepts only
+•  Primary Chart Dependencies - F&O uses background scanner only
+
+AUTHORITATIVE RULE SET:
+•  Rules 400-500+ ONLY - Latest evolved advanced framework
+•  Pure Technical Analysis - 6 indicators + ML+ Price Action only
+
+
+ DUAL MARKET ARCHITECTURE
+
+IN F&O MARKETS (Indian)
+System Type: Background Scanner ---. Dynamic Secondary Chart Creation Data Sources:
+
+• Fyers API (India VIX, real-time F&O data)
+
+• TrueData API (NSE/BSE option chain analysis)
+
+Chart Management:
+
+•  NO Primary Charts - Background scanning only
+•  Direct Secondary Chart Opening - Call/Put charts at OTM levels
+• Auto-close: Stop loss/exit/take profit OR 3:29 PM on expiry
+
+Strike Price Intervals:
+
+• NIFTY INDEX: SO-point intervals
+
+• All Other Indices: 100-point intervals
+
+• Stock Options: Dynamic interval detection
+
+ NON-F&O MARKETS (Forex/Commodities)
+System Type: Multi-Chart Ranking ---. Top 15-20 Auto-Opening Platform: IC Markets MTS Operation:
+Single chart per asset (no secondary charts) Order Types: Buy Stop and Sell Stop
+
+
+TECHNICAL FRAMEWORK
+
+6 CORE INDICATORS (ONLY)
+
+1. lchimoku Kinko Hyo (9, 26, 52) - Trend analysis, Kumo cloud
+
+2. TDI (lchi-Trader Dynamic Index) - RSl(13), VB(34), Price(2), Signal(?), Levels(68/32)
+
+3. SMMAS0 - Trend filtering, slope analysis
+
+4. Bollinger Bands (20, 2.0) - Squeeze detection, expansion signals
+
+5. STR-ENTRY - ATR Period 20, Multiplier 1.0
+
+6. STR-EXIT - ATR Period 20, Multiplier 1.5
+
+MULTI-TIMEFRAME CASCADE
+• Major Trend: Daily OR 4H timeframe analysis
+
+• Middle Trend: 1H OR 30M timeframe analysis
+
+• Entry Execution: 15M OR SM timeframes only
+
+
+ COMPLETE 34 ENTRY CONDITIONS
+
+CONTINUATION TREND (CT) - 26 CONDITIONS
+A1-A3: CT-Sell Path (13 Sell Orders: S1-S13)
+
+• Major Trend: Daily/4H bearish confirmation
+
+• Middle Trend: 30min/1H bearish alignment
+
+• Entry: Smin/1Smin sell execution
+
+B1-B3: CT-Buy Path (13 Buy Orders: B1-B13)
+
+• Major Trend: Daily/4H bullish confirmation
+
+• Middle Trend: 30min/1H bullish alignment
+
+• Entry: Smin/1Smin buy execution
+
+PULLBACK PATH (PB) - 8 CONDITIONS
+C: PB-Sell Path (4 Sell Orders: S14-S17)
+
+• Major Trend: Daily/4H analysis
+
+• Middle Trend: 1H/30min counter-trend
+
+• Entry: 30min/5min sell execution
+
+D: PB-Buy Path (4 Buy Orders: B14-B17)
+
+• Major Trend: Daily/4H analysis
+
+• Middle Trend: 1H/30min counter-trend
+
+• Entry: 30min/5min buy execution
+
+ENTRY CONDITION GROUPS
+BB_Squeeze Buy Group (81-84)
+
+• B1: CT_BBSqueeze_Bull Complex
+
+• B2: CT_BBBreak_Upper
+
+• B3: CT_KumoBreak_Bull
+
+• B4: CT_SMMA_Bull
+
+STR-ENTRY-1 Buy Group (85-88)
+
+• Prerequisite: MB(1) > = 50 AND MB(1) < 68 AND VB_High(1) < 68 AND rsig(1) > 50
+
+• B5-B8: Specific TDI and STR-ENTRY combinations
+
+STR-ENTRY-2 Buy Group (89-813)
+
+• Prerequisite: MB(1) < = 50 AND MB(1) > 32 AND VB_Low(1) < 32 AND rsig(1) < 50
+
+• B9-B13: Complementary TDI and STR-ENTRY conditions
+
+
+ HYBRID 01 LOGIC (F&O ONLY)
+
+ATM STRIKE IDENTIFICATION
+
+• ATM Strike = Nearest to current spot price AND nearest to bar-close spot price
+
+• Study 5 levels above and below ATM price
+
+DUAL PATH 01 ANALYSIS
+PATH 1: Directional Bias Pattern
+
+• Bullish: ATM > 30% Call 01 bias + +1-OTM Call 01 > 30% more than Put 01
+• Action: Open Call chart @ + 1-OTM + Put chart @ -1-OTM
+
+• Bearish: ATM > 30% Put 01 bias + -1-OTM Put 01 > 30% more than Call 01
+• Action: Open Put chart @ -1-OTM + Call chart @ +1-OTM
+
+PATH 2: Independent Bias Pattern
+
+•	+1-OTM: > 30% relative difference (any direction)
+
+• -1-OTM: >30% relative difference (any direction)
+
+• Action: Open Call chart @ +1-OTM + Put chart @ -1-OTM
+
+SPECIAL RULES
+
+• Expiry Day: Both charts open at ATM level (overrides OTM logic)
+
+• Chart Limits: Only 1 Call + 1 Put chart per ATM strike
+
+• Minimum Bias: 30% threshold is NEVER compromised
+
+• Auto-Close: 3:29 PM on expiry day mandatory
+
+
+ RISK MANAGEMENT & SAFETY
+RISK VETO SYSTEM (Can Cancel Any Trade)
+
+• Economic: 30 min before/after high-impact news
+
+• Market Conditions: First/last 30 minutes, extreme volatility (ATR > 3x)
+
+• Technical: Conflicting signals, support/resistance < 20 pips
+
+• Liquidity: Avoid far OTM, illiquid strikes, expiry day drops
+
+STR-EXIT PROTOCOL (SACRED)
+
+• Exit Trigger: STR-EXIT trend direction change on 1H timeframe
+
+• Trailing Buffer: 0.25% from STR-EXIT line
+
+• Volatility Adjustment: Dynamic buffer based on ATR
+
+• Override: Never compromise STR-EXIT logic
+
+POSITION LIMITS
+• Max Risk: 5% per trade (conservative)
+
+• Daily Loss Limit: Customizable parameter
+
+• Position Limits: Market-specific maximums
+
+• Emergency Stops: Multiple circuit breakers
+
+
+ EXPIRY DAV PROTOCOL (CRITICAL UPDATE)
+
+ IMPORTANT CORRECTION
+• OLD (Incorrect): Avoid new trades in last 2 hours
+
+• NEW (Correct): CONTINUE TRADING in last 2 hours with FULL EA rules
+
+EXPIRY DAY LAST 2 HOURS (1:30 PM - 3:30 PM 1ST)
+•  Continue Scanning for Opportunities
+•  Apply ALL 34 Entry Conditions
+•  Use ML if Available (may have lower confidence)
+• MANDATORY Dual Enhancement (Candlestick+ Volume REQUIRED)
+
+•  Fixed Stop Loss (0.25% from STR-EXIT 1H)
+•  Auto-close at 3:29 PM
+
+WHY THIS MAKES SENSE
+1. Best Opportunities: Expiry day volatility creates excellent setups
+
+2. Enhanced Protection: Dual enhancement filters out weak trades
+
+3. Fixed Stops: Protects against gamma squeezes
+
+4. Quality Entries: Candlestick + Volume ensures only best trades
+
+
+ INPUT PARAMETER STRUCTURE
+
+SYSTEM CONTROL
+
+• Enable/Disable Trading (bool)
+
+• Enable ML Enhancement (bool)
+
+• Market Type Auto-Detection (bool)
+
+• Trading Hours Management (dropdown)
+
+F&O SETTINGS
+
+• TrueData API Integration (string)
+
+• Fyers API Configuration (string)
+
+• 01 Analysis Parameters (double)
+
+• Secondary Chart Management (int)
+
+• Strike Price Study Range (int) - Default: 5 levels
+
+NON-F&O SETTINGS
+
+• Chart Auto-Opening Count (int) - Default: 15-20
+
+• Ranking Algorithm Parameters (double)
+
+• Asset Universe Selection (dropdown)
+
+TECHNICAL INDICATORS
+
+• lchimoku Settings (9,26,52) - Full customization
+
+• TDI Parameters (13,34,2,7,68,32) - All adjustable
+
+• SMMA Period (50) - Customizable
+
+• Bollinger Bands (20,2.0) - Period and deviation
+
+• STR-ENTRY (ATR 20, Multiplier 1.0)
+
+• STR-EXIT (ATR 20, Multiplier 1.5)
+
+RISK MANAGEMENT
+• Position Size Percentage (2-5%) - Default: 5%
+• Daily Loss Limit (customizable)
+
+• Weekly/Monthly Limits (optional)
+
+• VIX Threshold for ML Disable (30)
+
+TRADING HOURS
+Indian F&O Markets:
+
+• Start: 9:30 AM 1ST
+• End: 3:29 PM 1ST
+
+• Days: Monday-Friday (dropdown selection)
+
+Forex Markets:
+
+• Start: 01:00 Hours
+• End: 23:00 Hours
+• Days: Monday-Friday
+
+• Server Time Based
+
+ML ENHANCEMENT
+• ML Confidence Threshold (75%)
+• Fallback Mode Settings (mandatory)
+
+• Pattern Recognition Parameters
+
+• Volume Analysis Settings
+
+ALERTS & NOTIFICATIONS
+• Sound Alert: true/false (DEFAULT: false)
+
+• Email Alert: true (DEFAULT) - pajitmenonai@gmail.com
+
+• Phone Alert: true (DEFAULT) - 00971507423656
+
+• Trade Comments: enabled
+
+
+ API INTEGRATION FRAMEWORK
+
+REQUIRED API CONNECTIONS
+1. Fyers API: India VIX data, real-time F&O feeds
+
+2. TrueData API: NSE/BSE data, option chain analysis
+
+3. IC Markets MTS: Forex/Commodities execution platform
+
+DATA FLOW ARCHITECTURE
+• TrueData -. Python Bridge -. MTS (Named Pipes)
+
+• Fyers -. Direct MTS integration
+
+• Real-time option chain analysis
+
+• Multi-source feed redundancy
+
+
+ ERROR HANDLING & MONITORING
+
+MTS ERROR CODE INTEGRATION
+
+• Complete error code set implementation
+
+• Auto-recovery mechanisms
+
+• Connection health monitoring
+
+• Fallback system activation
+
+CRITICAL ALERTS
+
+• "Please enable live trading under Common tab"
+
+• "Expert advisors disabled! Enable EA button on toolbar"
+
+• "Please enable DLL imports under Common tab"
+
+• API connection failure notifications
+
+
+ DASHBOARD VISUALIZATION
+
+DUAL DASHBOARD SYSTEM
+• F&O Dashboard: Royal Blue theme, secondary chart monitoring
+
+• Non-F&O Dashboard: Black theme, multi-chart status
+
+• Real-time performance metrics
+
+• Economic calendar integration
+
+• Skill vs News impact analysis
+
+ECONOMIC CALENDAR FEATURES
+• High-impact news filtering (FOMC, NFP, CPI)
+
+• Pre/post news blackout periods
+
+• Market correlation analysis
+
+• Automated news impact assessment
+
+
+
+AUTO-CLOSE CONDITIONS
+
+8 TRADE AUTO-CLOSE CONDITIONS
+
+1. STR-EXIT trend change (primary)
+
+2. Daily loss limit reached
+
+3. Take profit target hit
+
+4. Opposite signal generated
+
+5. Risk/reward target achieved
+
+6. Maximum position limit
+
+7. End of trading session
+
+8. Emergency market conditions
+
+5 SECONDARY CHART AUTO-CLOSE CONDITIONS
+
+1. Stop loss hit
+
+2. Exit trade triggered
+
+3. Take profit achieved
+
+4. 3:29 PM on expiry day
+
+5. Parent chart closure signal
+
+
+ IMPLEMENTATION PRIORITIES
+
+PHASE 1: CORE EA STRUCTURE
+
+1. Complete input parameters dialog
+
+2. Market type auto-detection
+
+3. Multi-timeframe analysis engine
+
+4. 34 entry conditions implementation
+
+PHASE 2: MARKET-SPECIFIC LOGIC
+
+1. F&O background scanner
+
+2. Non-F&O ranking system
+
+3. Hybrid 01 analysis
+
+4. Dynamic chart management
+
+PHASE 3: ENHANCEMENT SYSTEMS
+
+1. ML integration framework
+
+2. Candlestick pattern recognition
+
+3. Volume analysis engine
+
+4. Triple enhancement validation
+
+PHASE 4: SAFETY & MONITORING
+1. Risk veto system
+
+2. Error handling framework
+
+3. Dashboard visualization
+
+4. Alert system integration
+
+
+ FINAL IMPLEMENTATION LOCKS
+
+NEVER COMPROMISE ON:
+
+• 90-95% win rate target with Triple Enhancement
+• 30% minimum 01 bias requirement
+
+• STR-EXIT sacred exit logic
+
+• Rules 400-500+ as single source of truth
+
+• NO Elliott Wave or Fibonacci components
+
+ALWAYS INCLUDE:
+
+• Mandatory candlestick+ volume validation when ML fails
+
+• Expiry day continued trading with dual enhancement
+
+• Multi-timeframe cascade analysis
+
+• Complete error handling and recovery systems
+
+
+STATUS: READY FOR MQLS IMPLEMENTATION REFERENCE LOCKED: EA GlobalFlow Pro v0.1
+Complete Specification MEMORY ANCHOR: These principles are permanent and unchanging
+
+
+This reference document contains the complete specification for EA GlobalFlow Pro v0. 7 implementation. All core principles, technical requirements, and system architecture are locked and finalized based on the advanced Rules 400-500+ framework.

@@ -1,0 +1,43 @@
+Here's the correct step-by-step:
+1. First, create the main folder:
+
+C:\EA_GlobalFlow_Bridge\
+
+2. Open Command Prompt and navigate there:
+
+cd C:\EA_GlobalFlow_Bridge\
+
+3. Run	these commands one by one:
+Command 1: Create Python environment
+
+python -m venv Python
+
+(This creates a "Python" subfolder automatically)
+Command 2: Activate the environment
+
+Python\Scripts\activate
+
+(You'll see (Python) appear in command prompt)
+Command 3: Install TrueData
+
+pip install truedata_ws
+
+
+What this does:
+• Creates:
+• Installs Python files inside it
+• Installs truedata_ws in the correct location
+Visual Result:
+
+
+folder
+
+
+C:\EA_GlobalFlow_Bridge\
+L_	Python\	Created by venv command
+f--- Scripts\
+I	f--- activate.bat
+I	L_	pip.exe
+L_	Lib\
+L_	site-packages\
+L_	truedata_ws\	Installed here

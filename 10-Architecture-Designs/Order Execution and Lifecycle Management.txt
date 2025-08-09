@@ -1,0 +1,28 @@
+Order Execution and Lifecycle Management
+
+
+Order Execution and Lifecycle Management
+
+This section defines the mechanics of order management, accounting for slippage, partial fills, and broker rejections.1
+
+7.1. Smart Fill Management for Partial Fills
+
+The system includes a protocol for intelligently handling partial fills. Crucially, this logic never involves altering the trade's stop loss
+Fill ≥ 70%: ACCEPT. The partial fill is accepted, and the unfilled remainder is canceled. The trade proceeds with the smaller size.
+Fill < 70%: REJECT. The trade is deemed to have failed. The unfilled remainder is canceled, and the EA immediately sends an order
+ to close the small portion that was filled.
+
+7.2. Intelligent Order Retry Logic
+
+If an order fails for a transient reason (e.g., "Re-quote"), the EA engages an intelligent retry system.1
+Maximum Attempts: 3 retries.
+Progressive Delay: 1 second after the first failure, 3 seconds after the second, and 5 seconds after the third.
+Contextual Handling: This logic only applies to recoverable errors. A fatal error like "Insufficient Margin" will not trigger a retry.
+
+7.3. Order Placement for Non-F&O Markets
+
+For Forex and Commodity markets, entries are executed using pending orders to capture breakout momentum.
+Order Types: The EA will exclusively use ORDER_TYPE_BUY_STOP and ORDER_TYPE_SELL_STOP orders.1
+Customizable Distance: The distance from the current price at which these pending orders are placed is fully customizable
+ through external input parameters. This allows for fine-tuning the entry strategy based on the specific asset's volatility and 
+the broker's pip/point structure (e.g., IC Markets). The distance is specified in points.1

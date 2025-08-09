@@ -1,0 +1,475 @@
+//+------------------------------------------------------------------+
+//|                                                SMMA50 v0.1.mq5  |
+//|                                 Copyright 2025, EA GlobalFlow     |
+//|                                              https://www.mql5.com |
+//+------------------------------------------------------------------+
+#property version       "0.1"
+#property copyright     "EA GlobalFlow Pro v0.1"
+#property description   "Smoothed Moving Average 50 - Enhanced for EA v0.1 Integration"
+#property indicator_chart_window
+#property indicator_buffers 4
+#property indicator_plots   1
+
+// Plot 1: SMMA Line
+#property indicator_label1  "SMMA 50"
+#property indicator_type1   DRAW_LINE
+#property indicator_color1  clrBlue
+#property indicator_style1  STYLE_SOLID
+#property indicator_width1  2
+
+//--- Input parameters
+input int SMMA_Period = 50;                     // SMMA Period
+input ENUM_APPLIED_PRICE Applied_Price = PRICE_CLOSE; // Applied Price
+input int Shift = 0;                           // Horizontal shift
+input bool EnableAlerts = false;               // Enable Trend Change Alerts
+input bool EnableDashboard = true;             // Enable Status Dashboard
+input bool ShowTrendArrows = false;            // Show Trend Change Arrows
+
+//--- Indicator buffers with EA v4.0 standardized names
+double SMMA_50[];           // ✅ STANDARDIZED NAME - Main SMMA buffer
+double SMMA_TREND[];        // ✅ STANDARDIZED NAME - Trend direction buffer
+double SMMA_MOMENTUM[];     // ✅ STANDARDIZED NAME - SMMA momentum
+double SMMA_SLOPE[];        // ✅ STANDARDIZED NAME - SMMA slope angle
+
+//--- Global variables
+datetime g_LastAlert = 0;
+int g_LastTrend = 0; // 1=Uptrend, -1=Downtrend, 0=Sideways
+double g_LastSMMA = 0;
+
+//+------------------------------------------------------------------+
+//| Custom indicator initialization function                         |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    Print("🔧 SMMA 50 v4.0 - Starting initialization...");
+    
+    // Input validation
+    if(SMMA_Period <= 0)
+    {
+        Print("❌ INITIALIZATION FAILED: SMMA Period must be greater than 0");
+        return(INIT_PARAMETERS_INCORRECT);
+    }
+    
+    if(SMMA_Period < 2)
+    {
+        Print("❌ INITIALIZATION FAILED: SMMA Period must be at least 2");
+        return(INIT_PARAMETERS_INCORRECT);
+    }
+
+    // Set indicator short name
+    IndicatorSetString(INDICATOR_SHORTNAME, "SMMA v4.0 (" + IntegerToString(SMMA_Period) + ")");
+
+    // ✅ CRITICAL: Set indicator buffers with standardized names for EA v4.0
+    SetIndexBuffer(0, SMMA_50, INDICATOR_DATA);             // Buffer 0 - Main SMMA
+    SetIndexBuffer(1, SMMA_TREND, INDICATOR_CALCULATIONS);  // Buffer 1 - Trend direction
+    SetIndexBuffer(2, SMMA_MOMENTUM, INDICATOR_CALCULATIONS); // Buffer 2 - SMMA momentum
+    SetIndexBuffer(3, SMMA_SLOPE, INDICATOR_CALCULATIONS);  // Buffer 3 - SMMA slope
+
+    // Set plot properties
+    PlotIndexSetInteger(0, PLOT_SHIFT, Shift);
+    PlotIndexSetDouble(0, PLOT_EMPTY_VALUE, EMPTY_VALUE);
+
+    // Set array indexing as series (MQL4 style - newest data at index 0)
+    ArraySetAsSeries(SMMA_50, true);
+    ArraySetAsSeries(SMMA_TREND, true);
+    ArraySetAsSeries(SMMA_MOMENTUM, true);
+    ArraySetAsSeries(SMMA_SLOPE, true);
+
+    // Set indicator digits
+    IndicatorSetInteger(INDICATOR_DIGITS, _Digits);
+    
+    Print("✅ SMMA 50 v4.0 - Initialization successful!");
+    Print("📊 Settings: Period:", SMMA_Period, " Applied Price:", EnumToString(Applied_Price));
+    
+    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Custom indicator iteration function                              |
+//+------------------------------------------------------------------+
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime &time[],
+                const double &open[],
+                const double &high[],
+                const double &low[],
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
+{
+    // Check for minimum bars
+    if(rates_total < SMMA_Period)
+    {
+        Print("⚠️ Insufficient bars for SMMA calculation. Need: ", SMMA_Period, " Have: ", rates_total);
+        return(0);
+    }
+
+    // Set arrays as series
+    ArraySetAsSeries(time, true);
+    ArraySetAsSeries(open, true);
+    ArraySetAsSeries(high, true);
+    ArraySetAsSeries(low, true);
+    ArraySetAsSeries(close, true);
+
+    // Get applied price array
+    double price[];
+    ArrayResize(price, rates_total);
+    ArraySetAsSeries(price, true);
+    
+    GetAppliedPrice(price, rates_total, Applied_Price, open, high, low, close);
+
+    // Determine calculation start
+    int start = prev_calculated;
+    if(prev_calculated == 0)
+    {
+        start = SMMA_Period - 1;
+        
+        // Calculate first SMMA value (SMA)
+        double sum = 0.0;
+        for(int j = 0; j < SMMA_Period; j++)
+        {
+            sum += price[rates_total - 1 - start + j];
+        }
+        SMMA_50[rates_total - 1 - start] = sum / SMMA_Period;
+        start++;
+    }
+
+    // Main calculation loop
+    for(int i = start; i < rates_total; i++)
+    {
+        int pos = rates_total - 1 - i;
+        int prev_pos = pos + 1;
+        
+        // Calculate SMMA: (SMMA(i-1) * (Period-1) + Price(i)) / Period
+        if(prev_pos < ArraySize(SMMA_50) && SMMA_50[prev_pos] != EMPTY_VALUE)
+        {
+            SMMA_50[pos] = (SMMA_50[prev_pos] * (SMMA_Period - 1) + price[pos]) / SMMA_Period;
+        }
+        else
+        {
+            SMMA_50[pos] = price[pos]; // Fallback
+        }
+        
+        // Calculate additional analysis buffers
+        CalculateTrendDirection(pos);
+        CalculateMomentum(pos);
+        CalculateSlope(pos, price[pos]);
+    }
+
+    // Check for alerts
+    if(EnableAlerts)
+    {
+        CheckTrendChangeAlert(rates_total - 1, price[0]);
+    }
+    
+    // Update dashboard
+    if(EnableDashboard)
+    {
+        UpdateSMMADashboard(rates_total - 1, price[0]);
+    }
+
+    return(rates_total);
+}
+
+//+------------------------------------------------------------------+
+//| Get applied price values                                        |
+//+------------------------------------------------------------------+
+void GetAppliedPrice(double &price[], int rates_total, ENUM_APPLIED_PRICE applied_price,
+                    const double &open[], const double &high[], const double &low[], const double &close[])
+{
+    for(int i = 0; i < rates_total; i++)
+    {
+        switch(applied_price)
+        {
+            case PRICE_CLOSE:
+                price[i] = close[i];
+                break;
+            case PRICE_OPEN:
+                price[i] = open[i];
+                break;
+            case PRICE_HIGH:
+                price[i] = high[i];
+                break;
+            case PRICE_LOW:
+                price[i] = low[i];
+                break;
+            case PRICE_MEDIAN:
+                price[i] = (high[i] + low[i]) / 2.0;
+                break;
+            case PRICE_TYPICAL:
+                price[i] = (high[i] + low[i] + close[i]) / 3.0;
+                break;
+            case PRICE_WEIGHTED:
+                price[i] = (high[i] + low[i] + 2 * close[i]) / 4.0;
+                break;
+            default:
+                price[i] = close[i];
+                break;
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Calculate trend direction                                       |
+//+------------------------------------------------------------------+
+void CalculateTrendDirection(int pos)
+{
+    if(pos < 1 || pos + 1 >= ArraySize(SMMA_50)) return;
+    
+    double currentSMMA = SMMA_50[pos];
+    double previousSMMA = SMMA_50[pos + 1];
+    
+    if(currentSMMA == EMPTY_VALUE || previousSMMA == EMPTY_VALUE)
+    {
+        SMMA_TREND[pos] = 0; // Neutral
+        return;
+    }
+    
+    // Determine trend direction
+    if(currentSMMA > previousSMMA)
+    {
+        SMMA_TREND[pos] = 1; // Uptrend
+    }
+    else if(currentSMMA < previousSMMA)
+    {
+        SMMA_TREND[pos] = -1; // Downtrend
+    }
+    else
+    {
+        SMMA_TREND[pos] = 0; // Sideways
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Calculate SMMA momentum                                         |
+//+------------------------------------------------------------------+
+void CalculateMomentum(int pos)
+{
+    if(pos < 1 || pos + 1 >= ArraySize(SMMA_50)) return;
+    
+    double currentSMMA = SMMA_50[pos];
+    double previousSMMA = SMMA_50[pos + 1];
+    
+    if(currentSMMA == EMPTY_VALUE || previousSMMA == EMPTY_VALUE)
+    {
+        SMMA_MOMENTUM[pos] = 0.0;
+        return;
+    }
+    
+    // Calculate momentum as price change
+    SMMA_MOMENTUM[pos] = currentSMMA - previousSMMA;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate SMMA slope angle                                      |
+//+------------------------------------------------------------------+
+void CalculateSlope(int pos, double currentPrice)
+{
+    if(pos >= ArraySize(SMMA_50) || SMMA_50[pos] == EMPTY_VALUE) return;
+    
+    double smmaValue = SMMA_50[pos];
+    
+    // Calculate slope as angle between price and SMMA
+    double priceDiff = currentPrice - smmaValue;
+    double pointValue = SymbolInfoDouble(Symbol(), SYMBOL_POINT);
+    
+    // Convert to angle-like measure (normalized)
+    if(pointValue > 0)
+    {
+        SMMA_SLOPE[pos] = priceDiff / pointValue;
+    }
+    else
+    {
+        SMMA_SLOPE[pos] = 0.0;
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Check for trend change alerts                                  |
+//+------------------------------------------------------------------+
+void CheckTrendChangeAlert(int pos, double currentPrice)
+{
+    if(pos < 0 || pos >= ArraySize(SMMA_TREND)) return;
+    
+    int currentTrend = (int)SMMA_TREND[pos];
+    
+    if(currentTrend != g_LastTrend && TimeCurrent() - g_LastAlert > 300) // 5 min interval
+    {
+        string alertMessage = "";
+        
+        switch(currentTrend)
+        {
+            case 1:
+                alertMessage = "SMMA 50: UPTREND confirmed on " + Symbol() + " - Price: " + DoubleToString(currentPrice, _Digits);
+                break;
+            case -1:
+                alertMessage = "SMMA 50: DOWNTREND confirmed on " + Symbol() + " - Price: " + DoubleToString(currentPrice, _Digits);
+                break;
+            case 0:
+                alertMessage = "SMMA 50: SIDEWAYS movement on " + Symbol() + " - Price: " + DoubleToString(currentPrice, _Digits);
+                break;
+        }
+        
+        if(alertMessage != "")
+        {
+            Alert(alertMessage);
+            Print("📢 ", alertMessage);
+            g_LastAlert = TimeCurrent();
+            g_LastTrend = currentTrend;
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Update SMMA dashboard display                                   |
+//+------------------------------------------------------------------+
+void UpdateSMMADashboard(int pos, double currentPrice)
+{
+    if(pos < 0 || pos >= ArraySize(SMMA_50)) return;
+    
+    string trendStatus = "";
+    string pricePosition = "";
+    color trendColor = clrWhite;
+    
+    int trend = (int)SMMA_TREND[pos];
+    double smmaValue = SMMA_50[pos];
+    
+    switch(trend)
+    {
+        case 1:
+            trendStatus = "UPTREND";
+            trendColor = clrLimeGreen;
+            break;
+        case -1:
+            trendStatus = "DOWNTREND";
+            trendColor = clrRed;
+            break;
+        default:
+            trendStatus = "SIDEWAYS";
+            trendColor = clrYellow;
+            break;
+    }
+    
+    if(currentPrice > smmaValue)
+        pricePosition = "ABOVE SMMA";
+    else if(currentPrice < smmaValue)
+        pricePosition = "BELOW SMMA";
+    else
+        pricePosition = "AT SMMA";
+    
+    double distancePoints = MathAbs(currentPrice - smmaValue) / SymbolInfoDouble(Symbol(), SYMBOL_POINT);
+    
+    // Create dashboard text
+    string dashboardText = StringFormat(
+        "📊 SMMA 50 v4.0 STATUS\n" +
+        "══════════════════════\n" +
+        "Trend: %s\n" +
+        "SMMA Value: %.5f\n" +
+        "Current Price: %.5f\n" +
+        "Position: %s\n" +
+        "Distance: %.1f points\n" +
+        "Momentum: %.5f\n" +
+        "Slope: %.2f",
+        trendStatus,
+        smmaValue,
+        currentPrice,
+        pricePosition,
+        distancePoints,
+        SMMA_MOMENTUM[pos],
+        SMMA_SLOPE[pos]
+    );
+    
+    // Display dashboard
+    Comment(dashboardText);
+}
+
+//+------------------------------------------------------------------+
+//| Get SMMA trend direction for EA integration                    |
+//+------------------------------------------------------------------+
+int GetSMMATrend(int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(SMMA_TREND))
+        return((int)SMMA_TREND[pos]);
+    return(0);
+}
+
+//+------------------------------------------------------------------+
+//| Check if price is above SMMA                                   |
+//+------------------------------------------------------------------+
+bool IsPriceAboveSMMA(double price, int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(SMMA_50))
+        return(price > SMMA_50[pos]);
+    return(false);
+}
+
+//+------------------------------------------------------------------+
+//| Check if price is below SMMA                                   |
+//+------------------------------------------------------------------+
+bool IsPriceBelowSMMA(double price, int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(SMMA_50))
+        return(price < SMMA_50[pos]);
+    return(false);
+}
+
+//+------------------------------------------------------------------+
+//| Get SMMA value                                                  |
+//+------------------------------------------------------------------+
+double GetSMMAValue(int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(SMMA_50))
+        return(SMMA_50[pos]);
+    return(0.0);
+}
+
+//+------------------------------------------------------------------+
+//| Get SMMA momentum                                               |
+//+------------------------------------------------------------------+
+double GetSMMAMomentum(int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(SMMA_MOMENTUM))
+        return(SMMA_MOMENTUM[pos]);
+    return(0.0);
+}
+
+//+------------------------------------------------------------------+
+//| Get SMMA slope angle                                            |
+//+------------------------------------------------------------------+
+double GetSMMASlope(int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(SMMA_SLOPE))
+        return(SMMA_SLOPE[pos]);
+    return(0.0);
+}
+
+//+------------------------------------------------------------------+
+//| Check if SMMA is in strong uptrend                             |
+//+------------------------------------------------------------------+
+bool IsSMMAStrongUptrend(int pos = 0, int lookback = 3)
+{
+    if(pos + lookback >= ArraySize(SMMA_TREND)) return(false);
+    
+    for(int i = pos; i < pos + lookback; i++)
+    {
+        if(SMMA_TREND[i] != 1) return(false);
+    }
+    
+    return(true);
+}
+
+//+------------------------------------------------------------------+
+//| Check if SMMA is in strong downtrend                           |
+//+------------------------------------------------------------------+
+bool IsSMMAStrongDowntrend(int pos = 0, int lookback = 3)
+{
+    if(pos + lookback >= ArraySize(SMMA_TREND)) return(false);
+    
+    for(int i = pos; i < pos + lookback; i++)
+    {
+        if(SMMA_TREND[i] != -1) return(false);
+    }
+    
+    return(true);
+}

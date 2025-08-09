@@ -1,0 +1,646 @@
+EA GlobalFlow Pro vO.1- Complete Development Specification.md 1
+20.17 KB	607 IinesFormatting may be inconsistent from source
+
+
+# EA GlobalFlow Pro v0.1 - Complete Development Specification
+
+**Reference Document**: EA_GlobalFlow_Pro_v01_Complete_Development_Specification.md
+**Status**: Production-Ready Implementation Guide
+**Date**: August 2025 - Final Comprehensive Specification
+**Version**: v0.1 - Institutional Grade
+
+
+
+##	EXECUTIVE SUMMARY
+
+EA GlobalFlow Pro v0.1 is an institutional-grade multi-market trading system implementing the **Ichim oku-TDI-PA-BBsqueeze-Kumocross** strategy across Indian F&0 markets and international Forex/Commoditi es. The system achieves **90-95% win rates** through a sophisticated Triple Enhancement architecture while maintaining full regulatory compliance and professional risk management standards.
+
+**Tagline**: *"Trade the World Markets with me"*
+
+
+
+##	CORE STRATEGY FRAMEWORK
+
+### **Strategy Name**: Ichimoku-TDI-PA-BBsqueeze-Kumocross
+
+### **Primary Objective**: Multi-market trending system with dual entry paths
+- **Path 1 (Continuation)**: Trade with ongoing market trends
+- **Path 2 (Pullback)**: Trade market reversals and retracements
+- **Universal Rule**: Always enter WITH the trend in both paths
+- **Exit Protocol**: STR-EXIT trend change on 1-hour timeframe
+
+### **Win Rate Architecture - TRIPLE ENHANCEMENT SYSTEM**
+
+**Target: 90-95% Win Rate Achievement**
+
+#### **Layer 1: 34 Entry Conditions (Base: 65-70%)**
+- **Function**: Primary screening - catches 70% of bad trades
+- **Requirement**: Minimum 10 conditions must trigger simultaneously
+- **Structure**: Al-A3 (CT-Sell), B1-B3 (CT-Buy), C (PB-Sell), D (PB-Buy)
+
+#### **Layer 2: ML Enhancement (Enhanced: 80-85%)**
+- **Function**: Advanced pattern recognition - catches additional 15-20%
+- **Requirement**: ML confidence Z75% for trade approval
+- **Fallback**: Mandatory when ML unavailable or VIX ›30
+
+#### **Layer 3: Candlestick + Volume (Final: 90-95%)**
+- **Function**: Final validation - catches remaining 10-15% of bad trades
+- **Requirement**: Strong directional candlestick + volume confirmation
+- **Timing**: Must be present at bar-close on entry timeframes (15M/5M)
+
+### **CRITICAL EXCLUSIONS (PERMANENTLY LOCKED)**
+- **NO Elliott Wave Analysis** - Completely removed from all logic
+- **NO Fibonacci Confluence** - All Fibonacci components excluded
+- **Rules 1-399 Superseded** - Only Rules 400-500+ are authoritative
+
+
+
+##	MODULAR CODEBASE ARCHITECTURE
+
+### **Primary File Structure**
+
+#### **EA_GlobalFlow_Pro_v0.1.mq5** (Main Controller)
+- Event handlers: OnInit(), OnDeinit(), OnTick(), OnTimer()
+- Module coordination and global variable management
+- Error handling and logging system coordination ### **Include Files (.mqh) Specification**
+#### **1. GlobalFlow_Bridge.mqh**
+- Named Pipes communication with Python services
+- API orchestration: Fyers + TrueData + IC Markets
+- JSON-based command/response with error recovery
+- Python service integration: Risk Manager, TOTP, Market Scanner
+
+#### **2. GlobalFlow_Indicators.mqh**
+- 6 Core Indicators: Ichimoku, TDI, SMMA50, Bollinger Bands, STR-ENTRY, STR-EXIT
+- Multi-timeframe cascade: Daily/4H	1H/30M • 15M/5M
+- Standardized EA v0.1 calculations and signal generation
+
+#### **3. GlobalFlow_Trading.mqh**
+- 34 Entry Conditions implementation (Al-A3, B1-B3, C, D paths)
+- Triple Enhancement validation system
+- Market-specific order execution (Margin SL-L, Buy/Sell Stop)
+
+#### **4. GlobalFlow_Risk.mqh**
+- VIX-based dynamic position sizing
+- Correlation limits and emergency protocols
+- 5% equity base with market-specific risk multipliers
+
+#### **5. GlobalFlow_Fn0.mqh**
+- Hybrid OI logic with ›30% directional bias requirement
+- Dynamic Call/Put chart creation and lifecycle management
+- ATM/OTM strike selection and option chain analysis
+
+#### **6. GlobalFlow_Dashboard.mqh**
+- Dual dashboard system for F&0 and Non-F&0 markets
+- Real-time performance monitoring and alerts
+- Visual trade status and system health indicators
+
+
+
+##	MARKET COVERAGE & EXECUTION
+
+### **Dual-Platform Architecture**
+
+#### **Indian F&0 Markets** (Fyers API + TrueData)
+- **Index Futures**: NIFTY, BANKNIFTY, FINNIFTY
+- **Index Options**: NIFTYXXCE, BANKNIFTYXXPE, etc.
+- **Stock Futures**: RELIANCE, TCS, HDFC futures
+- **Stock Options**: RELIANCEXXCE, TCSXXPE, etc.
+- **Order Types**: Margin SL-L (Stop Loss Limit)
+
+#### **International Markets** (IC Markets MT5)
+- **Forex**: EURUSD, GBPUSD, USDJPY, etc.
+- **Commodities**: GOLD, SILVER, OIL, XAUUSD, etc.
+- **CFDs**: International indices and commodities
+- **Order Types**: Buy Stop, Sell Stop ### **Market Detection Logic**
+IF (Symbol contains NIFTY/BANKNIFTY/Stock codes):
+• Route to Fyers API execution
+• Enable F&0 hybrid logic
+• Open dynamic Call/Put charts
+
+ELSE:
+
+• Route to IC Markets execution
+• Enable Non-F&0 scanning
+• Single chart operation
+
+
+
+
+##	COMPLETE 34 ENTRY CONDITIONS
+
+### **CONTINUATION TREND (CT) - 26 CONDITIONS**
+
+#### **A1-A3: CT-Sell Path (13 Sell Orders: S1-S13)**
+- **Major Trend**: Daily/4H bearish confirmation
+- **Middle Trend**: 30min/1H bearish alignment
+- **Entry**: 5min/15min sell execution
+
+#### **B1-B3: CT-Buy Path (13 Buy Orders: B1-B13)**
+- **Major Trend**: Daily/4H bullish confirmation
+- **Middle Trend**: 30min/1H bullish alignment
+- **Entry**: 5min/15min buy execution
+
+### **PULLBACK PATH (PB) - 8 CONDITIONS**
+
+#### **C: PB-Sell Path (4 Sell Orders: S14-S17)**
+- **Major Trend**: Daily/4H analysis
+- **Middle Trend**: 1H/30min counter-trend
+- **Entry**: 30min/5min sell execution
+
+#### **D: PB-Buy Path (4 Buy Orders: B14-Bl7)**
+- **Major Trend**: Daily/4H analysis
+- **Middle Trend**: 1H/30min counter-trend
+- **Entry**: 30min/5min buy execution ### **Entry Condition Groups**
+#### **BB_Squeeze Buy Group (B1-B4)**
+- **B1**: CT_BBSqueeze_Bull Complex
+- **B2**: CT_BBBreak_Upper
+- **B3**: CT_KumoBreak_Bull
+- **B4**: CT_SMMA_Bull
+
+#### **STR-ENTRY-1 Buy Group (B5-B8)**
+- **Prerequisite**: MB(1) >= 50 AND MB(1) < 68 AND VB_High(1) < 68 AND rsig(1) > 50
+- **B5-B8**: Specific TDI and STR-ENTRY combinations
+
+#### **STR-ENTRY-2 Buy Group (B9-B13)**
+- **Prerequisite**: MB(1) <= 50 AND MB(1) > 32 AND VB_Low(1) < 32 AND rsig(1) < 50
+- **B9-B13**: Complementary TDI and STR-ENTRY conditions
+
+
+
+##	HYBRID OI LOGIC (F&0 ONLY)
+
+### **ATM Strike Identification**
+- **ATM Strike** = Nearest to current spot price AND nearest to bar-close spot price
+- **Study Range**: 5 levels above and below ATM price ### **Dual Path OI Analysis**
+#### **PATH 1: Directional Bias Pattern**
+- **Bullish**: ATM >30% Call OI bias + +1-OTM Call OI >30% more than Put OI
+- **Action**: Open Call chart @ +1-OTM + Put chart @ -1-OTM
+- **Bearish**: ATM >30% Put OI bias + -1-OTM Put OI >30% more than Call OI
+- **Action**: Open Put chart @ -1-OTM + Call chart @ +1-OTM
+
+#### **PATH 2: Independent Bias Pattern**
+- **+1-OTM**: >30% relative difference (any direction)
+- **-1-OTM**: >30% relative difference (any direction)
+- **Action**: Open Call chart @ +1-OTM + Put chart @ -1-OTM
+
+### **Special Rules**
+- **Expiry Day**: Both charts open at ATM level (overrides OTM logic)
+- **Chart Limits**: Only 1 Call + 1 Put chart per ATM strike
+- **Minimum Bias**: 30% threshold is NEVER compromised
+- **Auto-Close**: 3:29 PM on expiry day mandatory
+
+
+
+##	RISK MANAGEMENT & SAFETY
+
+### **Risk Veto System (Can Cancel Any Trade)**
+- **Daily Loss Limit**: Customizable percentage of account
+- **Correlation Limits**: Maximum correlated positions
+- **VIX Threshold**: Enhanced risk controls when VIX >30
+- **Position Limits**: Maximum 10 total positions (5 Call + 5 Put)
+
+### **Exit Conditions (13 Auto-Close Triggers)**
+1. **STR-EXIT Signal** (Primary exit)
+2. **Stop Loss Hit** (Risk management)
+3. **Take Profit** (Profit booking)
+4. **Time-based Exit** (End of session)
+5. **Opposite Signal** (Trend reversal)
+6. **Correlation Breach** (Risk limit)
+7. **Daily Loss Limit** (Account protection)
+8. **VIX Spike** (Market volatility)
+9. **News Event** (Economic calendar)
+10. **Volume Anomaly** (Market irregularity)
+11. **Gap Opening** (Market gap)
+12. **Expiry Approach** (F&0 specific)
+13. **Emergency Stop** (Manual override)
+
+
+
+##	TECHNICAL INDICATOR SPECIFICATIONS
+
+### **Core Indicators (6 Required)**
+
+#/f## ""1. I chirnoku Kinko Hyo"*
+- **Settings"* : (9, 26, 52)
+- **Usage**: Trend direction, cloud analysis, signal lines
+- **Standardized Name**: Ichimoku_EA_v01_Standardized.mq5
+
+#### **2. TDI (Ichi-Trader Dynamic Index)**
+- **RSI Period**: 13
+- **Volatility Band Period**: 34
+- **Price Line Period**: 2
+- **Signal Line Period**: 7
+- **Levels**: 68 (overbought), 32 (oversold)
+- **Standardized Name**: 'TDI_EA_v01_Standardized.mq5'
+
+#### **3. SMMA 50**
+- **Period**: 50
+- **Type**: Smoothed Moving Average
+- **Usage**: Trend filtering, slope analysis
+- **Built-in**: Native MT5 indicator
+
+#### **4. Bollinger Bands**
+- **Period**: 20
+- **Deviation**: 2.0
+- **Usage**: Squeeze detection, expansion signals
+
+- **Built-in**: Native MT5 indicator
+
+#### **5. STR-ENTRY**
+- **ATR Period**: 20
+- **Multiplier**: 1.0
+- **Usage**: Entry signal generation
+- **Standardized Name**: STR_ENTRY_EA_v01.mq5'
+
+#### **6. STR-EXIT**
+- **ATR Period**: 20
+- **Multiplier**: 1.5
+- **Usage**: Exit signal generation with 0.25% buffer
+- **Standardized Name**: 'STR_EXIT_EA_v01.mq5'
+
+
+
+##	COMPLETE INPUT PARAMETERS
+
+### **System Control**
+
+
+input bool	InpTradingEnabled = true; input bool	InpMLEnhancement = true; input bool	InpPaperTrading = false; input double InpRiskPercentage = 1.0; input int	InpMaxPositions = 10;
+
+
+### **Market Detection**
+
+input bool	InpAutoDetectMarket = true; input bool	InpFnOEnabled = true;
+input bool	InpForexEnabled = true; input bool	InpCommodityEnabled = true;
+
+
+### **F&0 Settings**
+
+input bool	InpTrueDataEnabled = true; input bool	InpFyersEnabled = true; input double InpOIBiasThreshold = 30.0; input int	InpMaxCallPutCharts = 5; input bool	InpExpiryDayTrading = true;
+
+
+### **International Markets**
+
+input int	 InpMaxNonFnOCharts	20; input double InpScoringThreshold = 75.0; input bool	InpCOTAnalysis = true; input bool	InpVolumeProfile = true;
+
+
+### **Technical Indicators**
+
+// Ichimoku Settings
+input int	InpTenkanSen = 9; input int	InpKijunSen	26; input int	InpSenkouSpanB		52;
+
+// TDI Settings
+input int	 InpRSIPeriod = 13; input int	 InpVolatilityBand = 34; input int	I npPr i ceL i ne = 2;
+input int	InpSignalLine = 7; input double Inp0verbought = 68.0;
+
+// Enable Trading
+// Enable ML Enhancement
+// Paper Trading Mode
+// Risk Per Trade (%)
+// Maximum Positions
+
+
+
+
+// Auto-detect Market Type
+// Enable F&0 Trading
+// Enable Forex Trading
+// Enable Commodity Trading
+
+
+
+
+// TrueData Integration
+// Fyers API Integration
+// OI Bias Threshold (%)
+// Max Call/Put Charts
+// Trade on Expiry Day
+
+
+
+
+// Max Non-F&0 Charts
+// Scoring Threshold (%)
+// COT Report Analysis
+// Volume Profile Analysis
+
+
+
+
+
+// Tenkan-sen Period
+// Kijun-sen Period
+// Senkou Span B Period
+
+
+// TDI RSI Period
+// TDI Volatility Band
+// TDI Price Line
+// TDI Signal Line
+// TDI Overbought Level
+
+input double Inp0versold	32.0;
+
+// SMMA Settings
+input int	InpSMMAPeriod = 50;
+
+// Bollinger Bands
+input int	InpBBPeriod	20; input double InpBBDeviation = 2.0;
+
+// SuperTrend Settings
+input int	InpSTREntryATR = 20;
+input double InpSTREntryMultiplier = 1.0; input int	InpSTRExitATR = 20;
+input double InpSTRExitMultiplier = 1.5; input double InpSTRExitBuffer = 0.25;
+
+
+### **Risk Management**
+
+input double InpMaxDailyLoss = 5.0; input double InpMaxWeeklyLoss = 10.0; input double InpMaxMonthlyLoss = 20.0; input double InpVIXThreshold = 30.0; input double InpCorrelationLimit = 0.7; input bool	InpEmergencyStop = false;
+
+
+### **Trading Hours**
+
+// Indian Markets
+input int	InpIndianStartHour = 9; input int	InpIndianStartMinute = 30; input int	InpIndianEndHour = 15; input int	InpIndianEndMinute = 29;
+
+// International Markets
+input int	InpIntlStartHour	1; input int	InpIntlEndHour = 23; input bool	InpMondayTrading = true; input bool	InpTuesdayTrading = true;
+input bool	InpWednesdayTrading = true;
+input bool	InpThursdayTrading = true; input bool	InpFridayTrading = true;
+
+
+### **ML Enhancement**
+
+input double InpMLConfidenceThreshold = 75.0; input bool	InpPatternRecognition = true; input bool	InpVolumeAnalysis = true;
+input bool	InpCandlestickPattern = true; input int	InpMLLookback = 100;
+
+
+### **Alerts & Notifications**
+
+// TDI Oversold Level
+
+
+// SMMA Period
+
+
+// BB Period
+// BB Deviation
+
+
+// STR-ENTRY ATR Period
+// STR-ENTRY Multiplier
+// STR-EXIT ATR Period
+// STR-EXIT Multiplier
+// STR-EXIT Buffer (%)
+
+
+
+
+// Max Daily Loss (%)
+// Max Weekly Loss (%)
+// Max Monthly Loss (%)
+// VIX Risk Threshold
+// Max Correlation Limit
+// Emergency Stop
+
+
+
+
+
+// Indian Start Hour (IST)
+// Indian Start Minute
+// Indian End Hour (IST)
+// Indian End Minute
+
+
+// International Start Hour
+// International End Hour
+// Monday Trading
+// Tuesday Trading
+// Wednesday Trading
+// Thursday Trading
+// Friday Trading
+
+
+
+
+// ML Confidence Threshold (%)
+// Pattern Recognition
+// Volume Analysis
+// Candlestick Patterns
+// ML Lookback Periods
+
+
+inputboolInpSoundAlert= false;//SoundAlertsinputboolInpEmailAlert= true;//EmailAlertsinputboolInpPhoneAlert= true;//PhoneAlertsinput string InpEmailAddress = "pajitmenonai@gmail.com"; // Email Address input string InpPhoneNumber = "00971507423656"; // Phone Number
+input bool	InpTradeComments = true;	// Trade Comments
+
+
+### **Dashboard Settings**
+
+input bool	InpShowDashboard = true; input bool	InpFnODashboard = true; input bool	InpNonFnODashboard = true; input int	InpDashboardRefresh = 1;
+input bool	InpPerformanceMetrics = true; input bool	InpRiskMetrics = true;
+
+
+
+
+•• 0	API INTEGRATION FRAMEWORK
+
+### **Python Bridge Architecture**
+
+// Show Dashboard
+// F&0 Dashboard
+// Non-F&0 Dashboard
+// Dashboard Refresh (seconds)
+// Performance Metrics
+// Risk Metrics
+
+
+#### **Named Pipes Communication**
+- **Pipe Name**: \\.\pipe\EA_GlobalFlow_v01
+- **Protocol**: JSON-based command/response
+- **Error Recovery**: Automatic reconnection with exponential backoff
+- **Security**: Access control and encryption
+
+#### **Python Services**
+
+##### **1. globalflow_risk_v01.py** 'python
+# Risk management calculations # VIX-based position sizing
+# Correlation monitoring # Emergency stop protocols
+
+
+##### **2. totp_autologin_v01.py** python
+# TOTP generation for Fyers API # Automatic login renewal
+# Session management
+# Error handling and recovery
+
+
+##### **3. cot_automation_v01.py** " 'python
+# COT report downloading
+# Data parsing and analysis # Trend identification
+# Market sentiment scoring
+
+
+##### **4. ml_enhancement_v01.py** python
+# Pattern recognition # Confidence scoring # Trade validation
+# Performance optimization
+
+
+ ##### **5. market_scanner_v01.py** ' 'python
+# Non-F&0 market scanning
+# Scoring and ranking # Chart auto-opening
+# Performance monitoring
+
+
+### **API Credentials Configuration** 'json
+
+"fyers": {
+"app id": "M3ZSJC8Q7I-100", "secret": "T7T0EDKGBT",
+"redirect_url": "http://127.0.0.1:8000/"
+
+"truedata": {
+"login id": "FYERS2301", "password": "3ZPas5sA"
+
+"ic_markets" : {
+"server": "ICMarketsSC-Demo", "login": "[Your Demo Account]", "password": "[Your Demo Password]"
+
+
+
+
+
+
+##
+
+### 1.
+2.
+3.
+4.
+
+IMPLEMENTATION PHASES
+
+**Phase 1: Core Infrastructure**
+**Main EA file creation** with complete input parameters
+**Include file structure** setup
+**Python bridge integration**
+**Basic market detection logic**
+
+
+ **Phase 2: Trading Logic**
+1. **34 entry conditions implementation**
+2. **Multi-timeframe analysis engine**
+3. **Indicator integration and standardization**
+4. **Order execution framework**
+
+
+###
+1.
+2.
+3.
+4.
+
+### 1.
+2.
+3.
+
+**Phase 3: F&0 Specialization**
+**Hybrid OI analysis system**
+**Dynamic chart creation and management**
+**ATM/OTM strike selection logic**
+**Call/Put chart lifecycle management**
+
+**Phase 4: Enhancement Systems**
+**ML integration and validation**
+**Candlestick pattern recognition**
+**Volume analysis engine**
+
+4. **Triple enhancement coordination**
+
+
+###
+1. 
+2. 
+
+**Phase 5: Safety & Monitoring**
+**Risk management system**
+**Dashboard visualization**
+
+3. **Alert system integration**
+4. **Error handling and recovery**
+
+
+
+##	SECURITY & COMPLIANCE
+
+### **Data Protection**
+- **API Key Encryption**: All credentials encrypted at rest
+- **Secure Communication**: Named pipes with access control
+- **Audit Logging**: Complete system activity logging
+- **Backup Security**: Encrypted configuration backups
+
+### **Regulatory Compliance**
+- **NRI Restrictions**: Automatic currency derivative blocking
+- **Position Limits**: Real-time enforcement of regulatory limits
+
+- **Reporting**: Automated compliance reporting
+- **Risk Controls**: Mandatory risk management protocols
+
+### **Error Handling**
+- **Complete MT5 Error Code Integration**: All error codes handled
+- **Graceful Degradation**: System continues with reduced functionality
+- **Automatic Recovery**: Self-healing capabilities
+- **User Notifications**: Clear error communication
+
+
+
+##	PERFORMANCE TARGETS
+
+### **Win Rate Objectives**
+- **Base System**: 65-70% win rate with 34 conditions only
+- **ML Enhanced**: 80-85% win rate with ML validation
+- **Full Enhancement**: 90-95% win rate with triple enhancement
+
+### **Risk Metrics**
+- **Maximum Drawdown**: <5% with conservative risk settings
+- **Sharpe Ratio**: >2.0 target
+- **Maximum Daily Loss**: User-configurable limits
+- **Position Correlation**: <70% correlation between positions
+
+### **System Performance**
+- **Execution Speed**: <100ms average order execution
+- **System Uptime**: 99%+ availability during trading hours
+- **Memory Usage**: <500MB maximum memory footprint
+- **CPU Usage**: <l0% average CPU utilization
+
+
+
+##	QUALITY ASSURANCE
+
+### **Testing Protocol**
+- **Unit Testing**: Individual component validation
+- **Integration Testing**: Cross-component functionality
+- **System Testing**: Complete EA functionality validation
+- **Performance Testing**: Speed, memory, and stability testing
+- **Compliance Testing**: Regulatory requirement validation
+
+### **Code Quality Standards**
+- **Complete Documentation**: Inline comments and technical docs
+- **Error Handling**: Comprehensive error management
+- **Code Reviews**: Peer review of all components
+- **Version Control**: Systematic change management
+
+
+
+##	SUPPORT & MAINTENANCE
+
+### **Alert Channels**
+- **Email**: pajitmenonai@gmail.com
+- **Phone**: 00971507423656
+- **Trade Comments**: Detailed order information
+- **Dashboard**: Real-time system status
+
+### **Maintenance Schedule**
+- **Daily**: System health checks
+- **Weekly**: Performance analysis
+- **Monthly**: Strategy optimization
+- **Quarterly**: Compliance review
+
+

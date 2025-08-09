@@ -1,0 +1,30 @@
+//+------------------------------------------------------------------+
+//|                                       Bollinger Bands v0.1.mq5 |
+//|                                 Copyright 2025, EA GlobalFlow     |
+//|                                              https://www.mql5.com |
+//+------------------------------------------------------------------+
+#property version       "0.1"
+#property copyright     "EA GlobalFlow Pro v0.1"
+#property description   "Bollinger Bands with Squeeze Detection - Enhanced for EA v0.1"
+#property indicator_chart_window
+#property indicator_buffers 6
+#property indicator_plots   3
+
+// Plot 1: Upper Band
+#property indicator_label1  "Upper Band"
+#property indicator_type1   DRAW_LINE
+#property indicator_color1  clrBlue
+#property indicator_style1  STYLE_SOLID
+#property indicator_width1  1
+
+// Plot 2: Middle Band (SMA)
+#property indicator_label2  "Middle Band"
+#property indicator_type2   DRAW_LINE
+#property indicator_color2  clrYellow
+#property indicator_style2  STYLE_SOLID
+#property indicator_width2  1
+
+// Plot 3: Lower Band
+#property indicator_label3  "Lower Band"
+#property indicator_type3   DRAW_LINE
+#property

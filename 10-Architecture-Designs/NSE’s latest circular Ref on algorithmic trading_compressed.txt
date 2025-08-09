@@ -1,0 +1,27 @@
+New NSE Circular on Algo Trading: What It Means for You
+Hey Traders,
+You may have come across NSE's latest circular Ref. No: 471/2025 on algorithmic trading and wondered "What does this mean for me?" Let me simplify it for you and walk you through the key changes, their implications, and why this matters for all of us in the trading ecosystem.
+
+What's This Circular About?
+With the rise of API based trading, a lot of retail traders have been using third-party platforms to automate strategies. While the innovation has been exciting, it's also opened the door to some dodgy practices l ike unverified strategies, mass automation, and zero accountability on the part of service
+providers.
+Think of Jighesh bhai from Surat, who plugged into an unknown algo promising ?10,000 daily profits via WhatsApp. The algo executed trades directly in his brokerage account, but no one really knew what the strategy was doing. That's where SEBI wants exchanges to fix and where NSE is stepping in, with rules to make this safer for people like Jignesh Bhai.
+
+Key Changes You Should Know
+1. Algos Need to Be Registered (Not Approved) - Here's a big misconception. A lot of traders worry they'll need to get each strategy approved by NSE, which sounds like a long and painful process. But that's not the case. Brokers like FYERS are responsible for registering the strategies with NSE, not you. This means we ensure your algo has proper disclosures, documentation, and traceability. There's no "NSE approval queue" for every new strategy you build. The process will be streamlined at the broker level to avoid time lags.
+2. Static Strategy ID - Every registered strategy will have a unique and static ID. Think of it as a PAN card for your algo. Each time a trade is placed, this ID will be tagged to the order. This ensures
+accountability, allows post-trade audits, and helps the exchange know what strategy ran, when, and by whom.
+3. TOTP Limit of 10 Accounts per Strategy - NSE has limited the number of TOPS (Threshold Order Per Second) to 10. This means that if your API fires less than 10 orders per second, it will be given a generic API ID and need not require special registration as such. This is particularly meaningful for traders who place large orders across scrips with basket orders, to either buy, sell or rebalance portfolios.
+4. No Auto-Execution Without Disclosure - If your algo places orders automatically (without you clicking), it must be registered with the broker and tagged. Even if it's running on a TradingView webhook, Python script, or Excel sheet.
+5. Platform-Level Certification - Third-party platforms that integrate with brokers need to be exchange certified. This means only legit, transparent, and whitelisted algo platforms can connect to your trading account.
+
+What Are We Doing at FYERS? We're proactively implementing:
+	A streamlined registration framework for APIs and strategies 	Unique tagging for every strategy you run
+	A clean list of certified third-party platforms
+This way, you can continue using your favourite setups and platforms, safely and responsibly.
+
+My Final Thoughts
+Algo trading is definately here to stay, and these rules aren't about restriction, they're about structure. NSE is trying to build a more robust ecosystem where traders like you don't get blindsided by black- box strategies or shady providers who seem to cause more harm than good.
+As always, FYERS is here to help you innovate-but with guardrails. If you're building your own
+strategy or using a platform, and unsure about the new norms, just reach out. We'll help you navigate this smoothly.
+Trade smart. Be safe. If you're eager to read the circular, check the attachment. Cheers!

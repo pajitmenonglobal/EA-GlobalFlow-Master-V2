@@ -1,0 +1,279 @@
+EA GlobalFlow Pro v6.4 - Rules 365-400 Indian F&O Strategy Updates Reference
+?? Document Information
+  File Reference: Rules 365-400 for future chat sessions
+  Session Date: Current session strategy updates
+  Previous Rules: 1-364 (documented in previous project knowledge files)
+  New Rules: 365-400 (Indian F&O strategy changes)
+  Status: Complete Indian F&O strategy update documentation
+ Next Session: Continue from Rule 401+ or begin implementation
+
+365-370: Updated Core Strategy Framework
+Rule 365: Updated Indian F&O Strategy Description
+ Strategy Name: Ichimoku-TDI-PA-BBsqueeze-Kumocross (unchanged)
+  Objective: Make money by entering trending markets through 2
+  Path 1: Continuation path - in trending market (specifi
+ Path 2: Pull back path - during market reversal (s
+  Entry Rule: Always with the trend in both paths
+  Exit Rule: STR-EXIT indicator trend change o
+
+Rule 366: Updated Strike Price Interv  NIFTY INDEX: 50-point intervals (uncha  All Other Indices: 100-point intervals (u
+  Stock Options: Varying intervals (NEW	on required)
+
+Rule 367: Updated F&O Market Typ  Primary Chart Function: EA identifies  Market Types: Futures OR Index Optio
+  Execution Condition: EA WILL RUN ON	et type identification is TRUE
+  Market Scope: All F&O markets (Futur	ions)
+
+Rule 368: Updated Multi-Timeframe	work
+
+  Two Paths Available: Broad framework for trend identification
+  Path Method: Multi-timeframe analysis approach
+  Analysis Scope: Applied to all F&O market types (Futures, Index Options, Stock Options)
+ Primary Chart Operation: All trend analysis occurs on parent chart
+
+Rule 369: Updated Dual-Path System Definition
+  Path A: Continuation path (CT)
+  Path B: Pull-back path (PB)
+  Path Names: Standardized CT and PB abbreviations
+
+Rule 370: Updated Sequential Path Execution Protocol
+  Execution Sequence: EA runs in specific sequence
+  1st Priority: Continuation path (CT) analysis
+  2nd Priority: Pull-back path (PB) analysis
+  Sequential Logic: CT path evaluated FIRST, then PB path
+
+371-380: Multi-Timeframe Analysis & Option Chain Logic
+Rule 371: Updated Multi-Timeframe Trend Hierarchy
+ Step 1: Check Major trend on Daily OR 4-hour timeframe
+ Step 2: Check Middle trend on 1-hour OR 30-minute timeframe
+  Analysis Location: All trend checking occurs in parent chart
+  Timeframe Priority: Major trend analysis FIRST, then Middle trend analysis
+
+Rule 372: Updated Path Trigger and Option Chain Reading Protocol
+ Trigger Condition: When either CT or PB path is TRUE at bar close
+  Immediate Action: At bar-close spot price, EA immediately reads option chain
+  Time Constraint: Option chain reading within 5 minutes of bar-close spot price discovery
+ Asset Scope: Applied to the specific asset being analyzed
+
+Rule 373: Updated ATM Strike Price Selection Criteria
+  Primary Condition: Strike price nearest to bar-close spot price
+  OI Requirement: >30% relative difference of Open Interest (OI) OR change in OI
+
+ OI Comparison: Between call side and put side
+  Distance Priority: Nearest to bar-close spot price takes precedence
+  Dual Validation: Both proximity AND OI criteria must be satisfied
+
+Rule 374: Updated Strike Price Analysis Range
+  Analysis Scope: Study 5 levels above ATM price
+  Analysis Scope: Study 5 levels below ATM price
+  Total Range: 11 strike levels (5 above + ATM + 5 below)
+  Purpose: Comprehensive OI analysis across strike range
+
+Rule 375: Updated Secondary Chart Function Definition  Chart Purpose: Call or Put side charts for trade entry execution  Chart Type: Secondary charts (separate from parent chart)
+  Function: Dedicated trade entry execution environment
+
+Rule 376: Updated OTM Strike Price Selection Protocol
+  OTM Definition: 1 level away from ATM strike price
+  OI Requirement: >30% relative difference between call side and put side OI
+  OTM Location: Either 1 level above ATM (for calls) or 1 level below ATM (for puts)
+
+Rule 377: Updated Directional OI Alignment Requirement
+  Consistency Rule: >30% relative difference must be in SAME direction
+  ATM Alignment: Call side or Put side dominance at ATM level
+  OTM Alignment: Call side or Put side dominance at OTM level
+ Direction Match: Both ATM and OTM must show same directional bias (both favor calls OR both favor puts)
+  Validation: Ensures consistent market sentiment across strike levels
+
+Rule 378: Updated Secondary Chart Opening Configuration
+ Chart Count: Only 2 charts open at slightly OTM strike price
+ Call Side Chart: Opens at +1 level from ATM (1 strike above ATM)  Put Side Chart: Opens at -1 level from ATM (1 strike below ATM)  Chart Limitation: Maximum 2 secondary charts per setup
+
+Rule 379: Updated Expiry Day Override Protocol
+  Expiry Day Exception: Secondary charts open at ATM price level (not OTM)
+ Call Side Expiry: Opens at ATM strike price
+ Put Side Expiry: Opens at ATM strike price
+  Override Logic: Supersedes normal OTM selection on expiry day
+
+Rule 380: Updated Secondary Chart EA Operation
+ EA Activation: Both charts will have EA running after validation
+  Validation Required: EA checks and correctness verification before activation
+  Operational Status: Full EA functionality on both secondary charts
+
+381-390: Chart Management & Trade Execution
+Rule 381: Updated Chart Count Limitation System
+ Call Side Limit: Only 1 call side secondary chart per setup
+ Put Side Limit: Only 1 put side secondary chart per setup
+  Strike Association: Each chart corresponds to specific OTM or ATM strike price
+  Maximum Total: 2 secondary charts maximum per parent chart signal
+
+Rule 382: Updated Parent Chart Continuous Operation Protocol  Continuous Running: Parent chart EA should keep running continuously  Loop Repetition: Repeat the loop to get next ATM strike price
+  Ongoing Process: "AND SO ON" - continuous cycle of ATM identification
+  No Interruption: Parent chart operation continues regardless of secondary chart status
+
+Rule 383: Updated Secondary Chart EA Sequential Analysis
+ EA Instance: Same EA runs on secondary chart
+ Analysis Sequence: Top-down approach (sequential analysis)
+  Major Trend: Find Major trend on secondary chart
+  Middle Trend: Find Middle trend on secondary chart
+  Entry Transition: Then proceed to entry trade conditions for execution
+
+Rule 384: Updated Secondary Chart Trade Execution Protocol
+
+  Trade Types: Execute both buy and sell trades
+  Condition Based: Based on specific conditions for entry
+  Entry Logic: Follows established entry condition framework
+
+Rule 385: Updated Secondary Chart Entry Timeframe Restriction
+  Timeframe Limitation: Trade entry in 5-minute OR 15-minute timeframe ONLY
+ No Other Timeframes: Excludes 1M, 30M, 1H, 4H, Daily timeframes for entry
+  Strict Compliance: Entry execution restricted to specified timeframes
+
+Rule 386: Updated Secondary Chart Strike Analysis Range
+  Analysis Scope: Study 5 levels above ATM price
+  Analysis Scope: Study 5 levels below ATM price
+  Total Coverage: 11 strike levels for comprehensive analysis
+
+Rule 387: Updated Secondary Chart Visual Consistency Protocol
+ Visual Elements: Relevant drawings in color, lines, arrows  Consistency Rule: Same visual elements as parent chart  Chart Harmony: Visual consistency across all charts
+  Drawing Synchronization: Matching visual indicators and markings
+
+Rule 388: Updated Secondary Chart Auto-Closure Protocol  Auto-Close Triggers: Stop loss hit OR exit trade OR take profit hit  Expiry Day Closure: Auto-close at 3:29 PM on day of expiry
+  Multiple Conditions: Any one of the above conditions triggers closure
+  Automatic Process: No manual intervention required
+
+Rule 389: Updated Secondary Chart Multiple Trade Capability
+  Trade Quantity: "n" number of trades per secondary chart
+ Basis: Number based on EA entry criteria fulfillment
+  Unlimited Potential: No fixed limit on trade count per chart
+  Criteria Dependent: Trade frequency depends on entry conditions being met
+
+Rule 390: Updated Complete Entry Conditions Framework
+  Buy Trade Conditions: 17 distinct entry conditions for Buy trades
+
+Sell Trade Conditions: 17 distinct entry conditions for Sell trades
+Total Conditions: 34 total entry conditions (17 + 17)
+Comprehensive Coverage: Complete entry logic framework for all trade types
+
+391-400: Forex/Commodities Framework & Universal Standards
+Rule 391: Updated Forex & International Commodities/CFD Market Detection
+  Market Types: Forex OR International Commodities OR CFD trading
+  Detection Process: EA first identifies market type
+  Execution Condition: If market type identification is TRUE, then EA will run
+  Market Scope: Non-Indian markets (international focus)
+
+Rule 392: Updated Forex/Commodities/CFD Sequential Analysis Protocol
+  Sequential Operation: EA runs in sequence after market identification
+ Step 1: Find Major trend
+ Step 2: Find Middle trend
+  Step 3: Execute entry for Buy or Sell based on entry conditions
+  Analysis Flow: Structured top-down approach
+
+Rule 393: Updated Forex/Commodities/CFD Order Types
+ Buy Orders: Buy Stop order type
+  Sell Orders: Sell Stop order type
+ Order Limitation: Only these two order types for these markets
+  No Other Types: Excludes Market, Limit, or other order types
+
+Rule 394: Updated Forex/Commodities/CFD Chart Architecture
+  Single Chart: EA RUNS ON ONE PARENT CHART only
+ No Secondary Charts: No secondary chart creation for these markets
+ No Dynamic Charts: No dynamic chart management issues
+  Simplified Structure: Single chart operation for Forex/Commodities/CFD
+
+Rule 395: Updated Forex/Commodities/CFD Multi-Timeframe Framework
+  Major Trend Source: Daily OR 4-hour timeframe
+  Trend Confirmation: 1-hour OR 30-minute timeframe confirmation of major trend
+
+  EA Execution: Runs in 5-minute OR 15-minute timeframes
+  Timeframe Hierarchy: Daily/4H ? 1H/30M ? 5M/15M cascade
+
+Rule 396: Updated Forex/Commodities/CFD Technical Indicators Specification
+ Ichimoku Kinko Hyo: Standard settings
+ Ichi-Trader Dynamic Index: TDI indicator
+  SMMA: 50 period Smoothed Moving Average
+ Bollinger Bands: Standard configuration
+ STR-ENTRY: ATR multiplier 1.0, ATR period 20
+  STR-EXIT: ATR multiplier 1.5, ATR period 20
+
+Rule 397: Updated Forex/Commodities/CFD Entry Signal Criteria
+  Price Action Crosses: Entry trigger method
+ Bollinger Band Squeeze: Volatility-based entry
+  Kumo Cross: Ichimoku cloud breakthrough signals
+  Ichi-Trader Dynamic Index: TDI-based entry criteria
+  Multi-Factor: Combined criteria for entry validation
+
+Rule 398: Updated Forex/Commodities/CFD Risk Management Framework
+  Risk Rules: Optimal risk management rules implemented
+  Stop Loss: Included in strategy framework
+  Risk Optimization: Designed for strategy-specific risk control
+  Comprehensive: Complete risk management system
+
+Rule 399: Updated Universal Technical Indicators Framework
+  Market Application: Same indicators used in ALL markets
+  Futures & Options: Ichimoku, TDI, SMMA 50, Bollinger Bands, STR-ENTRY, STR-EXIT
+ Forex: Same indicator set
+ Commodities: Same indicator set
+ CFD: Same indicator set
+  Universal Configuration: Consistent indicator parameters across all markets
+
+Rule 400: Updated Cross-Market Indicator Standardization
+
+STR-ENTRY: ATR multiplier 1.0, ATR period 20 (all markets) STR-EXIT: ATR multiplier 1.5, ATR period 20 (all markets) SMMA: 50 period (all markets)
+Bollinger Bands: Standard settings (all markets) Ichimoku: Standard parameters (all markets) TDI: Standard configuration (all markets)
+?? Complete Rule Repository Status
+Total Rules Documented: 400
+  Foundation Rules: 1-56 (from file #56)
+  Extended Rules: 57-251 (from ea_globalflow_rules_57_251.md)
+  Strategy Rules: 252-292 (from file #57)
+ Master Chart & Indicators: 293-340 (from file #58)
+  Final Implementation: 342-364 (from file #57)
+  Indian F&O Strategy Updates: 365-400 (this document)
+
+Key Changes in Rules 365-400:
+? Stock Options Varying Intervals (Rule
+? Sequential CT ? PB Path Analysis (Ru
+? 5-Minute Option Chain Reading (Rule
+? Directional OI Alignment Requiremen
+? Universal Indicator Application (Rules
+? Forex/Commodities Single Chart (Rul
+
+Ready for Implementation:
+? Complete Strategy Framework (Rules
+? Updated F&O Chart Management (Ru
+? Forex/Commodities Architecture (Rul
+? Universal Technical Standards (Rules 3
+Status: ? INDIAN F&O STRATEGY	- Ready for next session
+
+?? Project Knowledge Files Ref
+
+Core Documentation Files:
+ Rules 1-56: 56. EA GlobalFlow Pro v6.4 - Rules 22-55 Complete Reference.md
+ Rules 57-251: ea_globalflow_rules_57_251.md
+  Rules 252-292: EA GlobalFlow Pro v6.4 - Rules 252+ Strategy Description Reference.md
+ Rules 293-340: ea_globalflow_rules_293_340.md
+ Rules 342-364: 57. EA GlobalFlow Pro v6.4 - Complete Rules 342-364 Final Reference.md
+  Rules 365-400: THIS DOCUMENT (save as reference file)
+ Complete Summary: 21. EA GlobalFlow Pro v6.4 - Complete Rules Summary for Project Knowledge.md
+ Strategy Source: 20. STRATEGY.docx
+
+MQL5 Indicator Files (Ready for Implementation):
+ bollinger_bands_mql5.txt ?
+ ichi_trader_mql5.txt ?  ichimoku_mql5.txt ?  smma50_mql5.txt ?
+ str_entry_mql5.txt ?
+ str_exit_mql5.txt ?
+
+?? Next Session Continuation
+Ready for Next Session:
+1. Complete Rule Base: 400 rules docum
+2. Indian F&O Updates: All strategy chan
+3. Universal Framework: Consistent acro
+4. Implementation Ready: All specificatio
+
+Next Session Options:
+ Add More Rules: Continue from Rule 4
+  Begin Implementation: Start EA devel	" signal
+ Refinements: Further strategy modifica
+ Testing Framework: Develop testing a
+
+Current Status: ? EA GlobalFlow Pro v6.4 - 400 Rules Complete, Ready for Next Session
+
+Save this document as reference file for EA GlobalFlow Pro v6.4 continuation in next chat session. Use alongside existing project knowledge files for complete EA development implementation.

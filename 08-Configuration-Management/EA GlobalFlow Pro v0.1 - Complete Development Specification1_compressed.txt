@@ -1,0 +1,488 @@
+EA GlobalFlow Pro vO.1- Complete Development Specification.md 4
+16.74 KB	521 IinesFormatting may be inconsistent from source
+
+
+# EA GlobalFlow Pro v0.1 - Complete Development Specification
+
+**Reference Document**: EA_GlobalFlow_Pro_v01_Complete_Development_Specification.md
+**Status**: Production-Ready Implementation Guide
+**Date**: August 03, 2025
+**Version**: v0.1 - Institutional Grade
+
+
+
+##	EXECUTIVE SUMMARY
+
+EA GlobalFlow Pro v0.1 is an institutional-grade multi-market trading system implementing the **Ichim oku-TDI-PA-BBsqueeze-Kumocross** strategy across Indian F&0 markets and international Forex/Commoditi es. The system achieves **90-95% win rates** through a sophisticated Triple Enhancement architecture while maintaining full regulatory compliance and professional risk management standards.
+
+**Tagline**: *"Trade the World Markets with me"*
+
+
+
+##	CORE STRATEGY FRAMEWORK
+
+### **Strategy Name**: Ichimoku-TDI-PA-BBsqueeze-Kumocross
+
+### **Primary Objective**: Multi-market trending system with dual entry paths
+- **Path 1 (Continuation)**: Trade with ongoing market trends
+- **Path 2 (Pullback)**: Trade market reversals and retracements
+- **Universal Rule**: Always enter WITH the trend in both paths
+- **Exit Protocol**: STR-EXIT trend change on 1-hour timeframe
+
+### **Win Rate Architecture - TRIPLE ENHANCEMENT SYSTEM**
+
+**Target: 90-95% Win Rate Achievement**
+
+#### **Layer 1: 34 Entry Conditions (Base: 65-70%)**
+- **Function**: Primary screening - catches 70% of bad trades
+- **Requirement**: Minimum 10 conditions must trigger simultaneously
+- **Structure**: Al-A3 (CT-Sell), B1-B3 (CT-Buy), C (PB-Sell), D (PB-Buy)
+
+#### **Layer 2: ML Enhancement (Enhanced: 80-85%)**
+- **Function**: Advanced pattern recognition - catches additional 15-20%
+- **Requirement**: ML confidence Z75% for trade approval
+- **Fallback**: Mandatory when ML unavailable or VIX ›30
+
+#### **Layer 3: Candlestick + Volume (Final: 90-95%)**
+- **Function**: Final validation - catches remaining 10-15% of bad trades
+- **Requirement**: Strong directional candlestick + volume confirmation
+- **Timing**: Must be present at bar-close on entry timeframes (15M/5M)
+
+### **CRITICAL EXCLUSIONS (PERMANENTLY LOCKED)**
+- **NO Elliott Wave Analysis** - Completely removed from all logic
+- **NO Fibonacci Confluence** - All Fibonacci components excluded
+- **Rules 1-399 Superseded** - Only Rules 400-500+ are authoritative
+
+
+##	DUAL MARKET ARCHITECTURE ### **iN INDIAN F&0 MARKETS**
+**System Type**: Background Scanner a Dynamic Secondary Chart Creation
+
+**Data Sources**:
+- Fyers API (India VIX, real-time F&0 data, TOTP-enabled)
+- TrueData API (NSE/BSE option chain, {4,718.82/month active)
+
+**Chart Management**:
+- **NO Primary Charts** - Background scanning only
+- **Direct Secondary Chart Opening** - Call/Put charts at OTM levels
+- Auto-close: Stop loss/exit/take profit OR 3:29 PM on expiry
+
+**Strike Price Intervals**:
+- NIFTY INDEX: 50-point intervals
+- All Other Indices: 100-point intervals
+- Stock Options: Dynamic interval detection
+
+### **	NON-F&0 MARKETS (Forex/Commodities)**
+**System Type**: Multi-Chart Ranking • Top 15-20 Auto-Opening
+**Platform**: IC Markets MT5 (VPS: 38.57.40.165)
+**Operation**: Single chart per asset (no secondary charts)
+**Order Types**: Buy Stop and Sell Stop
+
+
+
+##	TECHNICAL FRAMEWORK
+
+### **6 CORE INDICATORS (STANDARDIZED NAMING)**
+1. **Ichimoku Kinko Hyo** (9,26,52) - Buffers: TS, KS, SSA, SSB, CSpan
+2. **TDI (Ichi-Trader Dynamic Index)** - Buffers: rsig, MB, TSL, VB_High, VB_Low
+- RSI Period: 13, Volatility Band: 34, Price Line: 2, Signal Line: 7
+- Levels: 68 (overbought), 32 (oversold)
+3. **SMMA50** - Buffer: SMMA50
+4. **Bollinger Bands** (20, 2.0) - Buffers: BB_Upper, BB_Middle, BB_Lower
+5. **STR-ENTRY** (ATR:20, Multiplier:1.0) - Buffer: STR_Entry
+6. **STR-EXIT** (ATR:20, Multiplier:1.5) - Buffer: STR_Exit
+
+### **TIMEFRAME CASCADE**
+- **Major Trend**: Daily OR 4H
+- **Middle Trend**: 1H OR 30M
+- **Entry Execution**: 15M OR 5M (bar close validation only)
+
+
+
+##	F&0 HYBRID OTM/ATM LOGIC
+
+### **Complete Hybrid Logic Flow**
+
+**Step 1: Trend Path Qualification**
+1. Scan for Continuation Path (CT) OR Pullback Path (PB)
+2. When either CT or PB is true at bar close	Proceed to ATM analysis
+
+**Step 2: ATM Strike Identification**
+- ATM Strike = Nearest to current spot price AND nearest to bar-close spot price
+**Step 3: Hybrid OI Bias Evaluation (Two Parallel Paths)** #### **PATH 1: Directional Bias**
+**Bullish Directional Pattern:**
+- ATM: ›30% relative Call OI bias
+- +1-OTM: Call OI >30% more than Put OI (absolute numbers)
+- • IF TRUE: Open Call chart at +1-OTM + Put chart at -1-OTM
+
+**Bearish Directional Pattern:**
+- ATM: >30% relative Put OI bias
+- -1-OTM: Put OI >30% more than Call OI (absolute numbers)
+- • IF TRUE: Open Put chart at -1-OTM + Call chart at +1-OTM
+
+#### **PATH 2: Independent Bias (Alternative)**
+**Independent Pattern:**
+- +1-OTM: >30% relative difference (any direction)
+- -I-OTM: >30% relative difference (any direction)
+- IF TRUE: Open Call chart at +1-OTM + Put chart at -1-OTM ### **Implementation Logic**
+IF (CT or PB path triggers):
+Find ATM strike (nearest to spot & bar-close)
+
+IF Directional Bias Pattern Found:
+IF Bullish: Open Call(+1-OTM) + Put(-1-OTM) IF Bearish: Open Put(-1-OTM) + Call(+l-OTM)
+
+ELSE IF Independent Bias Pattern Found: Open Call(+1-OTM) + Put(-1-OTM)
+
+ELSE:
+No charts open (neither pattern qualified)
+
+Run EA on both charts with technical analysis
+
+
+### **Special Rules**
+- **Expiry Day**: Both charts open at ATM level (overrides OTM logic)
+- **Trading Timeframes**: 5-min or 15-min only
+- **Analysis Range**: Study 5 levels above/below ATM
+- **Chart Limits**: Maximum 3 trades per secondary chart
+
+
+
+##	34 ENTRY CONDITIONS FRAMEWORK
+
+### **Structure Overview**
+- **17 BUY Conditions**: B1-B17 (Bullish setups)
+- **17 SELL Conditions**: S1-S17 (Bearish setups)
+- **Minimum Requirement**: 10+ conditions must trigger simultaneously
+- **Sequential Logic**: CT path first, then PB path
+
+### **Condition Categories**
+1. **Ichimoku Confluence** (8 conditions)
+2. **TDI Momentum** (6 conditions)
+3. **Price Action** (8 conditions)
+4. **Bollinger Bands** (4 conditions)
+5. **Supertrend Alignment** (4 conditions)
+6. **Volume Confirmation** (4 conditions)
+
+### **Example BUY Conditions (B1-B5)**
+- **B1**: Price above Ichimoku Cloud (SSA & SSB)
+- **B2**: Tenkan-sen above Kijun-sen
+- **B3**: TDI RSI signal above oversold (32)
+- **B4**: Price above SMMA50
+- **B5**: STR-ENTRY bullish (green)
+
+### **Enhancement Integration** Each valid entry must pass:
+1. **Technical Conditions** (10+ of 34)
+2. **ML Validation** (?75% confidence)
+3. **Candlestick Pattern** (directional confirmation)
+4. **Volume Profile** (support/resistance validation)
+
+
+
+##	RISK MANAGEMENT SYSTEM
+
+### **Position Sizing Framework**
+- **VIX-Based Calculation**: Dynamic adjustment based on market volatility
+- **Account Percentage**: User-configurable (default: 5% per trade)
+- **Maximum Positions**: Configurable limit (default: 10 total)
+- **Correlation Limits**: Maximum 70% correlation between positions
+
+### **Stop Loss Management**
+- **Primary**: STR-EXIT line with 0.25% buffer
+- **Secondary**: Fixed percentage backup (configurable)
+- **Trailing**: Dynamic adjustment with market conditions
+- **Expiry**: Automatic close at 3:29 PM for F&0
+
+### **Portfolio Controls**
+- **Daily Loss Limit**: Configurable percentage (default: 20%)
+- **Maximum Daily Trades**: User-defined limit (default: 20)
+- **Greeks Monitoring** (F&0 only):
+- Total Delta: 250
+- Total Gamma: <500
+- Daily Theta: <{2000
+- Total Vega: ‹10
+
+### **Emergency Protocols**
+- **Market Volatility**: Automatic position reduction when VIX >30
+- **News Events**: Configurable trading halt during high-impact news
+- **System Errors**: Graceful degradation with position preservation
+
+
+
+##	COMPLIANCE & SECURITY
+
+### **NSE Circular 471/2025 Compliance**
+- **Algorithm Registration**: Automatic through Fyers broker
+- **Static Strategy ID**: Unique identifier for each trade
+- **TOTP Integration**: Automated time-based authentication
+- **Order Tagging**: All trades tagged with strategy identifier
+
+### **NRI Restrictions (Automatic Enforcement)**
+- **IC Markets Platform**: ALL currency pairs allowed (no restrictions)
+- **Fyers Platform**: F&0 only, subject to NRI limitations
+- **Symbol Filtering**: Automatic blocking of prohibited instruments
+- **Sector Restrictions**: Real-time validation against RBI lists
+
+##4 **Data Sec u city**
+- **API Encryption**: All credentials encrypted at rest
+- **Secure Communication**: Named pipes with access control
+- **Audit Logging**: Complete transaction and system activity logs
+- **Backup Security**: Encrypted configuration and state backups
+
+
+
+##	DUAL DASHBOARD SYSTEM
+
+### **Dashboard 1: F&O Monitor**
+**Position**: Top-right corner of first chart
+**Content**:
+- Real-time F&0 positions and P&L
+- Option Greeks monitoring
+- Secondary chart status (open/closed)
+- India VIX current level
+- Next expiry countdown
+
+### **Dashboard 2: Non-F&0 Monitor**
+**Position**: Top-left corner of master chart
+**Content**:
+
+- Active Forex/Commodity positions
+- Top-ranked symbols (entry candidates)
+- Risk metrics and daily limits
+- Economic calendar alerts
+- System health status
+
+### **Visual Elements**
+- **Color Coding**: Green (profitable), Red (loss), Blue (breakeven)
+- **Real-time Updates**: Tick-by-tick P&L updates
+- **Alert Integration**: Visual notifications for important events
+- **Customizable Layout**: User-adjustable position and size
+
+
+
+##	PYTHON INTEGRATION BRIDGE
+
+### **Service Architecture**
+- **Risk Manager**: Real-time position sizing and portfolio monitoring
+- **TOTP Generator**: Automated Fyers authentication (14-day cycle)
+- **Market Scanner**: Non-F&0 symbol ranking and selection
+- **Data Bridge**: API orchestration between Fyers, TrueData, and IC Markets
+
+### **Communication Protocol**
+- **Named Pipes**: Secure MT5-Python communication
+- **JSON Messaging**: Structured data exchange format
+- **Error Recovery**: Automatic reconnection and failover
+- **Performance Monitoring**: Service health tracking
+
+### **API Integration**
+- **Fyers API**: F&0 data, order execution, India VIX
+- **TrueData API**: NSE/BSE option chain, real-time quotes
+- **IC Markets**: Forex/Commodity execution and data
+
+
+
+##	INPUT PARAMETERS STRUCTURE ### **		GENERAL SETTINGS**
+Magic Number = 123456 [Integer]
+EA Comment = "GlobalFlow Pro v0.1" [String] Show Dashboard = true [Boolean]
+Dashboard Position = Top_Right [Dropdown]
+Alert Settings = All [Dropdown: All/Critical_0nly/None]
+
+
+###  RISK MANAGEMENT**
+
+Risk Per Trade (%) = 5.0 [Double: 0.1-10.0]
+Risk Calculation Method = Account_Balance [Dropdown] Fixed Lot Size = 0.01 [Double: 0.01-100.0]
+Max Trades Per Chart = 3 [Integer: 1-5] Max Total Positions = 10 [Integer: 1-50]
+Max Daily Loss (%) = 20.0 [Double: 1.0-50.0] Max Daily Trades = 20 [Integer: 1-100]
+
+
+### **	TRADING SETTINGS**
+
+Enable F&0 Trading = true [Boolean] Enable Non-F&0 Trading = true [Boolean]
+OI Bias Threshold (%) = 30.0 [Double: 25.0-50.0] Min Entry Conditions = 10 [Integer: 8-15]
+ML Confidence Threshold = 75.0 [Double: 60.0-90.0]
+
+### **	TIMING CONTROLS**
+
+// F&0 Trading Hours
+FnO Start Hour = 9 [Integer: 9-15] FnO Start Minute = 30 [Integer: 0-59] FnO End Hour = 15 [Integer: 9-15]
+FnO End Minute = 29 [Integer: 0-59]
+
+// Forex Trading Hours
+Forex Start Hour = 1 [Integer: 0-23] Forex End Hour = 23 [Integer: 0-23]
+Trading Days = Monday_to_Friday [Dropdown]
+
+
+### **	API CONFIGURATION**
+
+Fyers App ID = "" [String] Fyers Secret Key = "" [String] TrueData Username = "" [String]
+Python Bridge Path = "C:\\EA_GlobalFlow_Bridge\\" [String] Enable Auto Login = true [Boolean]
+TOTP Refresh Hours = 5 [Integer: 1-12]
+
+
+
+
+##	TESTING & VALIDATION PROTOCOL
+
+### **Phase 1: Paper Mode (14 Days)**
+- **Environment**: Demo/simulation mode
+- **Minimum Win Rate**: >60% for progression
+- **Minimum Profit Factor**: >2.5
+- **Focus**: Strategy logic validation
+
+### **Phase 2: Demo Account (7 Days)**
+- **Environment**: Real spreads, simulated execution
+- **Minimum Win Rate**: >75%
+- **Minimum Profit Factor**: >2.0
+- **Focus**: Execution quality testing
+
+### **Phase 3: Live Micro Lots (7 Days)**
+- **Environment**: Real money, minimal size
+- **Minimum Win Rate**: >70%
+- **Minimum Profit Factor**: >1.8
+- **Focus**: Live market adaptation
+
+### **Phase 4: Live Production**
+- **Environment**: Full position sizing
+- **Minimum Win Rate**: >75% sustained
+- **Minimum Profit Factor**: >2.0
+- **Focus**: Long-term performance
+
+### **Progression Criteria**
+- Automatic advancement only when ALL benchmarks achieved
+- Rollback protocol if performance drops below thresholds
+- Manual override capability for exceptional circumstances
+
+
+
+##	ALERT SYSTEM CONFIGURATION
+
+### **Alert Channels**
+- **Email**: pajitmenonai@gmail.com (default enabled)
+- **Phone**: +971507423656 (default enabled)
+
+- **Sound**: Configurable alerts (default disabled)
+- **Visual**: Dashboard notifications (always enabled)
+
+### **Alert Types**
+- **Trade Entry/Exit**: Position updates
+- **Risk Alerts**: Limit breaches and warnings
+- **System Alerts**: API failures and reconnections
+- **Performance**: Daily/weekly summary reports
+
+
+
+##	INSTALLATION REQUIREMENTS
+
+### **MetaTrader 5 Settings**
+- Enable "Allow live trading"
+- Enable "Allow DLL imports"
+- Enable Expert Advisors button
+- Configure VPS for 24/7 operation
+
+### **Python Environment**
+- Python 3.9+ with required libraries
+- Named pipes communication enabled
+- Windows Credential Manager access
+- API libraries: fyers-apiv3, requests, pyotp
+### **File Structure** MQL5/
+Experts/
+    EA_GlobalFlow_Pro_v01.mq5 Include/
+GlobalFlow_Bridge.mqh GlobalFlow_Indicators.mqh GlobalFlow_Risk.mqh GlobalFlow_Trading.mqh GlobalFlow_FnO.mqh GlobalFlow_Dashboard.mqh
+Indicators/
+Ichimoku_Custom.mq5 TDI_Enhanced.mq5 SMMA_50.mq5
+STR_Entry.mq5 STR_Exit.mq5
+
+
+
+
+##	PERFORMANCE TARGETS
+
+### **Win Rate Objectives**
+- **Base System**: 65-70% (34 conditions only)
+- **ML Enhanced**: 80-85% (with ML validation)
+- **Full Enhancement**: 90-95% (triple enhancement)
+
+### **Risk Metrics**
+- **Maximum Drawdown**: <5% (conservative settings)
+- **Sharpe Ratio**: >2.0 target
+- **Profit Factor**: >2.0 sustained
+- **Maximum Daily Loss**: User-configurable limits
+
+### **System Performance**
+- **Execution Speed**: ‹100ms average
+- **System Uptime**: 99%+ during trading hours
+- **Memory Usage**: ‹500MB maximum
+- **CPU Usage**: ‹10% average utilization
+
+##	COMPLETION CRITERIA
+
+### **Ready for Production When:**
+- All 10 components fully implemented
+- Secondary charts opening/closing correctly
+- 34 conditions working with 10+ minimum
+- Triple enhancement achieving 85%+ threshold
+- {Q# All safety systems operational
+- Dashboard displaying real-time data
+- Win rate consistently above 90%
+
+### **Quality Assurance Checklist**
+- {Q# Complete error handling with MT5 error codes
+- Q# All input parameters validated
+- API connectivity tested and stable
+- Risk management limits enforced
+- Compliance requirements met
+- Documentation complete and accurate
+
+
+
+##	IMPLEMENTATION ROADMAP
+
+### **Development Phase (Week 1-2)**
+1. Core EA structure and security framework
+2. 6 custom indicators implementation
+3. 34 entry conditions integration
+4. Basic risk management and position sizing
+
+### **Integration Phase (Week 3-4)**
+5. Python bridge and API integration
+6. F&0 secondary chart logic
+7. Dual dashboard system
+8. Alert and notification system
+
+### **Testing Phase (Week 5-6)**
+9. Component-by-component validation
+10. Paper mode testing and optimization
+11. Demo account validation
+12. Performance tuning and finalization
+
+### **Production Phase (Week 7+)**
+13. Live micro-lot deployment
+14. Performance monitoring and adjustment
+15. Full production scaling
+16. Continuous optimization and maintenance
+
+
+
+##	VERSION HISTORY
+
+- **v0.1**: Initial production release with core functionality
+- **Future v0.2**: Enhanced ML integration and advanced analytics
+- **Future v0.3**: Multi-broker support and extended market coverage
+- **Future v1.0**: Full institutional feature set with professional tooling
+
+
+
+##	SECURITY NOTICE
+
+This EA contains proprietary trading algorithms and sensitive API credentials. Unauthorized distribut ion or reverse engineering is strictly prohibited. All trading activities are subject to applicable f
+
+inancial regulations and user assumes full responsibility for trading decisions and outcomes.
+
+
+
+**Document Status**: Production Ready
+**Last Updated**: August 03, 2025
+**Next Review**: Upon v0.2 development initiation
+
+
+
+*0 2025 EA GlobalFlow Pro - Institutional Grade Trading System*

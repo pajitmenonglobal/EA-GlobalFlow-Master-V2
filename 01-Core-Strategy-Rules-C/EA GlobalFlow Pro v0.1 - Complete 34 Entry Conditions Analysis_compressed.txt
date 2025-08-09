@@ -1,0 +1,563 @@
+EA GlobalFlow Pro vO.1 - Complete 34 Entry Conditions Analysis.md
+1 8.20 KB	586 IinesFormatting may be inconsistent from source
+
+
+# EA GlobalFlow Pro v0.1 - Complete 34 Entry Conditions Analysis
+
+**Strategy**: Ichimoku-TDI-PA-BBsqueeze-Kumocross
+**Markets**: Indian F&0 (Fyers+TrueData) + International Markets (IC Markets)
+**Document**: Precise Candle-wise Analysis of All 34 Trade Entry Conditions
+**Source**: EA_TradeEntry_b.docx
+**Date**: August 04, 2025
+
+
+##	Notation System Reference ### Bar Reference System
+- 'Indicator(-n) = n bars behind current bar
+- 'Indicator(0) = current bar
+- Indicator(1) = 1 bar behind (previous bar)
+- Indicator(+26) = 26 bars ahead of current
+
+### Comparison Operators
+- = equal to
+- '> is greater than
+- '< is lesser than
+- '<=' or =<' is equal to or less than
+- =>' or ' >=' is equal to or greater than
+
+### Cross Operators (CRITICAL)
+- 'x< or <x is **crosses below from above**
+- 'x› or '>x is **crosses above from below**
+
+### Indicator Notations
+**Ichimoku:**
+- Tenken Sen = 'TS
+- Kijun Sen = KS
+- Chikou Span = CSpan'
+- Senkou Span A = SSA'
+- Senkou Span B = SSB'
+
+**Bollinger Bands:**
+- Lower Bollinger band = Lower boll
+- Upper Bollinger band = Upper boll
+
+**Ichi-Trader Dynamic Index (TDI):**
+- RSI_Price_Line = rsig
+- Market Base Line = MB
+- Trade_Signal_Line2 = TSL
+- Upper Band = VB High
+- Lower Band = VB Low
+
+
+
+##	A. CONTINUATION TREND SELL (CT-Sell) - S1 to S13
+
+### Multi-Timeframe Prerequisites
+- **A1 - Major Trend**: Daily OR 4H bearish confirmation
+- **A2 - Middle Trend**: 30min OR lH bearish alignment
+- **A3 - Entry**: Smin OR l5min execution timeframe
+
+
+
+### S1 - BB_Squeeze Complex
+
+**	PREREQUISITE CONDITIONS:**
+- Major Trend: Daily/4H bearish confirmation (Al-A2 complete)
+- Middle Trend: 30min/1H bearish alignment (A2 complete)
+- Entry Timeframe: Smin OR l5min
+
+**	S1 SPECIFIC TRIGGER:**
+
+(rsig(1) x‹ MB(1) OR rsig(1) x‹ TSL(1)) AND
+CSpan ( 26) ‹ Candle 1ow(26) AND Cand1e Close(1) ‹ SSB(1) AND SMMA50(1) <= SMMA50(3) AND
+Candle Close(1) < SSA(1) AND Candle Close(1) x< SMMA50(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+- **Current Bar (0)**: Entry evaluation point
+- **Previous Bar (1)**:
+- RSI crosses below Market Base Line OR Trade Signal Line from above
+- Close below both Senkou Span A and B (below Kumo cloud)
+- Close crosses below SMMA50 from above
+- **3 Bars Ago**: SMMA50 was equal or higher than current SMMA50
+- **26 Bars Ago**: Chikou Span below that period's candle low
+
+**Market Context**: Complex bearish setup with momentum confirmation and Kumo cloud break
+
+
+
+### S2 - BB_Break Lower
+
+**	S2 SPECIFIC TRIGGER:**
+
+Candle Low(1) x< Lower boll(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+- **Previous Bar (1)**: Candle low crosses below Lower Bollinger Band from above
+- **Market Context**: Bollinger Band breakout to downside, high volatility expansion signal
+
+
+
+### S3 - KUM0_Cross Bear
+
+**	S3 SPECIFIC TRIGGER:**
+
+CSpan(26) < Candle close(26) AND
+Candle Close(1) < SSA(1) OR Candle close(1) < SSB(1) AND Candle Close(1) <= Lower boll(2) AND
+Candle Low(1) < Candle Low(2) AND rsig(1) x< TSL(1) AND
+Candle Low(1) x< Lower boll(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+- **Current Bar (0)**: Entry evaluation point
+- **Previous Bar (1)**:
+- Close below Kumo cloud (SSA or SSB)
+- RSI crosses below Trade Signal Line from above
+- Low crosses below Lower Bollinger Band from above
+- Low lower than 2 bars ago
+- **2 Bars Ago**:
+- Close at or below Lower Bollinger Band
+- Low higher than current bar's low
+- **26 Bars Ago**: Chikou Span below that period's close
+
+**Market Context**: Kumo cloud break with momentum and volatility confirmation
+
+
+
+### S4 - KUM0_Cross SMMA
+
+**	S4 SPECIFIC TRIGGER:**
+
+Candle Close(1) x< SMMA50(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+- **Previous Bar (1)**: Close crosses below SMMA50 from above
+- **Market Context**: Simple trend confirmation via moving average break
+
+
+
+### S5-S8 - STR-ENTRY-Type-1 Group
+
+**	PREREQUISITE CONDITIONS (ALL must be true):**
+
+MB ( 1)  ‹=  50 AND
+MB ( 1)  › 32 AND
+VB Low( 1)  › 32 AND
+rsig(1) ‹ 50 AND MB ( 1) ‹ MB ( 3) AND
+Candle Open(1) < SMMA50(1) OR Candle close(1) < SMMA50(1) AND
+rsig(2) > rsig(1) AND
+STR-ENTRY(0) > Candle Open(0)
+
+
+**	CANDLE-WISE ANALYSIS (Prerequisites):**
+- **Current Bar (0)**: STR-ENTRY above opening price
+- **Previous Bar (1)**:
+- Market Base Line between 32-50 (neutral zone)
+- RSI below 50 (bearish momentum)
+- Open OR Close below SMMA50
+- Lower VB band above 32 (controlled volatility)
+- **2 Bars Ago**: RSI higher than current (declining momentum)
+- **3 Bars Ago**: Market Base Line higher than current (declining trend)
+
+**Individual Triggers:**
+- **S5 TRIGGER:** rsig(1) x‹ TSL(1) - RSI crosses below Trade Signal Line
+- **S6 TRIGGER:** rsig(1) x‹ MB(1) - RSI crosses below Market Base Line
+- **S7 TRIGGER:** TSL(1) x‹ MB(1) - Trade Signal Line crosses below Market Base Line
+- **S8 TRIGGER:** rsig(1) x‹ VB Low(1) - RSI crosses below Lower Volatility Band
+
+
+
+### S9-S13 - STR-ENTRY-Type-2 Group
+
+**	PREREQUISITE CONDITIONS (ALL must be true):**
+
+MB(1) >= 50 AND MB(1) ‹ 68 AND
+VB High(1) > 68 AND
+rsig(1) > 50 AND MB(1) < MB(3) AND
+Candle Open(1) > SMMA50(1) OR Candle close(1) < SMMA50(1) AND rsig(2) > rsig(1) AND
+STR-ENTRY(0) > Candle Open(0)
+
+
+**	CANDLE-WISE ANALYSIS (Prerequisites):**
+
+- **Current Bar (0)**: STR-ENTRY above opening price
+- **Previous Bar (1)**:
+- Market Base Line between 50-68 (upper neutral zone)
+- RSI above 50 (bullish momentum turning bearish)
+- Open above SMMA50 OR Close below SMMA50 (mixed signals)
+- Upper VB band above 68 (high volatility environment)
+- **2 Bars Ago**: RSI higher than current (declining from overbought)
+- **3 Bars Ago**: Market Base Line higher than current (declining trend)
+
+**Individual Triggers:**
+- **S9 TRIGGER:** rsig(1) x‹ TSL(1)' - RSI crosses below Trade Signal Line
+- **S10 TRIGGER:** 'rsig(1) x‹ MB(1)' - RSI crosses below Market Base Line
+- **S11 TRIGGER:** 'TSL(1) x‹ MB(1)' - Trade Signal Line crosses below Market Base Line
+- **S12 TRIGGER:** 'rsig(1) x‹ VB Low(1)' - RSI crosses below Lower Volatility Band
+- **S13 TRIGGER:** rsig(1) x‹ VB High(1) - RSI crosses below Upper Volatility Band
+
+
+
+##	B. CONTINUATION TREND BUY (CT-Buy) - B1 to B13
+
+### Multi-Timeframe Prerequisites
+- **B1 - Major Trend**: Daily OR 4H bullish confirmation
+- **B2 - Middle Trend**: 30min OR lH bullish alignment
+- **B3 - Entry**: Smin OR 15min execution timeframe
+
+
+
+### B1 - BB_Squeeze Bull Complex
+
+**	PREREQUISITE CONDITIONS:**
+- Major Trend: Daily/4H bullish confirmation (B1-B2 complete)
+- Middle Trend: 30min/1H bullish alignment (B2 complete)
+- Entry Timeframe: Smin OR l5min
+
+**	B1 SPECIFIC TRIGGER:**
+
+(rsig(1) x› MB(1) OR rsig(1) x› TSL(1)) AND
+CSpan(26) › Candle low(26) AND Candle Close(1) › SSB(1) AND Candle Close(1) > SSA(1) AND SMMA50(1) ›= SMMA50(3) AND
+Candle Close(1) x› SMMA50(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+- **Current Bar (0)**: Entry evaluation point
+- **Previous Bar (1)**:
+- RSI crosses above Market Base Line OR Trade Signal Line from below
+- Close above both Senkou Span A and B (above Kumo cloud)
+- Close crosses above SMMA50 from below
+- **3 Bars Ago**: SMMA50 was equal or lower than current SMMA50
+- **26 Bars Ago**: Chikou Span above that period's candle low
+
+**Market Context**: Complex bullish setup with momentum confirmation and Kumo cloud break
+
+
+
+### B2 - BB_Break Upper
+
+**	B2 SPECIFIC TRIGGER:**
+
+Candle Close(1) x> Upper boll(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+
+- **Previous Bar (1)**: Close crosses above Upper Bollinger Band from below
+- **Market Context**: Bollinger Band breakout to upside, high volatility expansion signal
+
+
+
+### B3 - KUM0_Cross Bull
+
+**	B3 SPECIFIC TRIGGER:**
+
+CSpan(26) › Candle close(26) AND
+Candle Close(1) › SSA(1) OR Candle close(1) > SSB(1) AND Candle Close(1) ›= Upper boll(2) AND
+Candle Low(1) > Candle Low(2) AND rsig(1) x> TSL(1) AND
+Candle High(1) x> Upper boll(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+- **Current Bar (0)**: Entry evaluation point
+- **Previous Bar (1)**:
+- Close above Kumo cloud (SSA or SSB)
+- RSI crosses above Trade Signal Line from below
+- High crosses above Upper Bollinger Band from below
+- Low higher than 2 bars ago
+- **2 Bars Ago**:
+- Close at or above Upper Bollinger Band
+- Low lower than current bar's low
+- **26 Bars Ago**: Chikou Span above that period's close
+
+**Market Context**: Kumo cloud break with momentum and volatility confirmation
+
+
+
+### B4 - KUM0_Cross SMMA
+
+**	B4 SPECIFIC TRIGGER:**
+
+Candle Close(1) x› SMMA50(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+- **Previous Bar (1)**: Close crosses above SMMA50 from below
+- **Market Context**: Simple trend confirmation via moving average break
+
+
+
+### B5-B8 - STR-ENTRY-Type-1 Buy Group
+**	PREREQUISITE CONDITIONS (ALL must be true):** MB(1) >= 50 AND
+MB(1) ‹  68 AND
+VB High(1) ‹ 68 AND
+rsig(1) > 50 AND MB(1) > MB(3) AND
+Candle Open(1) › SMMA50(1) OR Candle close(1) x› SMMA50(1) AND rsig(2) ‹ rsig(1) AND
+STR-ENTRY(0) x‹ Candle Open(0)
+
+
+**	CANDLE-WISE ANALYSIS (Prerequisites):**
+- **Current Bar (0)**: STR-ENTRY below opening price
+- **Previous Bar (1)**:
+- Market Base Line between 50-68 (upper neutral zone)
+- RSI above 50 (bullish momentum)
+
+- Open above SMMA50 OR Close crosses above SMMA50
+- Upper VB band below 68 (controlled volatility)
+- **2 Bars Ago**: RSI lower than current (rising momentum)
+- **3 Bars Ago**: Market Base Line lower than current (rising trend)
+
+**Individual Triggers:**
+- **B5 TRIGGER:** ' rsig(1) x> TSL(1) - RSI crosses above Trade Signal Line
+- **B6 TRIGGER:** ' rsig(1) x> MB(1) - RSI crosses above Market Base Line
+- **B7 TRIGGER:** TSL(1) x> MB(1)' - Trade Signal Line crosses above Market Base Line
+- **B8 TRIGGER:** rsig(1) x> VB High(1)' - RSI crosses above Upper Volatility Band
+
+
+
+### B9-B13 - STR-ENTRY-Type-2 Buy Group
+
+**	PREREQUISITE CONDITIONS (ALL must be true):**
+
+MB ( 1)  ‹=  50 AND
+MB ( 1)  › 32 AND
+VB Low( 1)  ‹  32 AND
+rsig(1) ‹ 50 AND
+MB(1) > MB(3) AND
+Candle Open(1) ‹ SMMA50(1) OR Candle close(1) < SMMA50(1) AND rsig(2) < rsig(1) AND
+STR-ENTRY(0) x< Candle 0pen(0)
+
+
+**	CANDLE-WISE ANALYSIS (Prerequisites):**
+- **Current Bar (0)**: STR-ENTRY below opening price
+- **Previous Bar (1)**:
+- Market Base Line between 32-50 (lower neutral zone)
+- RSI below 50 (bearish momentum turning bullish)
+- Open OR Close below SMMA50 (bearish price action)
+- Lower VB band below 32 (low volatility environment)
+- **2 Bars Ago**: RSI lower than current (rising from oversold)
+- **3 Bars Ago**: Market Base Line lower than current (rising trend)
+
+**Individual Triggers:**
+- **B9 TRIGGER:** rsig(1) x› MB(1)' - RSI crosses above Market Base Line
+- **B10 TRIGGER:** 'rsig(1) x› VB Low(1)' - RSI crosses above Lower Volatility Band
+- **B11 TRIGGER:** 'TSL(1) x> MB(1)' - Trade Signal Line crosses above Market Base Line
+- **B12 TRIGGER:** 'rsig(1) x› TSL(1)' - RSI crosses above Trade Signal Line
+- **B13 TRIGGER:** 'rsig(1) x› VB High(1)' - RSI crosses above Upper Volatility Band
+
+
+
+##	C. PULLBACK PATH SELL (PB-Sell) - S14 to S17
+
+### Multi-Timeframe Prerequisites
+- **Ca - Major Trend**: Daily OR 4H analysis with counter-trend setup
+- **Cb - Middle Trend**: lH OR 30min pullback identification
+- **Cc - Entry**: l5min OR Smin execution timeframe
+
+
+
+### Ca - Major Trend Prerequisites (Daily/4H)
+
+**	MAJOR TREND CONDITIONS:**
+
+SMMA50(1) > SSA(1) AND SMMA50(1) > SSB(1) AND
+Candle high(2) > Candle high(1) AND Candle high(1) > Candle high(0) AND Candle high(1) > SSA(1) AND Candle high(1) > SSB(1) AND
+Candle high(2) > SSA(2) AND Candle high(2) > SSB(2) AND TSL(2) > MB(1) AND rsig(2) > MB(2) AND
+KS(1) < TS(1) AND Candle close(1) x< TS(1) AND
+
+rsig(1) x< MB(1) OR rsig(1) x< VB Low(1) AND TSL(1) x< MB(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+- **Current Bar (0)**: Lowest high in 3-bar sequence
+- **Previous Bar (1)**:
+- Close crosses below Tenkan Sen from above
+- High above Kumo cloud but lower than 2 bars ago
+- Kijun Sen below Tenkan Sen (bearish cross)
+- **2 Bars Ago**:
+- Highest in sequence, above Kumo cloud
+- RSI above Market Base Line
+- Trade Signal Line above current Market Base Line
+- **Overall Context**: Uptrend showing initial weakness with pullback signals
+
+
+
+### Cb - Middle Trend Prerequisites (1H/30min)
+
+**	MIDDLE TREND CONDITIONS:**
+
+Candle Close(1) x< TS(1) OR Candle Close(1) x< KS(1) OR Candle Close(1) x‹ SMMA50(1) OR TS(1) x‹ SMMA50(1) OR TS(1) x‹ KS(1) AND
+rsig(1) x< MB(1) OR rsig(1) x< TSL(1) OR rsig(1) x< VB Low(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+- **Previous Bar (1)**: Multiple bearish crosses confirming pullback momentum
+- **Ichimoku Crosses**: Close below TS, KS, or SMMA50; TS below SMMA50 or KS
+- **TDI Crosses**: RSI below MB, TSL, or VB Low
+- **Context**: Confirmation of pullback in shorter timeframe
+
+
+
+### Cc - Entry Conditions (15min/5min)
+
+**	ENTRY SETUP CONDITIONS:**
+
+Candle Close(1) > SSA(1) OR Candle Close(1) > SSB(1) AND
+Candle Low(2) > Candle Low(1) AND Candle Low(1) › Candle Low(0) AND
+Candle Close(1) x< TS(1) OR Candle Close(1) x< KS(1) OR Candle Close(1) x< SMMA50(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+- **Current Bar (0)**: Lowest low in 3-bar sequence
+- **Previous Bar (1)**:
+- Close still above Kumo cloud (maintaining higher timeframe trend)
+- Close crosses below TS, KS, or SMMA50 (pullback confirmation)
+- Low higher than current bar
+- **2 Bars Ago**: Highest low in sequence
+
+**Individual Triggers:**
+- **S14 TRIGGER:** 'rsig(1) x‹ VB High(1)' - RSI crosses below Upper Volatility Band
+- **S15 TRIGGER:** 'rsig(1) x‹ TSL(1)' - RSI crosses below Trade Signal Line
+- **S16 TRIGGER:** 'rsig(1) x‹ MB(1)' - RSI crosses below Market Base Line
+- **S17 TRIGGER:** 'rsig(1) x‹ VB Low(1)' - RSI crosses below Lower Volatility Band
+
+**Market Context**: Pullback sell in uptrend with momentum confirmation
+
+
+
+##	D. PULLBACK PATH BUY (PB-Buy) - B14 to B17
+
+### Multi-Timeframe Prerequisites
+
+- **Da - Major Trend**: Daily OR 4H analysis with counter-trend setup
+- **Db - Middle Trend**: 1H OR 30min pullback identification
+- **Dc - Entry**: l5min OR Smin execution timeframe
+
+
+
+### Da - Major Trend Prerequisites (Daily/4H)
+
+**	MAJOR TREND CONDITIONS:**
+
+SMMA50(1) < SSA(1) AND SMMA50(1) < SSB(1) AND
+Candle low(2) < Candle Low(1) AND Candle Low(1) < Candle Low(0) AND Candle Low(1) < SSA(1) AND Candle Low(1) < SSB(1) AND
+Candle Low(2) < SSA(2) AND Candle low(2) < SSB(2) AND KS(1) > TS(1) AND Candle close(1) x> TS(1) AND TSL(1) < MB(1) AND rsig(2) < MB(2) AND
+rsig(1) x> MB(1) OR rsig(1) x> VB High(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+- **Current Bar (0)**: Highest low in 3-bar sequence
+- **Previous Bar (1)**:
+- Close crosses above Tenkan Sen from below
+- Low below Kumo cloud but higher than 2 bars ago
+- Kijun Sen above Tenkan Sen (bullish cross)
+- **2 Bars Ago**:
+- Lowest in sequence, below Kumo cloud
+- RSI below Market Base Line
+- **Overall Context**: Downtrend showing initial strength with pullback signals
+
+
+
+### Db - Middle Trend Prerequisites (1H/30min)
+
+**	MIDDLE TREND CONDITIONS:**
+
+Candle Close(1) x> TS(1) OR Candle Close(1) x> KS(1) OR Candle Close(1) x› SMMA50(1) OR TS(1) x> SMMA50(1) OR TS(1) x> KS(1) AND
+rsig(1) x> MB(1) OR rsig(1) x› TSL(1) OR rsig(1) x> VB High(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+- **Previous Bar (1)**: Multiple bullish crosses confirming pullback momentum
+- **Ichimoku Crosses**: Close above TS, KS, or SMMA50; TS above SMMA50 or KS
+- **TDI Crosses**: RSI above MB, TSL, or VB High
+- **Context**: Confirmation of pullback in shorter timeframe
+
+
+
+### Dc - Entry Conditions (15min/5min)
+
+**	ENTRY SETUP CONDITIONS:**
+
+Candle Close(1) < SSA(1) OR Candle Close(1) < SSB(1) AND
+Candle Low(2) < Candle Low(1) AND Candle Low(1) < Candle Low(0) AND
+Candle Close(1) x> TS(1) OR Candle Close(1) x> KS(1) OR Candle Close(1) x> SMMA50(1)
+
+
+**	CANDLE-WISE ANALYSIS:**
+- **Current Bar (0)**: Highest low in 3-bar sequence
+- **Previous Bar (1)**:
+- Close still below Kumo cloud (maintaining higher timeframe trend)
+- Close crosses above TS, KS, or SMMA50 (pullback confirmation)
+- Low lower than current bar
+
+- **2 Bars Ago**: Lowest low in sequence
+
+**Individual Triggers:**
+- **B14 TRIGGER:** rsig(1) x› VB High(1) - RSI crosses above Upper Volatility Band
+- **B15 TRIGGER:** rsig(1) x› TSL(1) - RSI crosses above Trade Signal Line
+- **B16 TRIGGER:** rsig(1) x› MB(1) - RSI crosses above Market Base Line
+- **B17 TRIGGER:** rsig(1) x› VB Low(1)' - RSI crosses above Lower Volatility Band
+
+**Market Context**: Pullback buy in downtrend with momentum confirmation
+
+
+
+##	E. Loop Logic
+
+**	EXECUTION SEQUENCE:**
+
+IF (A. CT-Sell conditions S1-S13 are false) THEN IF (B. CT-Buy conditions B1-B13 are false) THEN
+IF (C. PB-Sell conditions S14-S17 are false) THEN IF (D. PB-Buy conditions B14-B17 are false) THEN
+RETURN to A. Continuation Trend (Start over)
+
+
+**Context**: Complete cycle through all 34 conditions before restarting analysis
+
+
+
+##	Technical Implementation Notes
+
+### Order Types
+- **F&0 Markets**: Margin SL-L (Stop Loss Limit) orders
+- **Forex/Commodities**: Buy Stop / Sell Stop orders
+
+### Timeframe Cascade
+- **Major Trend**: Daily OR 4H analysis
+- **Middle Trend**: 30min/1H (CT) OR 1H/30min (PB)
+- **Entry**: 5min/15min (CT) OR 15min/5min (PB)
+
+### Critical Rules
+- All entries execute ONLY at bar close
+- Cross conditions ('x<', 'x>') require actual crossover, not just position
+- Prerequisites must ALL be true before individual triggers are evaluated
+- Sequential evaluation: fail early, proceed only if conditions met
+
+
+
+##	Summary Statistics
+
+**Total Conditions**: 34 (17 Buy + 17 Sell)
+- **CT-Sell**: 13 conditions (S1-S13)
+- **CT-Buy**: 13 conditions (B1-B13)
+- **PB-Sell**: 4 conditions (S14-S17)
+- **PB-Buy**: 4 conditions (B14-B17)
+
+**Condition Groups**:
+- **BB_Squeeze**: S1-S2, B1-B2 (4 total)
+- **KUMO_Cross**: S3-S4, B3-B4 (4 total)
+- **STR-ENTRY-Type-1**: S5-S8, B5-B8 (8 total)
+- **STR-ENTRY-Type-2**: S9-S13, B9-B13 (10 total)
+- **Pullback**: S14-S17, B14-B17 (8 total)
+
+
+
+**Document Status**: Complete Analysis
+**Author**: EA GlobalFlow Pro Development Team
+
+**Contact**: pajitmenonai@gmail.com I 00971507423656
+**Strategy**: Ichimoku-TDI-PA-BBsqueeze-Kumocross
+
+
+
+*This document provides the complete technical specification for all 34 entry conditions in EA Global Flow Pro v0.1. Each condition has been analyzed with precise candle-wise requirements, prerequisite f rameworks, and market context understanding.*

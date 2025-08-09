@@ -1,0 +1,482 @@
+EA GlobalFlow Pro vO.1- Complete Development Specification.md
+1 8.66 KB	527 IinesFormatting may be inconsistent from source
+
+
+# EA GlobalFlow Pro v0.1 - Complete Development Specification
+
+**Reference Document**: Save as "EA_GlobalFlow_Pro_v01_Complete_Development_Specification.md"
+**Status**: Production-Ready Implementation Guide
+**Date**: August 03, 2025
+**Version**: v0.1 - Institutional Grade
+
+
+
+##	EXECUTIVE SUMMARY
+
+EA GlobalFlow Pro v0.1 is an institutional-grade multi-market trading system implementing the Ichimok u-TDI-PA-BBsqueeze-Kumocross strategy across Indian F&0 markets and international Forex/Commodities. The system achieves 90-95% win rates through a sophisticated Triple Enhancement architecture while ma intaining full regulatory compliance and professional risk management standards.
+
+
+
+##	CORE STRATEGY FRAMEWORK
+
+### **Strategy Name**: Ichimoku-TDI-PA-BBsqueeze-Kumocross
+### **Primary Objective**: Multi-market trending system with dual entry paths
+- **Path 1 (Continuation)**: Trade with ongoing market trends
+- **Path 2 (Pullback)**: Trade market reversals and retracements
+- **Universal Rule**: Always enter WITH the trend in both paths
+- **Exit Protocol**: STR-EXIT trend change on 1-hour timeframe
+
+### **Win Rate Architecture - TRIPLE ENHANCEMENT SYSTEM**
+
+**Target: 90-95% Win Rate Achievement**
+
+**Layer 1: 34 Entry Conditions (Base: 65-70%)**
+- Function: Primary screening - catches 70% of bad trades
+- Requirement: Minimum 10 conditions must trigger simultaneously
+- Structure: A1-A3 (CT-Sell), B1-B3 (CT-Buy), C (PB-Sell), D (PB-Buy)
+
+**Layer 2: ML Enhancement (Enhanced: 80-85%)**
+- Function: Advanced pattern recognition - catches additional 15-20%
+- Requirement: ML confidence Z75% for trade approval
+- Fallback: Mandatory when ML unavailable or VIX >30
+
+**Layer 3: Candlestick + Volume (Final: 90-95%)**
+- Function: Final validation - catches remaining 10-15% of bad trades
+- Requirement: Strong directional candlestick + volume confirmation
+- Timing: Must be present at bar-close on entry timeframes (15M/5M)
+
+### **CRITICAL EXCLUSIONS (PERMANENTLY LOCKED)**
+- **NO Elliott Wave Analysis** - Completely removed from all logic
+- **NO Fibonacci Confluence** - All Fibonacci components excluded
+- **Rules 1-399 Superseded** - Only Rules 400-500+ are authoritative
+
+
+##	DUAL MARKET ARCHITECTURE ### *'IN INDIAN F&0 MARKETS**
+**System Type**: Background Scanner	Dynamic Secondary Chart Creation
+**Data Sources**:
+- Fyers API (India VIX, real-time F&0 data, TOTP-enabled)
+- TrueData API (NSE/BSE option chain, {4,718.82/month active)
+
+**Chart Management**:
+- **NO Primary Charts** - Background scanning only
+- **Direct Secondary Chart Opening** - Call/Put charts at OTM levels
+- Auto-close: Stop loss/exit/take profit OR 3:29 PM on expiry
+
+**Strike Price Intervals**:
+- NIFTY INDEX: 50-point intervals
+- All Other Indices: 100-point intervals
+- Stock Options: Dynamic interval detection
+
+### **	NON-F&0 MARKETS (Forex/Commodities)**
+**System Type**: Multi-Chart Ranking " Top 15-20 Auto-Opening
+**Platform**: IC Markets MT5 (VPS: 38.57.40.165)
+**Operation**: Single chart per asset (no secondary charts)
+**Order Types**: Buy Stop and Sell Stop
+
+
+
+##	TECHNICAL FRAMEWORK
+
+### **6 CORE INDICATORS (STANDARDIZED NAMING)**
+1. **Ichimoku Kinko Hyo** (9,26,52) - Buffers: TS, KS, SSA, SSB, CSpan
+2. **TDI (Ichi-Trader Dynamic Index)** - Buffers: rsig, MB, TSL, VB_High, VB_Low
+- RSI Period: 13, Volatility Band: 34, Price Line: 2, Signal Line: 7
+- Levels: 68 (overbought), 32 (oversold)
+3. **SMMA50** - Buffer: SMMA50
+4. **Bollinger Bands** (20,2.0) - Buffers: UpperBoll, LowerBoll, MiddleBoll
+5. **STR-ENTRY** (ATR:20, Mult:1.0) - Buffer: STR_ENTRY
+6. **STR-EXIT** (ATR:20, Mult:1.5) - Buffer: STR_EXIT
+
+### **MULTI-TIMEFRAME CASCADE**
+- **Major Trend**: Daily OR 4H timeframe analysis
+- **Middle Trend**: lH OR 30M timeframe analysis
+- **Entry Execution**: 15M OR 5M timeframes only
+
+
+
+##	COMPLETE 34 ENTRY CONDITIONS
+
+### **CONTINUATION TREND (CT) - 26 CONDITIONS**
+
+**A1-A3: CT-Sell Path (13 Sell Orders: S1-S13)**
+- Major Trend: Daily/4H bearish confirmation
+- Middle Trend: 30min/1H bearish alignment
+- Entry: 5min/15min sell execution
+
+**B1-B3: CT-Buy Path (13 Buy Orders: B1-B13)**
+- Major Trend: Daily/4H bullish confirmation
+- Middle Trend: 30min/1H bullish alignment
+- Entry: 5min/15min buy execution
+
+### **PULLBACK PATH (PB) - 8 CONDITIONS**
+
+**C: PB-Sell Path (4 Sell Orders: S14-S17)**
+- Major Trend: Daily/4H analysis
+- Middle Trend: 1H/30min counter-trend
+- Entry: 30min/5min sell execution
+
+**D: PB-Buy Path (4 Buy Orders: B14-B17)**
+- Major Trend: Daily/4H analysis
+- Middle Trend: 1H/30min counter-trend
+- Entry: 30min/5min buy execution ### **ENTRY CONDITION GROUPS**
+
+**BB_Squeeze Buy Group (B1-B4)**
+- B1: CT_BBSqueeze_Bull Complex
+- B2: CT_BBBreak_Upper
+- B3: CT_KumoBreak_Bull
+- B4: CT_SMMA_Bull
+
+**STR-ENTRY-1 Buy Group (B5-B8)**
+- Prerequisite: MB(1) >= 50 AND MB(1) < 68 AND VB_High(1) < 68 AND rsig(1) > 50
+- B5-B8: Specific TDI and STR-ENTRY combinations
+
+**STR-ENTRY-2 Buy Group (B9-B13)**
+- Prerequisite: MB(1) <= 50 AND MB(1) > 32 AND VB_Low(1) < 32 AND rsig(1) < 50
+- B9-B13: Complementary TDI and STR-ENTRY conditions
+
+
+
+##	HYBRID OI LOGIC (F&0 ONLY)
+
+### **ATM STRIKE IDENTIFICATION**
+- ATM Strike = Nearest to current spot price AND nearest to bar-close spot price
+- Study 5 levels above and below ATM price
+
+### **DUAL PATH OI ANALYSIS**
+
+**PATH 1: Directional Bias Pattern**
+- **Bullish**: ATM >30% Call OI bias + +1-OTM Call OI >30% more than Put OI
+- Action: Open Call chart @ +1-OTM + Put chart @ -1-OTM
+- **Bearish**: ATM >30% Put OI bias + -1-OTM Put OI >30% more than Call OI
+- Action: Open Put chart @ -1-OTM + Call chart @ +1-OTM
+
+**PATH 2: Independent Bias Pattern**
+- +1-OTM: >30% relative difference (any direction)
+- -l-OTM: >30% relative difference (any direction)
+- Action: Open Call chart @ +1-OTM + Put chart @ -1-OTM
+
+### **SPECIAL RULES**
+- **Expiry Day**: Both charts open at ATM level (overrides OTM logic)
+- **Chart Limits**: Only 1 Call + 1 Put chart per ATM strike
+- **Minimum Bias**: 30% threshold is NEVER compromised
+- **Auto-Close**: 3:29 PM on expiry day mandatory
+
+
+
+##	RISK MANAGEMENT & SAFETY
+
+### **WIN PROBABILITY SIZING SYSTEM**
+- **98-100% confidence**: 4.5% risk (maximum allocation)
+- **95-97% confidence**: 3.5% risk (high confidence)
+- **92-94% confidence**: 2.5% risk (good quality)
+- **90-91% confidence**: 1.5% risk (moderate quality)
+- **85-89% confidence**: 0.8% risk (minimum threshold)
+
+### **MARKET REGIME DETECTION**
+**8 Regime Types with Dynamic Multipliers**:
+- TRENDING_BULL/BEAR: 1.2x multiplier
+- RANGING_TIGHT: 0.8x multiplier
+- RANGING_WIDE: 1.0" multiplier
+- V0LATILE_SPIKE: 0.5x multiplier
+- CALM_ACCUMULATI0N: 1.5x multiplier
+- BREAK0UT_BULL/BEAR: 1.8x multiplier
+
+### **EMERGENCY PROTOCOLS**
+- VIX >35: Disable all new positions
+- API Disconnect: Freeze mode, protect existing positions
+
+- Daily Loss Limit: Automatic shutdown
+- Correlation >70%: Block correlated positions
+
+
+
+##	NON-F&0 SCORING STRUCTURE
+
+**Total Score = 100% (Entry Threshold: 75%+)**
+
+1. **Technical Confluence (35%)** - 34 conditions + multi-timeframe alignment
+2. **Volume Profile Analysis (25%)** - Volume spikes + accumulation/distribution
+3. **COT Report Analysis (20%)** - Automated CFTC data integration
+4. **Price Action Footprints (10%)** - Absorption + rejection patterns
+5. **Intermarket Correlations (10%)** - Currency + commodity relationships
+
+### **COT REPORT AUTOMATION**
+- Weekly automated download from CFTC (Fridays)
+- Parse CSV/Excel files for commercial positioning
+- Alert system for extreme positioning levels
+
+
+
+##	COMPREHENSIVE DASHBOARD SYSTEM ### **DUAL DASHBOARD ARCHITECTURE**
+**F&0 Dashboard (Indian Markets)**
+
+EA GLOBALFLOW PRO - F&0 v0.1 ECONOMIC CALENDAR - INDIA
+Next: RBI Policy (02:45:00) THIGH Affected: NIFTY, BANKNIFTY
+Status:	TRADING RESTRICTED
+
+    ACTIVE POSITIONS (3/5) NIFTY50000CE: +{2,850 ( ) BANKNIFTY45000PE: -{1,200 ( ) FINNIFTY18000CE: +1950 ( )
+
+TODAY'S PERFORMANCE
+P&L: +{4,280 I Win Rate: 94.2%
+Trades: 17 I Risk Used: 67%
+
+
+
+**Non-F&0 Dashboard (International Markets)**
+
+EA GLOBALFLOW PRO - INTL v0.1 ECONOMIC CALENDAR - GLOBAL
+Next: USD NFP (17:30:00)	HIGH Affected: EURUSD, GBPUSD, GOLD Status:	5-MIN RESTRICTION
+
+    ACTIVE POSITIONS (8/15) EURUSD: +$420 ( ) Score: 89% GOLD: +$680 ( ) Score: 92% GBPJPY: -$150 ( ) Score: 76%
+
+TODAY'S PERFORMANCE
+P&L: +$1,240 I Win Rate: 91.8%
+Trades: 2# I Risk Used: 48%
+
+
+
+
+### **DASHBOARD FEATURES**
+- **Real-time Updates**: Every 10 seconds
+- **Color Coding**: TradingView Green/Red scheme
+- **Visual Elements**: Progress bars, meters, status indicators
+- **Professional Styling**: Dark theme, high contrast
+
+
+##	SECURITY & COMPLIANCE ### **TOTP AUTO-LOGIN SYSTEM**
+- **Autonomous Operation**: 14-day regeneration cycle
+- **No Manual Intervention**: Fully automated process
+- **Security Features**: Encrypted credential storage, hardware ID binding
+- **Alert System**: Day 12, 13 warnings + completion notifications
+
+### **NSE ALGORITHMIC TRADING COMPLIANCE (Circular 471/2025)**
+- **Strategy Registration**: Automatic via Fyers broker integration
+- **Static Strategy ID**: Unique identifier for all EA trades
+- **Order Tagging**: Every order tagged with strategy ID
+- **TOTP Compliance**: <10 orders/second threshold maintained
+
+### **NRI TRADING RESTRICTIONS**
+- **Currency Derivatives**: Automatic blocking system
+- **Stock Options**: Restricted symbol validation
+- **Real-time Monitoring**: RBI ban list integration
+- **Compliance Alerts**: Automatic warnings for restricted instruments
+
+
+##	TRADING CONFIGURATION ### **MARKET HOURS**
+**Forex Markets**:
+- Trading Start: 01:00 hours (server time)
+- Trading End: 23:00 hours (server time)
+- Trading Days: Monday to Friday
+
+**Indian F&0 Markets**:
+- Trading Start: 09:30 AM IST
+- Trading End: 15:29 PM IST
+- Trading Days: Monday to Friday
+- **Expiry Day**: Tuesday (effective September 1, 2025)
+
+### **ORDER TYPES**
+- **Indian F&0**: Regular Days - Margin SL-L ORDER (Buy/Sell), Expiry Day - Market orders only
+- **Forex/Commodities**: Buy Stop, Sell Stop orders
+
+
+##	API INTEGRATION ### **FYERS API**
+- **Authentication**: TOTP-based 2FA automation
+- **Token Management**: Automatic refresh and renewal
+- **App ID**: M3ZSJC8Q7I-100 (configured)
+- **Features**: India VIX data, F&0 real-time feeds
+
+### **TRUEDATA API**
+- **Subscription**: Active ({4,718.82/month)
+- **Library**: pip install truedata_ws
+- **Features**: Real-time tick data, option chain analysis
+
+- **Symbols**: 200 included (expandable)
+
+### **IC MARKETS**
+- **Platform**: MT5 Standard connectivity
+- **VPS**: 38.57.40.165:42014 (Static IP)
+- **Features**: Forex, commodities, CFDs trading
+
+
+
+##	ALERT SYSTEM
+
+### **NOTIFICATION CHANNELS**
+- **Email**: pajitmenonai@gmail.com
+- **Phone**: +971507423656 (WhatsApp enabled)
+- **Trade Alerts**: Entry/exit notifications
+- **Risk Alerts**: Risk limit warnings
+- **System Alerts**: Connection status updates
+
+### **ALERT TRIGGERS**
+- **Trade Entry/Exit**: Immediate notification
+- **Risk Limits**: When approaching limits
+- **System Events**: Connection issues, errors
+- **Daily Reports**: Performance summary
+- **Weekly Reports**: Comprehensive analysis
+
+
+
+##	INPUT PARAMETERS (ORGANIZED GROUPS)
+
+### **1. System Control**
+- Enable/disable features, paper mode settings
+- Master chart assignments
+- Global EA enable/disable switches
+
+### **2. Market Detection**
+- Auto-detect vs manual market selection
+- Symbol list management
+- Market type identification
+
+### **3. F&0 Settings**
+- TrueData/Fyers configuration
+- OI bias thresholds (minimum 30%)
+- Strike selection parameters
+
+### **4. International Markets**
+- Scanner settings and ranking criteria
+- Top chart count (customizable: 15-20)
+- Scoring threshold (75%+ required)
+
+### **5. Risk Management**
+- VIX-based position sizing
+- Correlation limits (70% maximum)
+- Daily loss limits
+- Emergency stop protocols
+
+### **6. Economic Calendar**
+- Currency filters and impact definitions
+- Pre-news restriction timing
+- High-impact event handling
+
+### **7. NRI Compliance**
+- Enable restrictions for NRI accounts
+- Prohibited sectors and instruments
+- Automatic compliance checking
+
+##	PERFORMANCE TARGETS
+
+### **WIN RATE OBJECTIVES**
+- **F&0 Markets**: 92-95% win rate (12-18 trades/month, 12-18% monthly return)
+- **Non-F&0 Markets**: 88-93% win rate (12-18 trades/week, 8-12% monthly return)
+- **Combined Portfolio**: 90%+ overall win rate
+
+### **RISK METRICS**
+- **Risk-Adjusted Returns**: Sharpe >2.5
+- **Maximum Drawdown**: <10%
+- **Position Correlation**: <70% maximum
+- **Daily Loss Limit**: User-configurable
+
+### **SYSTEM PERFORMANCE**
+- **Execution Speed**: ‹l00ms average order execution
+- **System Uptime**: 99%+ during trading hours
+- **Memory Usage**: ‹500MB maximum footprint
+- **CPU Usage**: ‹10% average utilization
+
+
+
+##	IMPLEMENTATION PHASES
+
+### **PHASE 1 (CRITICAL - Week 1)**
+1. **F&0 Secondary Chart Management** - Dynamic Call/Put chart lifecycle
+2. **Complete 34 Entry Conditions** - All sophisticated indicator combinations
+3. **Triple Enhancement System** - ML + Candlestick + Volume validation
+
+### **PHASE 2 (HIGH PRIORITY - Week 2)**
+4. **Economic Calendar Integration** - MQL5 native with skill vs news analysis
+5. **Non-F&0 Auto-Scanner** - Symbol ranking and chart management
+6. **Advanced Risk Management** - Dynamic sizing and regime detection
+
+### **PHASE 3 (IMPORTANT - Week 3)**
+7. **Dashboard Visualization** - Dual dashboard with real-time updates
+8. **Compilation Mode Safety** - No trading during EA recompilation
+9. **Enhanced TOTP System** - Autonomous regeneration and monitoring
+
+### **PHASE 4 (OPTIMIZATION - Week 4)**
+10. **Performance Analytics** - Advanced metrics and reporting
+11. **Final Testing & Validation** - Complete system validation
+12. **Production Deployment** - Live environment setup
+
+
+
+##	TESTING PROTOCOLS
+
+### **COMPONENT TESTING**
+- **Secondary Chart Testing**: Paper mode with debug console
+- **Entry Conditions Testing**: Individual condition verification
+- **Risk Management Testing**: VIX-based sizing calculations
+- **Dashboard Testing**: Real-time update verification
+
+### **INTEGRATION TESTING**
+- **API Connectivity**: Fyers + TrueData + IC Markets
+- **Cross-component Communication**: Chart-to-dashboard messaging
+- **Alert System**: End-to-end notification testing
+- **Emergency Protocols**: Stress testing and failure scenarios
+
+### **COMPLETION CRITERIA**
+- All 10 components fully implemented
+- Secondary charts opening/closing correctly
+- 34 conditions working with 10+ minimum
+
+- Triple enhancement achieving 85%+ threshold
+- {Q# All safety systems operational
+- Dashboard displaying real-time data
+- Win rate consistently above 90%
+
+
+
+##	CRITICAL RULES (NO COMPROMISE)
+
+1. **All OI thresholds Z30%** - Strictly enforced
+2. **Bar close validation only** - No tick analysis
+3. **Sequential timeframe confirmation** - Required
+4. **Minimum score 75% for Non-F&0 entry**
+5. **CT path needs ALL timeframes aligned**
+6. **TDI levels fixed at 68/32** - No adaptation
+7. **Expiry close at 3:29 PM** - Automatic
+8. **NRI compliance on Fyers** - Full enforcement
+
+
+
+##	QUALITY ASSURANCE
+
+### **CODE QUALITY STANDARDS**
+- **Complete Documentation**: Inline comments and technical documentation
+- **Error Handling**: Comprehensive MT5 error code integration
+- **Version Control**: Systematic change management
+- **Code Reviews**: Peer review of all components
+
+### **SECURITY STANDARDS**
+- **API Key Encryption**: All credentials encrypted at rest
+- **Secure Communication**: Named pipes with access control
+- **Audit Logging**: Complete system activity logging
+- **Backup Security**: Encrypted configuration backups
+
+
+##	SUPPORT & MAINTENANCE ### **CONTACT INFORMATION**
+- **Primary Email**: pajitmenonai@gmail.com
+- **WhatsApp**: +971507423656
+- **VPS Acces s** :  38.57. 40. 165 : 42014
+
+### **MAINTENANCE SCHEDULE**
+- **Weekly VPS Reboot**: Sunday 03:00 AM (VPS local time)
+- **TOTP Regeneration**: Automatic every 14 days
+- **System Updates**: Monthly security patches
+- **Performance Review**: Weekly analysis reports
+
+
+##	PROJECT STATUS ### **INFRASTRUCTURE**
+-	**VPS Setup**: Complete (38.57.40.165)
+- **Python Environment**: 3.13 with 63 packages
+- **API Credentials**: Encrypted and secured
+- **TOTP System**: 14-day autonomous cycle active
+- **TrueData Subscription**: Active ({4,718.82/month)
+
+### **DEVELOPMENT READINESS**
+**Complete Specification**: All requirements documented
+- **Rule Mapping**: Comprehensive analysis completed
+- **Contradiction Resolution**: All conflicts resolved
+- **Version Consolidation**: Upgraded to v0.1 standard
+
+

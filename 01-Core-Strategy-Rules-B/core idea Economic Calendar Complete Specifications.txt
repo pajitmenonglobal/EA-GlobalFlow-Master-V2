@@ -1,0 +1,217 @@
+EA GlobalFlow Pro v8.0 - Economic Calendar Complete Specifications
+?? ECONOMIC CALENDAR INTEGRATION - COMPLETE PARAMETERS
+1. ?? Currency Filter List
+For F&O Markets (India):
+
+Monitored Currencies: INR Specific Events:
+- RBI Policy Meetings (High Impact)
+- Indian CPI/WPI Data (Medium Impact)
+- GDP Quarterly Results (High Impact)
+- Budget Day (Critical - NO TRADING)
+- GST Council Meetings (Medium Impact)
+- IIP Data (Medium Impact)
+- Trade Balance (Low Impact)
+
+For Forex Markets:
+
+Primary Currencies (Always Monitor):
+- USD: All Fed events, NFP, CPI, GDP
+- EUR: ECB meetings, EU CPI, PMIs
+- GBP: BoE meetings, UK CPI, GDP
+- JPY: BoJ meetings, Tankan survey
+- CHF: SNB meetings, Swiss CPI
+
+Secondary Currencies (Medium Priority):
+- AUD: RBA meetings, Employment data
+- CAD: BoC meetings, Canadian CPI
+- NZD: RBNZ meetings, dairy auctions
+
+Ignore Unless Trading:
+- SEK, NOK, DKK, PLN, HUF, CZK, TRY, ZAR, MXN
+
+For Commodities:
+
+Gold/Silver:
+- USD events (inverse correlation)
+- Real interest rate impacts
+- Risk-off events
+
+Oil:
+- EIA Inventory (High Impact)
+- OPEC meetings (Critical)
+- API reports (Medium Impact)
+
+Natural Gas:
+- Storage reports (High Impact)
+- Weather events (unscheduled)
+
+
+2. ?? Custom Impact Definitions
+Impact Level Classification:
+
+CRITICAL (No Trading):
+- Central Bank emergency meetings
+- Government policy changes
+- Market circuit breakers
+- Budget announcements (India)
+- Unscheduled major events
+
+HIGH IMPACT (5-min pause):
+- Interest rate decisions
+- NFP (Non-Farm Payrolls)
+- CPI/Inflation data
+- GDP releases
+- Central Bank speeches (Chair/President)
+
+MEDIUM IMPACT (Monitor only):
+- PMI data
+- Retail sales
+- Housing data
+- Trade balance
+- Secondary CB member speeches
+
+LOW IMPACT (Ignore):
+- Building permits
+- Consumer confidence
+- Minor economic indicators
+- Regional Fed surveys
+
+
+3. ?? Weekend News Handling
+
+mql5
+
+// Weekend News Protocol
+enum WEEKEND_NEWS_ACTION {
+WNA_CLOSE_ALL,	// Close all positions Friday WNA_HEDGE_RISKY,			// Hedge high-risk positions WNA_REDUCE_SIZE,		// Reduce position sizes WNA_MONITOR_ONLY	// Just monitor, no action
+};
+
+// Default Weekend Rules:
+- Friday 3:00 PM: Assess weekend risk
+- G7/G20 meetings: CLOSE_ALL or HEDGE
+- Elections: REDUCE_SIZE minimum
+- Known events: Position accordingly
+- Unknown risk: Default to MONITOR_ONLY
+
+// Monday Gap Protocol:
+- First 15 minutes: NO NEW TRADES
+- Assess gap size and direction
+- If gap > 1%: Wait for retracement
+- If gap < 0.5%: Normal trading
+
+
+4. ?? Unscheduled News Alerts
+
+mql5
+
+// Unscheduled Event Types enum UNSCHEDULED_EVENT {
+UE_CENTRAL_BANK,			 // Emergency CB action UE_GEOPOLITICAL,	// Wars, sanctions UE_NATURAL_DISASTER, // Earthquakes, hurricanes UE_TERROR_ATTACK,			 // Security events UE_MAJOR_DEFAULT,				// Country/company defaults UE_FLASH_CRASH,		// Technical market breaks UE_TWEET_STORM			// Social media impacts
+};
+
+// Immediate Actions:
+1. FREEZE all new trades
+2. Assess existing positions
+3. Send WhatsApp/Email alert
+4. Wait for 30-minute stabilization
+5. Resume with enhanced filters
+
+// Detection Methods:
+- Volatility spike > 3 standard deviations
+- Spread widening > 300% normal
+- News feed keyword alerts
+- Broker notifications
+- Abnormal volume spikes
+
+
+5. ?? Enhanced News Integration Fe
+A. Pre-News Position Management:
+
+T-30 minutes: Position assessment
+T-15 minutes: Reduce/hedge decision T-5 minutes: FREEZE new trades
+T-0: News release
+T+5 minutes: Assess impact T+10 minutes: Resume if stable
+
+B. News Storage & History:
+
+Storage Duration:
+- High Impact: 90 days
+- Medium Impact: 30 days
+- Low Impact: 7 days
+- Trade correlations: 180 days
+
+Cleanup Schedule:
+- Daily: Remove low impact > 7 days
+- Weekly: Compress medium impact
+- Monthly: Archive high impact
+- Quarterly: Full database optimization
+
+C. Multi-Source Integration:
+
+Priority Order:
+1. MQL5 Calendar (built-in, fastest)
+2. ForexFactory API (backup)
+3. Investing.com RSS (emergency)
+4. Broker notifications (critical)
+
+Conflict Resolution:
+- If times differ > 5 min: Use earliest
+- If impact differs: Use highest
+- If conflict: Alert + manual review
+
+
+6. ?? Input Parameters for Economic Calendar
+
+mql5
+
+// News Filter Settings
+input bool	UseNewsFilter = true;
+input int	PreNewsMinutes = 5;	// Pause before high impact input int	PostNewsMinutes = 10;		// Monitor after news input string MonitorCurrencies = "USD,EUR,GBP,JPY,INR";
+input bool	WeekendCloseAll = false; input bool	MondayGapProtection = true;
+
+// Impact Levels
+input bool	TradeDuringLow = true; input bool	TradeDuringMedium = true; input bool	PauseOnHigh = true;
+input bool	CloseOnCritical = true;
+
+// Unscheduled Events
+input bool	AutoDetectFlash = true;
+input double VolSpikeThreshold = 3.0; // Standard deviations input int	StabilizationMins = 30;
+
+// Indian Market Specific
+input bool	CloseBudgetDay = true;
+input bool	CloseRBIDay = false;	// Just pause
+input string IndianHolidays = "Holi,Diwali"; // Auto-close days
+
+// Display Options
+input bool		ShowNewsPanel = true; input bool		ShowImpactMeter = true; input int	PanelUpdateSeconds = 30; input color HighImpactColor = clrRed;
+input color MediumImpactColor = clrOrange; input color LowImpactColor = clrYellow;
+
+7. ?? Implementation Code Structure
+
+mql5
+
+class CNewsManager { private:
+struct NewsEvent { datetime time; string currency; string title;
+int impact;	// 1=Low, 2=Medium, 3=High, 4=Critical double forecast;
+double previous; double actual;
+};
+
+NewsEvent m_events[]; bool m_tradingPaused; datetime m_pauseUntil;
+
+public:
+bool ShouldTrade() {
+// Check all news conditions if(m_tradingPaused) return false; if(IsPreNewsWindow()) return false; if(IsWeekendRisk()) return false; if(IsUnscheduledEvent()) return false; return true;
+}
+
+void UpdateDashboard() {
+// Visual updates every 30 seconds ShowNextEvent(); ShowTradingStatus(); ShowImpactMeter(); ShowSkillVsLuck();
+}
+};
+
+
+? COMPLETE ECONOMIC CALE	N
+All parameters are now defined for:
+Currency filter lists (market-specific) Custom impact definitions (4 levels)
+
+Weekend news handling protocols Unscheduled event detection & response Storage and cleanup schedules
+Multi-source integration Complete input parameters Implementation framework
+Status: Ready for implementation with all specifications complete.

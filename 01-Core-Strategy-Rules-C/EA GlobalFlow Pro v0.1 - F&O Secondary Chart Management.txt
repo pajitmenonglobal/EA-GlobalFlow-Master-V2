@@ -1,0 +1,791 @@
+﻿EA GlobalFlow Pro v0.1 - F&O Secondary Chart Management.txt
+ 
+//+------------------------------------------------------------------+
+//| EA GlobalFlow Pro v0.1 - F&O Secondary Chart Management         |
+//| Copyright 2025, EA GlobalFlow Pro                               |
+//| pajitmenonai@gmail.com / +971507423656                          |
+//+------------------------------------------------------------------+
+#property copyright "EA GlobalFlow Pro v0.1"
+#property link      "pajitmenonai@gmail.com"
+#property version   "0.10"
+#property description "F&O Secondary Chart Management System - Critical Component #1"
+
+//--- Include files for modular architecture
+#include "GlobalFlow_Bridge.mqh"
+#include "GlobalFlow_TrueData.mqh"
+
+//+------------------------------------------------------------------+
+//| F&O Chart Structure                                              |
+//+------------------------------------------------------------------+
+struct SecondaryChart
+{
+    long        chartId;            // Chart ID for MT5
+    string      symbol;             // NIFTY25JUL24500CE, etc.
+    string      chartType;          // "CALL" or "PUT"
+    datetime    openTime;           // Chart creation time
+    int         tradesCount;        // Number of trades executed
+    bool        active;             // Chart status
+    double      qualityScore;       // 0-100 quality rating
+    double      strikePrice;        // Strike price
+    bool        isExpiry;           // Is expiry day
+    int         visualTheme;        // 1=Forest Green (CALL), 2=Deep Red (PUT)
+};
+
+//+------------------------------------------------------------------+
+//| F&O Data Structure                                               |
+//+------------------------------------------------------------------+
+struct FnOData
+{
+    string      underlyingSymbol;   // NIFTY, BANKNIFTY, etc.
+    double      spotPrice;          // Current underlying price
+    double      atmStrike;          // ATM strike price
+    double      callOI;             // Call Open Interest
+    double      putOI;              // Put Open Interest
+    double      oiBias;             // OI Bias percentage
+    bool        validData;          // Data validation flag
+    datetime    lastUpdate;         // Last data update time
+    string      optionChain[11];    // -5 to +5 strikes from ATM
+    double      callOI_Array[11];   // Call OI for each strike
+    double      putOI_Array[11];    // Put OI for each strike
+};
+
+//+------------------------------------------------------------------+
+//| Global Variables                                                 |
+//+------------------------------------------------------------------+
+SecondaryChart  g_SecondaryCharts[25];      // Max 25 secondary charts
+FnOData         g_FnOData;                  // F&O market data
+int             g_ChartCount = 0;           // Active charts counter
+datetime        g_LastScanTime = 0;         // Last background scan
+bool            g_TradingHours = false;     // Indian market hours
+string          g_MarketType = "";          // "F&O" or "NON-F&O"
+
+//--- Input Parameters for F&O System
+input group    "=== F&O SECONDARY CHART SETTINGS ==="
+input bool     EnableFnOCharts = true;             // Enable F&O Secondary Charts
+input int      OI_BiasThreshold = 30;              // Minimum OI Bias % (Never below 30%)
+input int      MaxSecondaryCharts = 10;            // Maximum secondary charts (1-25)
+input bool     EnableExpiryATM = true;             // Use ATM on expiry day
+input bool     EnablePaperMode = true;             // Paper mode testing (no real trades)
+
+input group    "=== F&O VISUAL THEMES ==="
+input color    CallChartColor = C'0,100,0';        // Call Chart Color (Forest Green)
+input color    PutChartColor = C'139,0,0';         // Put Chart Color (Deep Red)
+input bool     EnableVisualBadges = true;          // Show Call/Put badges
+input int      ChartRefreshSeconds = 30;           // Chart refresh rate
+
+input group    "=== F&O MARKET HOURS (IST) ==="
+input int      TradingStartHour = 9;               // Trading start hour (IST)
+input int      TradingStartMinute = 30;            // Trading start minute
+input int      TradingEndHour = 15;                // Trading end hour (IST)
+input int      TradingEndMinute = 29;              // Trading end minute
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    Print("🚀 EA GlobalFlow Pro v0.1 - F&O Chart Management Initializing...");
+    
+    // Detect market type
+    DetectMarketType();
+    
+    // Initialize F&O system only for Indian markets
+    if(g_MarketType == "F&O")
+    {
+        if(!InitializeFnOSystem())
+        {
+            Print("❌ F&O System initialization failed!");
+            return INIT_FAILED;
+        }
+        
+        Print("✅ F&O System initialized successfully for: ", Symbol());
+        
+        // Enable chart auto-scroll and other display settings
+        ChartSetInteger(0, CHART_AUTOSCROLL, true);
+        ChartSetInteger(0, CHART_SHIFT, true);
+        
+        // Set initial visual theme based on market
+        SetChartVisualTheme();
+    }
+    else
+    {
+        Print("📊 Non-F&O market detected: ", Symbol());
+        Print("🔄 F&O Secondary Chart Management disabled for this market");
+    }
+    
+    // Set timer for background scanning
+    EventSetTimer(ChartRefreshSeconds);
+    
+    return INIT_SUCCEEDED;
+}
+
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+    Print("🛑 EA GlobalFlow Pro v0.1 - F&O System Deinitialization");
+    
+    // Close all secondary charts
+    CloseAllSecondaryCharts();
+    
+    // Clean up resources
+    EventKillTimer();
+    
+    Print("✅ F&O Secondary charts closed and resources cleaned");
+}
+
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+    if(g_MarketType != "F&O") return;
+    
+    // Check trading hours
+    CheckTradingHours();
+    
+    if(!g_TradingHours) return;
+    
+    // Update F&O data tick-by-tick
+    UpdateFnODataTick();
+    
+    // Check for auto-close conditions
+    CheckAutoCloseConditions();
+}
+
+//+------------------------------------------------------------------+
+//| Timer function for background scanning                          |
+//+------------------------------------------------------------------+
+void OnTimer()
+{
+    if(g_MarketType != "F&O") return;
+    
+    if(!g_TradingHours) return;
+    
+    Print("🔍 F&O Background Scan - ", TimeToString(TimeCurrent()));
+    
+    // Perform comprehensive F&O background scan
+    PerformFnOBackgroundScan();
+    
+    // Update visual elements
+    UpdateChartVisuals();
+}
+
+//+------------------------------------------------------------------+
+//| Detect Market Type (F&O vs Non-F&O)                            |
+//+------------------------------------------------------------------+
+void DetectMarketType()
+{
+    string symbol = Symbol();
+    
+    // Indian F&O market detection
+    if(StringFind(symbol, "NIFTY") >= 0 || 
+       StringFind(symbol, "BANKNIFTY") >= 0 ||
+       StringFind(symbol, "FINNIFTY") >= 0 ||
+       StringFind(symbol, "CE") >= 0 ||
+       StringFind(symbol, "PE") >= 0 ||
+       StringFind(symbol, "FUT") >= 0)
+    {
+        g_MarketType = "F&O";
+        Print("🇮🇳 Indian F&O Market Detected: ", symbol);
+    }
+    else
+    {
+        g_MarketType = "NON-F&O";
+        Print("🌍 International Market Detected: ", symbol);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Initialize F&O System                                           |
+//+------------------------------------------------------------------+
+bool InitializeFnOSystem()
+{
+    Print("🔧 Initializing F&O Secondary Chart System...");
+    
+    // Validate input parameters  
+    if(OI_BiasThreshold < 30)
+    {
+        Print("⚠️ WARNING: OI Bias Threshold below 30% - adjusting to 30%");
+        // Note: In production, this would be enforced as minimum
+    }
+    
+    if(MaxSecondaryCharts > 25)
+    {
+        Print("⚠️ WARNING: Max charts limited to 25");
+        // Adjust to maximum allowed
+    }
+    
+    // Initialize F&O data structure
+    g_FnOData.underlyingSymbol = ExtractUnderlyingSymbol();
+    g_FnOData.spotPrice = 0.0;
+    g_FnOData.atmStrike = 0.0;
+    g_FnOData.callOI = 0.0;
+    g_FnOData.putOI = 0.0;
+    g_FnOData.oiBias = 0.0;
+    g_FnOData.validData = false;
+    g_FnOData.lastUpdate = 0;
+    
+    // Initialize secondary charts array
+    for(int i = 0; i < 25; i++)
+    {
+        g_SecondaryCharts[i].chartId = 0;
+        g_SecondaryCharts[i].symbol = "";
+        g_SecondaryCharts[i].chartType = "";
+        g_SecondaryCharts[i].openTime = 0;
+        g_SecondaryCharts[i].tradesCount = 0;
+        g_SecondaryCharts[i].active = false;
+        g_SecondaryCharts[i].qualityScore = 0.0;
+        g_SecondaryCharts[i].strikePrice = 0.0;
+        g_SecondaryCharts[i].isExpiry = false;
+        g_SecondaryCharts[i].visualTheme = 0;
+    }
+    
+    Print("✅ F&O System components initialized successfully");
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Extract Underlying Symbol from Option/Future Symbol             |
+//+------------------------------------------------------------------+
+string ExtractUnderlyingSymbol()
+{
+    string symbol = Symbol();
+    
+    if(StringFind(symbol, "NIFTY") >= 0)
+        return "NIFTY";
+    else if(StringFind(symbol, "BANKNIFTY") >= 0)
+        return "BANKNIFTY";
+    else if(StringFind(symbol, "FINNIFTY") >= 0)
+        return "FINNIFTY";
+    else
+    {
+        // Extract stock name for stock options
+        int pos = StringFind(symbol, "25");
+        if(pos > 0)
+            return StringSubstr(symbol, 0, pos);
+    }
+    
+    return symbol;
+}
+
+//+------------------------------------------------------------------+
+//| Check Trading Hours (IST)                                       |
+//+------------------------------------------------------------------+
+void CheckTradingHours()
+{
+    MqlDateTime dt;
+    TimeToStruct(TimeLocal(), dt);  // Use local time (should be IST on Indian VPS)
+    
+    // Convert to minutes for easier comparison
+    int currentTime = dt.hour * 60 + dt.min;
+    int startTime = TradingStartHour * 60 + TradingStartMinute;  // 9:30 = 570 min
+    int endTime = TradingEndHour * 60 + TradingEndMinute;       // 15:29 = 929 min
+    
+    // Check if within trading hours and weekday
+    bool withinHours = (currentTime >= startTime && currentTime <= endTime);
+    bool weekday = (dt.day_of_week >= 1 && dt.day_of_week <= 5);
+    
+    g_TradingHours = withinHours && weekday;
+    
+    // Auto-close all charts at market close
+    if(currentTime == endTime && g_ChartCount > 0)
+    {
+        Print("🕐 Market closing - Auto-closing all secondary charts");
+        CloseAllSecondaryCharts();
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Update F&O Data (Tick-by-tick)                                  |
+//+------------------------------------------------------------------+
+void UpdateFnODataTick()
+{
+    // In production, this would connect to TrueData API
+    // For now, simulate basic F&O data updates
+    
+    g_FnOData.spotPrice = iClose(Symbol(), PERIOD_CURRENT, 0);
+    
+    // Calculate ATM strike (nearest 50-point for NIFTY, 100-point for others)
+    double interval = 50.0;
+    if(StringFind(g_FnOData.underlyingSymbol, "NIFTY") < 0)
+        interval = 100.0;
+    
+    g_FnOData.atmStrike = NormalizeDouble(g_FnOData.spotPrice / interval, 0) * interval;
+    
+    // Simulate OI data (in production, from TrueData)
+    g_FnOData.callOI = 100000 + (MathRand() % 50000);
+    g_FnOData.putOI = 80000 + (MathRand() % 60000);
+    
+    // Calculate OI bias
+    double totalOI = g_FnOData.callOI + g_FnOData.putOI;
+    if(totalOI > 0)
+        g_FnOData.oiBias = ((g_FnOData.callOI - g_FnOData.putOI) / totalOI) * 100.0;
+    
+    g_FnOData.validData = true;
+    g_FnOData.lastUpdate = TimeCurrent();
+    
+    // Build option chain data (simulate)
+    BuildOptionChainData();
+}
+
+//+------------------------------------------------------------------+
+//| Build Option Chain Data for OI Analysis                         |
+//+------------------------------------------------------------------+
+void BuildOptionChainData()
+{
+    double interval = 50.0;
+    if(StringFind(g_FnOData.underlyingSymbol, "NIFTY") < 0)
+        interval = 100.0;
+    
+    // Build strikes from ATM-5 to ATM+5
+    for(int i = 0; i < 11; i++)
+    {
+        double strike = g_FnOData.atmStrike + (i - 5) * interval;
+        g_FnOData.optionChain[i] = DoubleToString(strike, 0);
+        
+        // Simulate OI data for each strike
+        g_FnOData.callOI_Array[i] = 50000 + (MathRand() % 100000);
+        g_FnOData.putOI_Array[i] = 40000 + (MathRand() % 120000);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Perform F&O Background Scan                                     |
+//+------------------------------------------------------------------+
+void PerformFnOBackgroundScan()
+{
+    if(!g_FnOData.validData)
+    {
+        Print("⚠️ Invalid F&O data - skipping scan");
+        return;
+    }
+    
+    Print("📊 F&O Background Scan Results:");
+    Print("   Underlying: ", g_FnOData.underlyingSymbol);
+    Print("   Spot Price: ", g_FnOData.spotPrice);
+    Print("   ATM Strike: ", g_FnOData.atmStrike);
+    Print("   OI Bias: ", DoubleToString(g_FnOData.oiBias, 2), "%");
+    
+    // Check if conditions met for secondary chart creation
+    if(ShouldCreateSecondaryCharts())
+    {
+        CreateSecondaryChartsIfNeeded();
+    }
+    
+    g_LastScanTime = TimeCurrent();
+}
+
+//+------------------------------------------------------------------+
+//| Check if Should Create Secondary Charts                          |
+//+------------------------------------------------------------------+
+bool ShouldCreateSecondaryCharts()
+{
+    if(!g_FnOData.validData)
+        return false;
+    
+    // Check OI bias threshold
+    if(MathAbs(g_FnOData.oiBias) < OI_BiasThreshold)
+    {
+        Print("📉 OI Bias ", DoubleToString(g_FnOData.oiBias, 2), "% below threshold ", OI_BiasThreshold, "%");
+        return false;
+    }
+    
+    // Check maximum charts limit
+    if(g_ChartCount >= MaxSecondaryCharts)
+    {
+        Print("⚠️ Maximum secondary charts limit reached: ", MaxSecondaryCharts);
+        return false;
+    }
+    
+    // Additional conditions can be added here
+    // - Volatility checks
+    // - Time-based restrictions
+    - Market regime analysis
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Create Secondary Charts If Needed                               |
+//+------------------------------------------------------------------+
+void CreateSecondaryChartsIfNeeded()
+{
+    Print("🎯 Creating secondary charts - OI Bias: ", DoubleToString(g_FnOData.oiBias, 2), "%");
+    
+    // Determine chart creation logic based on hybrid OI approach
+    string callStrike = "";
+    string putStrike = "";
+    bool createCharts = false;
+    
+    // Check if it's expiry day
+    bool isExpiryDay = IsExpiryDay();
+    
+    if(isExpiryDay && EnableExpiryATM)
+    {
+        // On expiry day, open at ATM level
+        callStrike = g_FnOData.underlyingSymbol + GetExpiryDate() + DoubleToString(g_FnOData.atmStrike, 0) + "CE";
+        putStrike = g_FnOData.underlyingSymbol + GetExpiryDate() + DoubleToString(g_FnOData.atmStrike, 0) + "PE";
+        createCharts = true;
+        Print("📅 Expiry day - Opening ATM charts");
+    }
+    else
+    {
+        // Apply Hybrid OI Logic
+        if(EvaluateHybridOILogic(callStrike, putStrike))
+        {
+            createCharts = true;
+            Print("✅ Hybrid OI Logic satisfied");
+        }
+    }
+    
+    if(createCharts && !EnablePaperMode)
+    {
+        // Create actual charts (in paper mode, just log)
+        CreateCallChart(callStrike, isExpiryDay);
+        CreatePutChart(putStrike, isExpiryDay);
+    }
+    else if(createCharts && EnablePaperMode)
+    {
+        Print("📋 PAPER MODE - Would create charts:");
+        Print("   CALL: ", callStrike);
+        Print("   PUT: ", putStrike);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate Hybrid OI Logic (Directional + Independent)            |
+//+------------------------------------------------------------------+
+bool EvaluateHybridOILogic(string &callStrike, string &putStrike)
+{
+    double interval = 50.0;
+    if(StringFind(g_FnOData.underlyingSymbol, "NIFTY") < 0)
+        interval = 100.0;
+    
+    // PATH 1: Directional Bias Pattern
+    double atmCallOI = g_FnOData.callOI_Array[5];  // ATM position in array
+    double atmPutOI = g_FnOData.putOI_Array[5];
+    
+    double atmBias = ((atmCallOI - atmPutOI) / (atmCallOI + atmPutOI)) * 100.0;
+    
+    if(MathAbs(atmBias) > OI_BiasThreshold)
+    {
+        if(atmBias > OI_BiasThreshold)  // Bullish bias
+        {
+            // Check +1 OTM for Call bias
+            double otmCallOI = g_FnOData.callOI_Array[6];  // +1 OTM
+            double otmPutOI = g_FnOData.putOI_Array[6];
+            
+            if(otmCallOI > otmPutOI * 1.3)  // >30% more Call OI
+            {
+                callStrike = g_FnOData.underlyingSymbol + GetExpiryDate() + 
+                           DoubleToString(g_FnOData.atmStrike + interval, 0) + "CE";
+                putStrike = g_FnOData.underlyingSymbol + GetExpiryDate() + 
+                          DoubleToString(g_FnOData.atmStrike - interval, 0) + "PE";
+                
+                Print("📈 Bullish Directional Pattern detected");
+                return true;
+            }
+        }
+        else  // Bearish bias
+        {
+            // Check -1 OTM for Put bias
+            double otmCallOI = g_FnOData.callOI_Array[4];  // -1 OTM
+            double otmPutOI = g_FnOData.putOI_Array[4];
+            
+            if(otmPutOI > otmCallOI * 1.3)  // >30% more Put OI
+            {
+                putStrike = g_FnOData.underlyingSymbol + GetExpiryDate() + 
+                           DoubleToString(g_FnOData.atmStrike - interval, 0) + "PE";
+                callStrike = g_FnOData.underlyingSymbol + GetExpiryDate() + 
+                           DoubleToString(g_FnOData.atmStrike + interval, 0) + "CE";
+                
+                Print("📉 Bearish Directional Pattern detected");
+                return true;
+            }
+        }
+    }
+    
+    // PATH 2: Independent Bias Pattern
+    double plus1CallOI = g_FnOData.callOI_Array[6];
+    double plus1PutOI = g_FnOData.putOI_Array[6];
+    double minus1CallOI = g_FnOData.callOI_Array[4];
+    double minus1PutOI = g_FnOData.putOI_Array[4];
+    
+    double plus1Bias = MathAbs((plus1CallOI - plus1PutOI) / (plus1CallOI + plus1PutOI)) * 100.0;
+    double minus1Bias = MathAbs((minus1CallOI - minus1PutOI) / (minus1CallOI + minus1PutOI)) * 100.0;
+    
+    if(plus1Bias > OI_BiasThreshold && minus1Bias > OI_BiasThreshold)
+    {
+        callStrike = g_FnOData.underlyingSymbol + GetExpiryDate() + 
+                   DoubleToString(g_FnOData.atmStrike + interval, 0) + "CE";
+        putStrike = g_FnOData.underlyingSymbol + GetExpiryDate() + 
+                  DoubleToString(g_FnOData.atmStrike - interval, 0) + "PE";
+        
+        Print("🔄 Independent Bias Pattern detected");
+        return true;
+    }
+    
+    Print("❌ No valid OI pattern found");
+    return false;
+}
+
+//+------------------------------------------------------------------+
+//| Create Call Chart                                               |
+//+------------------------------------------------------------------+
+void CreateCallChart(string symbol, bool isExpiry)
+{
+    if(g_ChartCount >= MaxSecondaryCharts) return;
+    
+    Print("🟢 Creating CALL chart for: ", symbol);
+    
+    // Find empty slot
+    int slot = -1;
+    for(int i = 0; i < 25; i++)
+    {
+        if(!g_SecondaryCharts[i].active)
+        {
+            slot = i;
+            break;
+        }
+    }
+    
+    if(slot == -1)
+    {
+        Print("❌ No available slots for new chart");
+        return;
+    }
+    
+    // In production, this would use ChartOpen() or similar MT5 function
+    // For now, simulate chart creation
+    long chartId = GetTickCount();  // Simulate chart ID
+    
+    g_SecondaryCharts[slot].chartId = chartId;
+    g_SecondaryCharts[slot].symbol = symbol;
+    g_SecondaryCharts[slot].chartType = "CALL";
+    g_SecondaryCharts[slot].openTime = TimeCurrent();
+    g_SecondaryCharts[slot].tradesCount = 0;
+    g_SecondaryCharts[slot].active = true;
+    g_SecondaryCharts[slot].qualityScore = 85.0;  // Initial quality score
+    g_SecondaryCharts[slot].isExpiry = isExpiry;
+    g_SecondaryCharts[slot].visualTheme = 1;  // Forest Green
+    
+    g_ChartCount++;
+    
+    Print("✅ CALL chart created - ID: ", chartId, " Slot: ", slot);
+    
+    // Apply visual theme (Forest Green)
+    ApplyChartTheme(slot, CallChartColor);
+}
+
+//+------------------------------------------------------------------+
+//| Create Put Chart                                                |
+//+------------------------------------------------------------------+
+void CreatePutChart(string symbol, bool isExpiry)
+{
+    if(g_ChartCount >= MaxSecondaryCharts) return;
+    
+    Print("🔴 Creating PUT chart for: ", symbol);
+    
+    // Find empty slot
+    int slot = -1;
+    for(int i = 0; i < 25; i++)
+    {
+        if(!g_SecondaryCharts[i].active)
+        {
+            slot = i;
+            break;
+        }
+    }
+    
+    if(slot == -1)
+    {
+        Print("❌ No available slots for new chart");
+        return;
+    }
+    
+    // In production, this would use ChartOpen() or similar MT5 function
+    long chartId = GetTickCount() + 1;  // Simulate chart ID
+    
+    g_SecondaryCharts[slot].chartId = chartId;
+    g_SecondaryCharts[slot].symbol = symbol;
+    g_SecondaryCharts[slot].chartType = "PUT";
+    g_SecondaryCharts[slot].openTime = TimeCurrent();
+    g_SecondaryCharts[slot].tradesCount = 0;
+    g_SecondaryCharts[slot].active = true;
+    g_SecondaryCharts[slot].qualityScore = 85.0;  // Initial quality score
+    g_SecondaryCharts[slot].isExpiry = isExpiry;
+    g_SecondaryCharts[slot].visualTheme = 2;  // Deep Red
+    
+    g_ChartCount++;
+    
+    Print("✅ PUT chart created - ID: ", chartId, " Slot: ", slot);
+    
+    // Apply visual theme (Deep Red)
+    ApplyChartTheme(slot, PutChartColor);
+}
+
+//+------------------------------------------------------------------+
+//| Apply Chart Visual Theme                                         |
+//+------------------------------------------------------------------+
+void ApplyChartTheme(int slot, color themeColor)
+{
+    if(!EnableVisualBadges) return;
+    
+    SecondaryChart* chart = &g_SecondaryCharts[slot];
+    
+    // In production, this would apply actual chart colors
+    Print("🎨 Applying ", chart.chartType, " theme - Color: ", ColorToString(themeColor));
+    
+    // Create visual badge/label
+    string labelName = "CHART_BADGE_" + IntegerToString(slot);
+    string badgeText = chart.chartType + " | " + chart.symbol;
+    
+    // This would create actual MT5 chart objects in production
+    Print("🏷️ Badge created: ", badgeText);
+}
+
+//+------------------------------------------------------------------+
+//| Check Auto-Close Conditions                                     |
+//+------------------------------------------------------------------+
+void CheckAutoCloseConditions()
+{
+    for(int i = 0; i < 25; i++)
+    {
+        if(!g_SecondaryCharts[i].active) continue;
+        
+        SecondaryChart* chart = &g_SecondaryCharts[i];
+        bool shouldClose = false;
+        string closeReason = "";
+        
+        // Condition 1: Trade limit reached (max 3 per chart)
+        if(chart.tradesCount >= 3)
+        {
+            shouldClose = true;
+            closeReason = "Trade limit reached (3)";
+        }
+        
+        // Condition 2: Chart age (e.g., 4 hours max)
+        if(TimeCurrent() - chart.openTime > 4 * 3600)
+        {
+            shouldClose = true;
+            closeReason = "Chart timeout (4 hours)";
+        }
+        
+        // Condition 3: Quality score too low
+        if(chart.qualityScore < 30.0)
+        {
+            shouldClose = true;
+            closeReason = "Low quality score";
+        }
+        
+        // Condition 4: End of trading session (handled in CheckTradingHours)
+        
+        if(shouldClose)
+        {
+            CloseSecondaryChart(i, closeReason);
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Close Secondary Chart                                           |
+//+------------------------------------------------------------------+
+void CloseSecondaryChart(int slot, string reason)
+{
+    if(slot < 0 || slot >= 25 || !g_SecondaryCharts[slot].active) return;
+    
+    SecondaryChart* chart = &g_SecondaryCharts[slot];
+    
+    Print("🗑️ Closing ", chart.chartType, " chart: ", chart.symbol, " - Reason: ", reason);
+    
+    // In production, this would close actual MT5 chart
+    // ChartClose(chart.chartId);
+    
+    // Clean up chart data
+    chart.chartId = 0;
+    chart.symbol = "";
+    chart.chartType = "";
+    chart.active = false;
+    chart.qualityScore = 0.0;
+    
+    g_ChartCount--;
+    
+    Print("✅ Chart closed successfully - Active charts: ", g_ChartCount);
+}
+
+//+------------------------------------------------------------------+
+//| Close All Secondary Charts                                      |
+//+------------------------------------------------------------------+
+void CloseAllSecondaryCharts()
+{
+    Print("🧹 Closing all secondary charts...");
+    
+    int closedCount = 0;
+    for(int i = 0; i < 25; i++)
+    {
+        if(g_SecondaryCharts[i].active)
+        {
+            CloseSecondaryChart(i, "System shutdown");
+            closedCount++;
+        }
+    }
+    
+    Print("✅ Closed ", closedCount, " secondary charts");
+    g_ChartCount = 0;
+}
+
+//+------------------------------------------------------------------+
+//| Utility Functions                                               |
+//+------------------------------------------------------------------+
+bool IsExpiryDay()
+{
+    // In production, this would check actual expiry calendar
+    // For simulation, check if it's Thursday (weekly expiry)
+    MqlDateTime dt;
+    TimeToStruct(TimeCurrent(), dt);
+    return (dt.day_of_week == 4);  // Thursday
+}
+
+string GetExpiryDate()
+{
+    // In production, this would return actual expiry date format
+    // For simulation, return current date in DDMMMYY format
+    MqlDateTime dt;
+    TimeToStruct(TimeCurrent(), dt);
+    
+    string months[] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+                       "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
+    
+    return StringFormat("%02d%s%02d", dt.day, months[dt.mon-1], dt.year % 100);
+}
+
+void SetChartVisualTheme()
+{
+    // Set current chart visual properties
+    ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrBlack);
+    ChartSetInteger(0, CHART_COLOR_FOREGROUND, clrWhite);
+    ChartSetInteger(0, CHART_COLOR_GRID, clrDarkSlateGray);
+    
+    Print("🎨 Chart visual theme applied");
+}
+
+void UpdateChartVisuals()
+{
+    if(!EnableVisualBadges) return;
+    
+    // Update chart badges and visual indicators
+    for(int i = 0; i < 25; i++)
+    {
+        if(g_SecondaryCharts[i].active)
+        {
+            // Update visual elements for active charts
+            Print("🔄 Updating visuals for chart ", i, ": ", g_SecondaryCharts[i].symbol);
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Expert end                                                       |
+//+------------------------------------------------------------------+

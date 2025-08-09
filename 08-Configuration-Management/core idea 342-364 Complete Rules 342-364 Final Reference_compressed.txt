@@ -1,0 +1,222 @@
+57. EA GlobalFlow Pro v6.4 - Complete Rules 342-364 Final Reference
+?? New Rules Added (342-364) - Session Reference
+This document contains all new rules added to EA GlobalFlow Pro v6.4 development during this session. Reference this file number: 57 in future chat sessions for continuation of EA development and enhancements.
+
+342-347: Core System Enhancements
+Rule 342: Forex & Commodities Bidirectional Trading on Single Chart
+  Single Chart Operation: EA runs on ONE parent chart only for Forex/Commodities
+  Bidirectional Trading: Both Buy AND Sell trades execute on same chart
+  Entry Logic: Buy Stop orders (bullish conditions) + Sell Stop orders (bearish conditions)
+  Same Framework: Uses identical 17+17 entry conditions as F&O markets
+  No Secondary Charts: Simplified architecture for non-Options mark
+
+Rule 343: Visual Warning System - Chart Margin F
+  Target: 4 margins of chart (Top, Bottom, Left, Right
+  Trigger: Margin SL-L orders approaching time
+  Visual Effect: Flashing red borders around e
+  Flash Pattern: 1-second ON, 0.5-second O	uted/deleted
+  Application: All markets with pending o
+
+Rule 344: Universal Bar Close Execu  ALL trade entries: ONLY at close of ba  ALL trade exits: ONLY at close of bar
+ ALL condition fulfillments: Evaluated
+  Market scope: Indian F&O, Forex, Com
+
+Rule 345: Tick-by-Tick EA Operation  EA Operation: Tick-by-tick approach fo  Monitoring: Continuous real-time pric
+
+ Analysis: Real-time indicator calculations
+  Decision Making: Instant condition evaluation
+ Execution: Trade decisions ONLY at bar close
+
+Rule 346: Multi-Market Tick-by-Tick Integration
+  Indian F&O: Tick-by-tick OI monitoring, real-time strike analysis
+  Forex/Commodities: Tick-by-tick spread monitoring, volatility analysis
+  Universal: Real-time risk monitoring, continuous P&L calculations
+
+Rule 347: Visual Warning Integration with Tick-by-Tick System
+  Order timeout monitoring: Every tick
+ Chart margin flash: When needed
+ Corner label updates: Every 10 ticks
+  Background color changes: On status change
+ Alert messages: On critical events
+
+348-356: Fyers API v3 Complete Integration
+Rule 348: Comprehensive Fyers API v3 Integration with TOTP-based 2FA Automation
+  Authentication: TOTP-based 2FA automation
+  Architecture: Python Bridge + Socket Communication + MQL5 EA + Security Layer
+  Integration: Complete OAuth flow with automatic TOTP generation
+  Token Management: Secure encrypted storage and auto-refresh
+
+Rule 349: Python Bridge Socket Communication System
+  Communication: Named Pipes for Windows MT5
+  Bridge Server: Handles MT5 commands asynchronously
+  Socket Client: MQL5 side connection to Python bridge
+  Data Flow: Bidirectional command/response system
+
+Rule 350: TOTP-based 2FA Automation System
+  TOTP Generation: Automatic current code generation
+  Validation: Code verification with time windows
+  Security: Prevents code reuse within 30-second windows
+
+  Integration: Seamless OAuth flow automation
+
+Rule 351: Complete Token Management System  Secure Storage: Encrypted token storage with keyring  Auto-Refresh: Automatic token refresh mechanism
+ Validation: Token expiry checking with buffer time
+  Recovery: Automatic re-authentication on token failure
+
+Rule 352: Order Execution Synchronization System  Margin SL-L: Complete implementation for F&O markets  Price Calculation: Automatic trigger/limit price calculation  Order Monitoring: Real-time order status tracking
+  Error Handling: Comprehensive error management and reporting
+
+Rule 353: Position Synchronization System
+  Real-time Sync: Continuous position synchronization between Fyers and MT5
+  Discrepancy Detection: Automatic position difference identification
+  Auto-Correction: Automatic position updates when discrepancies found
+  Portfolio Management: Complete portfolio state synchronization
+
+Rule 354: Connection Monitoring & Auto-Recovery
+  Health Monitoring: Continuous connection status checking
+ Auto-Recovery: Automatic reconnection on connection failure  Multiple Connections: Fyers API, MT5, WebSocket monitoring  Heartbeat System: Regular connection validation
+Rule 355: Security Best Practices Implementation
+  Rate Limiting: API request rate limiting
+  Encryption: Sensitive data encryption
+  Audit Logging: Complete request/response logging
+  Secure API Calls: Retry logic with exponential backoff
+
+Rule 356: Deployment Configuration
+  Complete Setup: Full configuration for all system components
+
+Security Settings: Encryption, token management, rate limiting Monitoring Config: Heartbeat intervals, auto-recovery settings Socket Config: Named pipe configuration for MT5 communication
+
+357-361: Token Management & Market Specific Rules
+Rule 357: Fyers API Token Management Schedule
+  Access Token: Daily regeneration at 8:45 AM IST (automated)
+  Refresh Token: 15-day validity with WhatsApp SMS reminders (1-2 days before expiry)
+ Manual Renewal: After 8:30 AM IST, 1 day after expiry
+  Input Parameter: Refresh token as external properties dialog parameter
+
+Rule 358: F&O Market Trade Direction Selection Input Parameters
+  Call Chart: Call Buy Only | Call Sell Only | Both Call Buy & Sell
+ Put Chart: Put Buy Only | Put Sell Only | Both Put Buy & Sell
+ Trade Logic: Bullish (Call Buy + Put Sell), Bearish (Call Sell + Put Buy)
+  Market Scope: F&O markets only (other markets automatic buy/sell)
+
+Rule 359: Indian Stock Options Dynamic Lot Size Management
+  Default Strategy: Use minimum lot size for all Indian stock options
+  Auto-Detection: Query minimum lot size from API daily
+  Reason: Lot sizes change frequently, minimum ensures consistent execution
+  Fallback: 1 lot if detection fails
+
+Rule 360: Universal Lot Size Configuration by Market Type
+ Forex: 0.1 lot default (customizable)
+ Indian Index Options: Fixed lots (NIFTY: 75, BANKNIFTY: 30, etc.)
+  Indian Stock Options: Minimum lot size (dynamic)
+ All Other Markets: 1 lot default + multiples
+
+Rule 361: Expiry Day Order Type Override
+  All Options/Futures: Market orders only on expiry day
+  Override Logic: Supersedes Margin SL-L orders for F&O on expiry
+
+Auto-Detection: Automatic expiry date detection
+Risk Management: Faster execution, avoids pending order issues
+
+362-364: Dynamic Chart Management & Signal Logic
+Rule 362: F&O Dynamic Chart Management Order Type Selection
+  Input Parameters: Buy Call (Yes/No), Buy Put (Yes/No), Sell Call (Yes/No), Sell Put (Yes/No)
+ Initial Config: Buy Call + Sell Put enabled (bullish expectation)
+  Chart Creation: Secondary charts only for enabled order types
+  User Control: Complete control over which F&O trades are active
+
+Rule 363: Dynamic Multi-Chart Management System with Sequential Parent Chart Evolution
+  Chart Lifecycle: Parent (analysis) ? Secondary (Call/Put execution) ? New Parent
+  Parent Evolution: New secondary charts ? Previous parent closes ? New parent active
+  Secondary Management: "n" charts open until trade completion ? Individual auto-close
+  Visual Consistency: Same colors, lines, arrows across all charts
+  No Fund Impact: Parent closure doesn't affect positions
+
+Rule 364: Multi-Timeframe Signal Validation with "Either/Or" Logic
+  Major Timeframes: Daily OR 4-Hour (either valid ? proceed)
+  Middle Timeframes: 1-Hour OR 30-Minute (either valid ? proceed)
+  Entry Timeframes: 5-Minute OR 15-Minute (either valid ? execute)
+  Application: Secondary charts for Options, Forex, Commodities, CFDs
+  Flexibility: Increases signal opportunities while maintaining validation
+
+341: Margin SL-L ORDER Timeout Management (Added Earlier)
+  Timeout Detection: If Margin SL-L ORDER remains pending for =5 minutes
+  Auto-Delete: Automatically delete pending order
+  Auto-Retry: Retry order placement following original EA rules
+  Market Validation: Ensure conditions still valid before retry
+  Loop Prevention: Maximum 3 retry attempts per signal
+
+Key Conversation Context
+Visual Warnings & Chart Margins
+ User specified: Only the 4 margins of chart flash red when orders approach timeout  Implementation: Top, Bottom, Left, Right margins flash red borders
+  Flash pattern: 1-second ON, 0.5-second OFF until resolution
+
+Trade Execution Timing
+ User clarified: All trade entry/exit at bar close in all markets
+ EA operation: Tick-by-tick monitoring but execution only at bar close  Universal rule: Applies to F&O, Forex, Commodities, CFDs
+Fyers API Integration Requirements
+ User requested: Comprehensive Fyers API v3 with TOTP 2FA automation  Includes: Python bridge, socket communication, security, token management  Features: Order synchronization, position sync, connection monitoring
+Token Management Specifics
+  Access Token: 1-day validity, auto-regenerate at 8:45 AM IST daily
+ Refresh Token: 15-day validity, WhatsApp SMS reminders 1-2 days before expiry  User will manually regenerate refresh token after 8:30 AM IST, 1 day after expiry
+F&O Trade Direction Control
+ User wants input parameters to control: Buy Call, Buy Put, Sell Call, Sell Put  Initial focus: Buy Call + Sell Put (bullish trades)
+  Dynamic chart creation based on enabled trade types
+
+Lot Size Configuration
+  Indian Stock Options: Minimum lot size (changes frequently)
+ Forex: 0.1 lot default (customizable)
+ Other Markets: 1 lot default + multiples
+ Index Options: Fixed lots (NIFTY: 75, BANKNIFTY: 30, etc.)
+
+Dynamic Chart Management
+
+ User clarified: Parent chart evolves ? Previous parent closes when new secondary charts open  Secondary charts: Remain open until individual trade completion
+ Visual consistency: All charts have same colors, lines, arrows  No fund impact from parent chart closure
+Multi-Timeframe Logic
+ User specified: "Either/Or" logic for timeframe validation  Major: Daily OR 4-Hour (either valid ? proceed)
+ Middle: 1-Hour OR 30-Minute (either valid ? proceed)  Entry: 5-Minute OR 15-Minute (either valid ? execute)
+Risk Settings Requested
+User asked for suggested risk parameters:
+ Risk per trade: 1.5% (suggested)
+ Max daily risk: 4.0% (suggested)
+ Max portfolio risk: 8.0% (suggested)
+ Max drawdown: 6.0% (suggested)
+
+Suggested Risk Settings
+Conservative Risk Parameters
+ Risk per trade: 1.5%
+ Max daily risk: 4.0%
+ Max portfolio risk: 8.0%
+ Max drawdown: 6.0%
+
+Risk Logic
+ Multiple Positions: Accounts for "n" secondary charts  F&O Leverage: Conservative for high-leverage markets  Scalable: Works for ?5L to ?50L+ accounts
+  Circuit Breakers: Multiple protection layers
+
+Total Rules: 341-364 (24 rules) Next Session: Continue from Rule 365+ Status: Ready for implementation and testing phase Project Knowledge Reference: File #57 for future EA development continuation
+
+Implementation Priority
+Phase 1: Core Framework
+1. Tick-by-tick monitoring with bar close execution
+2. Visual warning system for chart margins
+3. Multi-timeframe "either/or" signal validation
+4. Dynamic chart management system
+
+Phase 2: Fyers Integration
+1. Python bridge with socket communication
+2. TOTP-based authentication automation
+3. Token management system
+4. Order execution synchronization
+
+Phase 3: Market-Specific Features
+1. F&O trade direction controls
+2. Dynamic lot size management
+3. Expiry day order type override
+4. Risk management implementation
+
+Phase 4: Testing & Deployment
+1. Connection monitoring and auto-recovery
+2. Position synchronization testing
+3. Complete system integration testing
+4. Live deployment with conservative settings

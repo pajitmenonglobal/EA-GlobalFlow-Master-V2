@@ -1,0 +1,455 @@
+EA GlobalFlow Pro v8.0 - Dashboard Visualization Complete Implementation
+?? 1. MASTER DASHBOARD RENDERING
+Base Dashboard Class:
+
+mql5
+
+//++//| Master Dashboard Base Class|//+
+class CMasterDashboard {+protected:string m_prefix; int m_x, m_y;
+int m_width, m_height;
+color m_bgColor, m_borderColor, m_textColor;
+
+public:
+CMasterDashboard(string prefix) { m_prefix = prefix;
+m_width = 400;
+m_height = 600;
+}
+
+virtual void Create(int x, int y) { m_x = x;
+m_y = y;
+
+// Create main background
+ObjectCreate(0, m_prefix+"_BG", OBJ_RECTANGLE_LABEL, 0, 0, 0); ObjectSetInteger(0, m_prefix+"_BG", OBJPROP_XDISTANCE, m_x); ObjectSetInteger(0, m_prefix+"_BG", OBJPROP_YDISTANCE, m_y); ObjectSetInteger(0, m_prefix+"_BG", OBJPROP_XSIZE, m_width); ObjectSetInteger(0, m_prefix+"_BG", OBJPROP_YSIZE, m_height); ObjectSetInteger(0, m_prefix+"_BG", OBJPROP_BGCOLOR, m_bgColor); ObjectSetInteger(0, m_prefix+"_BG", OBJPROP_BORDER_TYPE, BORDER_FLAT); ObjectSetInteger(0, m_prefix+"_BG", OBJPROP_BORDER_COLOR, m_borderColor); ObjectSetInteger(0, m_prefix+"_BG", OBJPROP_WIDTH, 3);
+
+// Create sections CreateHeader(); CreateEconomicCalendar(); CreatePerformancePanel(); CreateEnhancementPanel(); CreatePositionsPanel(); CreateSystemStatus();
+
+// Start refresh timer
+EventSetTimer(30); // 30-second refresh
+}
+
+virtual void CreateHeader() = 0;
+virtual void CreateEconomicCalendar() = 0;
+
+// ... other virtual methods
+};
+
+
+F&O Dashboard Implementation:
+
+mql5
+
+//++//| India F&O Master Dashboard|//+
+class CFnODashboard : public CMasterDashboard {+private:double m_indiaVIX;
+
+public:
+CFnODashboard() : CMasterDashboard("FO") { m_bgColor = C'0,51,102';	// Deep Royal Blue m_borderColor = C'255,215,0';		// Gold m_textColor = C'255,255,255';	// White
+}
+
+virtual void CreateHeader() override {
+// Badge with India flag
+CreateLabel("BADGE", "?? F&O MASTER CONTROL ????", m_x+10, m_y+10, m_borderColor, 12, "Arial Black");
+
+// Market status
+string marketStatus = GetMarketStatus();
+color statusColor = (marketStatus == "OPEN") ? clrLime : clrRed; CreateLabel("STATUS", "Market: " + marketStatus,
+m_x+200, m_y+10, statusColor);
+
+// Account info
+double balance = AccountInfoDouble(ACCOUNT_BALANCE); double dailyPL = CalculateDailyPL();
+string accountInfo = StringFormat("Balance: ?%.0f | Daily P&L: ?%.0f", balance, dailyPL);
+CreateLabel("ACCOUNT", accountInfo, m_x+10, m_y+35, m_textColor);
+}
+
+virtual void CreateEconomicCalendar() override { int yPos = m_y + 70;
+
+// Section border
+CreateRectangle("CAL_BORDER", m_x+10, yPos, 180, 120, C'0,0,0', m_borderColor);
+
+// Title
+CreateLabel("CAL_TITLE", "?? ECONOMIC CALENDAR - INDIA",
+m_x+15, yPos+5, m_borderColor, 10, "Arial Bold");
+
+// Get next India event
+NewsEvent nextEvent = GetNextIndiaEvent();
+
+// Event details
+CreateLabel("CAL_EVENT", "Next: " + nextEvent.title, m_x+15, yPos+25, m_textColor);
+
+// Countdown timer
+string countdown = GetCountdown(nextEvent.time); color impactColor = GetImpactColor(nextEvent.impact);
+CreateLabel("CAL_TIME", countdown + " " + nextEvent.impact, m_x+15, yPos+45, impactColor, 11, "Arial Bold");
+
+// Affected instruments
+CreateLabel("CAL_AFFECTED", "Affected: " + nextEvent.currencies, m_x+15, yPos+65, m_textColor, 9);
+
+// Impact meter
+CreateProgressBar("CAL_IMPACT", m_x+15, yPos+85, 160, 15, nextEvent.impactLevel, impactColor);
+
+// Trading status
+string tradeStatus = (nextEvent.minutesUntil < 5 && nextEvent.impact == "HIGH")
+? "? TRADING RESTRICTED" : "? TRADING ALLOWED";
+CreateLabel("CAL_TRADE", tradeStatus, m_x+15, yPos+105, (tradeStatus == "? TRADING RESTRICTED") ? clrRed : clrLime);
+}
+
+void CreateOptionChainHeatMap() { int yPos = m_y + 200;
+
+// Get option chain data
+OptionChainData chainData = GetOptionChainData();
+
+// Create heat map grid for(int i = 0; i < 5; i++) {
+StrikeData strike = chainData.strikes[i];
+
+// Strike price CreateLabel("STRIKE_"+IntegerToString(i),
+IntegerToString(strike.price), m_x+210, yPos+20*i, m_textColor);
+
+// Call OI bar
+double callWidth = (strike.callOI / chainData.maxOI) * 60; CreateRectangle("CALL_OI_"+IntegerToString(i),
+m_x+260, yPos+20*i, (int)callWidth, 15, clrGreen, clrGreen);
+
+// Put OI bar
+double putWidth = (strike.putOI / chainData.maxOI) * 60; CreateRectangle("PUT_OI_"+IntegerToString(i),
+m_x+320-(int)putWidth, yPos+20*i, (int)putWidth, 15,
+clrRed, clrRed);
+
+// Bias indicator
+string bias = GetOIBias(strike); CreateLabel("BIAS_"+IntegerToString(i), bias,
+m_x+340, yPos+20*i, GetBiasColor(bias));
+}
+}
+};
+
+
+Non-F&O Dashboard Implementation:
+
+mql5
+
+//++//| Global Markets Master Dashboard|//+
+class CNonFODashboard : public CMasterDashboard {+public:CNonFODashboard() : CMasterDashboard("NONFO") { m_bgColor = C'10,10,20';	// Midnight Black m_borderColor = C'0,215,254';		// Bright Cyan m_textColor = C'255,255,255';	// White
+}
+
+void CreateCurrencyCorrelationMatrix() { int yPos = m_y + 200;
+
+// Matrix headers
+string currencies[] = {"EUR", "GBP", "JPY", "CHF", "AUD", "CAD"};
+
+// Create correlation grid for(int i = 0; i < 6; i++) {
+for(int j = 0; j < 6; j++) {
+if(i == j) { CreateLabel("CORR_"+IntegerToString(i)+"_"+IntegerToString(j),
+"1.0", m_x+50+j*40, yPos+20+i*20, m_textColor);
+} else {
+double corr = GetCurrencyCorrelation(currencies[i], currencies[j]); color corrColor = GetCorrelationColor(corr); CreateLabel("CORR_"+IntegerToString(i)+"_"+IntegerToString(j),
+DoubleToString(corr, 2),
+m_x+50+j*40, yPos+20+i*20, corrColor);
+}
+}
+}
+
+// Highlight strong correlations HighlightStrongCorrelations();
+}
+
+void CreateMarketSessionsMonitor() { int yPos = m_y + 350;
+
+// Session status SessionInfo sessions[] = {
+GetSessionInfo("Sydney"), GetSessionInfo("Tokyo"), GetSessionInfo("London"), GetSessionInfo("NewYork")
+
+};
+
+for(int i = 0; i < 4; i++) {
+// Session name CreateLabel("SESSION_"+sessions[i].name,
+sessions[i].name + ":",
+m_x+210, yPos+20*i, m_textColor);
+
+// Status indicator
+color statusColor = sessions[i].isOpen ? clrLime : clrGray; string statusText = sessions[i].isOpen ?
+"?? OPEN (" + sessions[i].remaining + ")" : "? CLOSED";
+CreateLabel("SESSION_STATUS_"+sessions[i].name, statusText, m_x+280, yPos+20*i, statusColor);
+}
+
+// Volatility indicator
+string volatility = GetSessionVolatility(); CreateLabel("SESSION_VOL", "Volatility: " + volatility,
+m_x+210, yPos+90, clrYellow);
+}
+};
+
+
+?? 2. SECONDARY CHART MANAGEMENT
+Secondary Chart Controller:
+
+mql5
+
+//++//| Secondary Chart Manager|//+
+class CSecondaryChartManager {+private:struct ChartInfo { long chartID; string symbol;
+ENUM_TIMEFRAMES timeframe;
+string type; // "CALL", "PUT", "BUY", "SELL" datetime openTime;
+string parentCondition;
+color themeColor;
+};
+
+ChartInfo m_charts[]; int m_maxCharts;
+
+public:
+CSecondaryChartManager() { m_maxCharts = 10; // Non-F&O ArrayResize(m_charts, 0);
+}
+
+long OpenSecondaryChart(string symbol, string type, string condition) {
+// Check limits
+if(ArraySize(m_charts) >= m_maxCharts) {
+SendAlert("Maximum charts reached: " + IntegerToString(m_maxCharts)); return -1;
+}
+
+// Open new chart
+long chartID = ChartOpen(symbol, PERIOD_M5); if(chartID <= 0) return -1;
+
+// Apply theme ApplyChartTheme(chartID, type);
+
+// Add to tracking ChartInfo newChart; newChart.chartID = chartID; newChart.symbol = symbol;
+newChart.timeframe = PERIOD_M5; newChart.type = type; newChart.openTime = TimeCurrent(); newChart.parentCondition = condition;
+
+newChart.themeColor = GetThemeColor(type);
+
+int size = ArraySize(m_charts); ArrayResize(m_charts, size + 1); m_charts[size] = newChart;
+
+// Add visual indicators AddChartIndicators(chartID, type);
+
+// Create info panel CreateChartInfoPanel(chartID, newChart);
+
+return chartID;
+}
+
+void ApplyChartTheme(long chartID, string type) { if(type == "CALL") {
+ChartSetInteger(chartID, CHART_COLOR_BACKGROUND, C'0,100,0');	// Forest Green ChartSetInteger(chartID, CHART_COLOR_FOREGROUND, clrWhite); ChartSetInteger(chartID, CHART_COLOR_GRID, C'0,50,0');
+ChartSetInteger(chartID, CHART_COLOR_CANDLE_BULL, clrLime); ChartSetInteger(chartID, CHART_COLOR_CANDLE_BEAR, clrDarkGreen);
+}
+else if(type == "PUT") {
+ChartSetInteger(chartID, CHART_COLOR_BACKGROUND, C'139,0,0');	// Deep Red ChartSetInteger(chartID, CHART_COLOR_FOREGROUND, clrWhite); ChartSetInteger(chartID, CHART_COLOR_GRID, C'100,0,0');
+ChartSetInteger(chartID, CHART_COLOR_CANDLE_BULL, clrPink);
+ChartSetInteger(chartID, CHART_COLOR_CANDLE_BEAR, clrMaroon);
+}
+else if(type == "BUY") {
+ChartSetInteger(chartID, CHART_COLOR_BACKGROUND, C'0,236,184'); // TradingView Green ChartSetInteger(chartID, CHART_COLOR_CANDLE_BULL, clrWhite);
+ChartSetInteger(chartID, CHART_COLOR_CANDLE_BEAR, C'0,150,100');
+}
+else if(type == "SELL") {
+ChartSetInteger(chartID, CHART_COLOR_BACKGROUND, C'246,70,93'); // TradingView Red ChartSetInteger(chartID, CHART_COLOR_CANDLE_BULL, C'200,50,70'); ChartSetInteger(chartID, CHART_COLOR_CANDLE_BEAR, clrWhite);
+}
+
+// Add chart type badge
+string badge = (type == "CALL") ? "?? CALL" : (type == "PUT") ? "?? PUT" :
+(type == "BUY") ? "?? BUY" : "?? SELL";
+
+ObjectCreate(chartID, "CHART_BADGE", OBJ_LABEL, 0, 0, 0);
+
+ObjectSetString(chartID, "CHART_BADGE", OBJPROP_TEXT, badge); ObjectSetInteger(chartID, "CHART_BADGE", OBJPROP_XDISTANCE, 10); ObjectSetInteger(chartID, "CHART_BADGE", OBJPROP_YDISTANCE, 10); ObjectSetInteger(chartID, "CHART_BADGE", OBJPROP_FONTSIZE, 14);
+}
+
+void CreateChartInfoPanel(long chartID, ChartInfo &info) { int x = 10, y = 50;
+
+// Background panel
+ObjectCreate(chartID, "INFO_PANEL", OBJ_RECTANGLE_LABEL, 0, 0, 0);
+ObjectSetInteger(chartID, "INFO_PANEL", OBJPROP_XDISTANCE, x); ObjectSetInteger(chartID, "INFO_PANEL", OBJPROP_YDISTANCE, y); ObjectSetInteger(chartID, "INFO_PANEL", OBJPROP_XSIZE, 200); ObjectSetInteger(chartID, "INFO_PANEL", OBJPROP_YSIZE, 100); ObjectSetInteger(chartID, "INFO_PANEL", OBJPROP_BGCOLOR, C'0,0,0'); ObjectSetInteger(chartID, "INFO_PANEL", OBJPROP_BORDER_COLOR, info.themeColor);
+
+// Info labels
+CreateChartLabel(chartID, "INFO_SYMBOL", "Symbol: " + info.symbol, x+5, y+5, clrWhite);
+CreateChartLabel(chartID, "INFO_CONDITION", "Signal: " + info.parentCondition, x+5, y+25, info.themeColor);
+CreateChartLabel(chartID, "INFO_TIME", "Opened: " + TimeToString(info.openTime),
+x+5, y+45, clrGray);
+
+// Add strike price for options
+if(info.type == "CALL" || info.type == "PUT") {
+string strikePrice = ExtractStrikePrice(info.symbol); CreateChartLabel(chartID, "INFO_STRIKE", "Strike: " + strikePrice,
+x+5, y+65, clrYellow);
+}
+}
+
+void MonitorChartLimits() {
+// Check F&O limits (3 per strike, 5 per chart type) int callCount = 0, putCount = 0; StringToStrikeCount strikeCount;
+
+for(int i = 0; i < ArraySize(m_charts); i++) { if(m_charts[i].type == "CALL") callCount++; if(m_charts[i].type == "PUT") putCount++;
+
+// Count by strike
+string strike = ExtractStrikePrice(m_charts[i].symbol); strikeCount.Add(strike);
+}
+
+// Alert if approaching limits
+if(callCount >= 4) SendAlert("Approaching CALL chart limit (5 max)"); if(putCount >= 4) SendAlert("Approaching PUT chart limit (5 max)");
+
+// Check strike limits strikeCount.CheckLimits(3);
+}
+
+void AutoCloseExpiredCharts() { datetime currentTime = TimeCurrent(); MqlDateTime dt; TimeToStruct(currentTime, dt);
+
+// F&O expiry at 3:29 PM IST if(dt.hour == 15 && dt.min >= 29) {
+for(int i = ArraySize(m_charts)-1; i >= 0; i--) { if(IsOptionSymbol(m_charts[i].symbol)) {
+ChartClose(m_charts[i].chartID); ArrayRemove(m_charts, i);
+SendAlert("Auto-closed expiry chart: " + m_charts[i].symbol);
+}
+}
+}
+}
+};
+
+
+?? 3. REAL-TIME MONITORING
+Dashboard Update Manager:
+
+mql5
+
+//++//| Real-time Dashboard Updates|//+
+class CDashboardUpdater {+private:CFnODashboard* m_fnoDashboard; CNonFODashboard* m_nonFODashboard; CSecondaryChartManager* m_chartManager; datetime m_lastUpdate;
+int m_updateInterval; // 30 seconds
+
+public:
+CDashboardUpdater() { m_updateInterval = 30;
+m_lastUpdate = 0;
+}
+
+void OnTimer() {
+if(TimeCurrent() - m_lastUpdate < m_updateInterval) return;
+
+// Update all dashboards UpdateMasterDashboards(); UpdateSecondaryCharts(); CheckAlerts();
+
+m_lastUpdate = TimeCurrent();
+}
+
+void UpdateMasterDashboards() {
+// Update F&O Dashboard if(m_fnoDashboard != NULL) {
+// Update India VIX
+double vix = GetIndiaVIX(); m_fnoDashboard.UpdateVIX(vix);
+
+// Update option chain m_fnoDashboard.UpdateOptionChain();
+
+// Update positions UpdateFOPositions();
+
+// Update economic calendar m_fnoDashboard.UpdateEconomicCalendar();
+
+// Update performance UpdatePerformanceMetrics("FO");
+
+}
+
+// Update Non-F&O Dashboard if(m_nonFODashboard != NULL) {
+// Update correlations m_nonFODashboard.UpdateCorrelations();
+
+// Update sessions m_nonFODashboard.UpdateMarketSessions();
+
+// Update positions UpdateNonFOPositions();
+
+// Update global calendar m_nonFODashboard.UpdateEconomicCalendar();
+
+// Update performance UpdatePerformanceMetrics("NONFO");
+}
+}
+
+void UpdateEnhancementScoring() {
+// Get latest enhancement data
+EnhancementData data = GetLatestEnhancement();
+
+if(data.hasNewSignal) {
+// Update both dashboards string display = StringFormat(
+"Last Signal: %s\n" +
+"Base Score: %d/17 (%.1f%%)\n" + "ML Boost: +%.1f%%\n" + "Volume Boost: +%.1f%%\n" + "FINAL SCORE: %.1f%% %s",
+data.conditionName, data.conditionsMet, data.baseScore, data.mlBoost,
+data.volumeBoost, data.finalScore,
+data.finalScore >= 85 ? "?" : "?"
+);
+
+UpdateEnhancementPanel("FO", display); UpdateEnhancementPanel("NONFO", display);
+
+// Update countdown timer
+int secondsToNext = GetSecondsToNextBar(); UpdateCountdownTimer(secondsToNext);
+
+}
+}
+
+void UpdatePerformanceAttribution() {
+// Calculate skill vs luck
+PerformanceData perf = CalculatePerformance();
+
+// Create star rating display string stars = GetStarRating(perf);
+
+// Update display
+string perfDisplay = StringFormat( "Today's Trades: %d\n" +
+"%s PURE SKILL: %d (%.0f%%)\n" + "%s SKILL+NEWS: %d (%.0f%%)\n" + "%s BALANCED: %d (%.0f%%)\n" + "%s LUCK+SKILL: %d (%.0f%%)\n" + "%s PURE LUCK: %d (%.0f%%)\n\n" +
+"Skill P&L: %s (%.0f%%)\n" + "News P&L: %s (%.0f%%)",
+perf.totalTrades,
+"?????", perf.pureSkill, perf.pureSkillPct, "????", perf.skillNews, perf.skillNewsPct, "???", perf.balanced, perf.balancedPct, "??", perf.luckSkill, perf.luckSkillPct,
+"?", perf.pureLuck, perf.pureLuckPct, FormatCurrency(perf.skillPL), perf.skillPLPct, FormatCurrency(perf.newsPL), perf.newsPLPct
+);
+
+UpdatePerformancePanel("FO", perfDisplay); UpdatePerformancePanel("NONFO", perfDisplay);
+}
+
+void MonitorSystemHealth() { SystemHealth health;
+
+// Check connections
+health.fyersConnected = CheckFyersConnection(); health.truedataConnected = CheckTruedataConnection(); health.mt5BridgeActive = CheckMT5Bridge(); health.totpValid = CheckTOTPValidity();
+
+// Update status displays UpdateSystemStatus("FO", health); UpdateSystemStatus("NONFO", health);
+
+// Alert on issues if(!health.allSystemsGo()) {
+SendCriticalAlert("System health issue detected");
+}
+}
+};
+
+
+Global Communication Manager:
+
+mql5
+
+//++//| Inter-chart Communication|//+
+class CGlobalCommManager {+private:string m_prefix;
+
+public:
+CGlobalCommManager() { m_prefix = "GLOBALFLOW_V8_";
+}
+
+void BroadcastSignal(string signalType, string data) {
+// Set global variable
+string varName = m_prefix + signalType; GlobalVariableSet(varName, StringToDouble(data)); GlobalVariableSet(varName + "_TIME", TimeCurrent());
+
+// Send custom event to all charts long chartID = ChartFirst(); while(chartID >= 0) {
+EventChartCustom(chartID, 1000, StringToInteger(signalType),
+0, data);
+chartID = ChartNext(chartID);
+}
+}
+
+void RegisterDashboard(string type, long chartID) { GlobalVariableSet(m_prefix + "DASHBOARD_" + type, chartID);
+}
+
+long GetDashboardID(string type) {
+return (long)GlobalVariableGet(m_prefix + "DASHBOARD_" + type);
+}
+
+void SendToMasterDashboard(string type, string message) { long dashboardID = GetDashboardID(type); if(dashboardID > 0) {
+EventChartCustom(dashboardID, 2000, 0, 0, message);
+}
+}
+};
+
+
+?? 4. PERFORMANCE OPTIMIZATION
+
+Memory Management:
+
+mql5
+
+class CDashboardMemoryManager { void OptimizeObjectCreation() {
+// Reuse existing objects if(ObjectFind(0, objName) >= 0) {
+ObjectSetString(0, objName, OBJPROP_TEXT, newText);
+} else {
+ObjectCreate(0, objName, OBJ_LABEL, 0, 0, 0);
+}
+}
+
+void CleanupUnusedObjects() {
+// Remove old objects
+for(int i = ObjectsTotal(0, -1, -1) - 1; i >= 0; i--) { string name = ObjectName(0, i, -1, -1); if(StringFind(name, "OLD_") >= 0) {
+ObjectDelete(0, name);
+}
+}
+}
+};
+
+
+Status: Dashboard Visualization Implementation COMPLETE ?

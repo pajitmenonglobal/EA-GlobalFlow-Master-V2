@@ -1,0 +1,342 @@
+EA GlobalFlow Pro v8.0 - API Configuration Files Setup
+
+ Step 1: Create Configuration Directory
+
+Open Command Prompt and run:
+
+
+Step 2: Create API Credentials File
+
+Create api_credentials_v8Json :
+
+
+json
+
+
+"fyers": {
+"app_id": "M3ZSJC8Q7I-100",
+"secret_key": "T7T0EDKGBT", "redirect_url": "http://127.0.0.1:8000/",
+"totp_secret": "YOUR_TOTP_SECRET_HERE", "user_id": "YOUR_FYERS_CLIENT_ID",
+"pin": "YOUR_FYERS_PIN", "pan": "YOUR_PAN_NUMBER"
+},
+"truedata": {
+"username": "FYERS2301 ",
+"password": "YOUR_TRUEDATA_PASSWORD",
+"api_key": "YOUR_TRUEDATA_API_KEY"
+},
+"alerts": {
+"whatsapp": "+971507423656",
+"email": "pajitmenonai@gmail.com", "sms": "+971507423656"
+},
+"encryption": {
+"master_key": "GENERATE_32_CHAR_KEY_HERE", "salt": "GENERATE_16_CHAR_SALT _HERE"
+
+
+
+
+
+ Step 3: Create Encryption Script
+Create encrypt_config.py :
+
+
+
+
+importjson import base64 import os
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC import getpass
+import secrets
+import string
+
+
+def generate_key():
+"""Generate a strong encryption key"""
+return "join(secrets.choice(string.ascii_letters + string.digits) for_ in range(32))
+
+
+def generate_salt(): """Generate a random salt"""
+return "join(secrets.choice(string.ascii_letters + string.digits) for_ in range(16))
+
+
+def derive_key(password: str, salt: bytes) -> bytes: """Derive encryption key from password"""
+kdf = PBKDF2HMAC(
+algorithm=hashes.SHA256(), length=32,
+salt=salt,
+iterations=100000,
+
+
+return base64.urlsafe_b64encode(kdf.derive(password.encode()))
+
+
+def encrypt_config(config_file: str, output_file: str): """Encrypt configuration file"""
+# Read config
+with open(config_file, 'r') as f: config = json.load(f)
+
+# Generate or get encryption key
+if not config['encryption']['master_key']:
+config['encryption']['master_key'] = generate_key() config['encryption']['salt'] = generate_salt()
+print(f"Generated Master Key: {config['encryption']['master_key']}") print(f"Generated Salt {config['encryption']['salt']}")
+print("  SAVE THESE VALUES SECURELY! You'll need them to decrypt.")
+
+# Save updated config
+with open(config_file, 'w') as f: json.dump(config, f, indent=2)
+
+# Get password
+password = getpass.getpass("Enter encryption password: ") confirm = getpass.getpass("Confirm encryption password: ")
+
+if password!= confirm:
+print("  Passwords don't match!") return
+
+# Derive key
+salt = config['encryption']['salt'].encode() key = derive_key(password, salt)
+fernet = Fernet(key)
+
+# Encrypt sensitive fields
+encrypted_config = config.copy()
+
+# Encrypt Fyers credentials
+encrypted_config['fyers']['secret_key'] = fernet.encrypt( config['fyers']['secret_key'].encode()
+).decode()
+
+
+if config['fyers'].get('totp_secret'): encrypted_config['fyers']['totp_secret'] = fernet.encrypt(
+config['fyers']['totp_secret'].encode()
+).decode()
+
+
+if config['fyers'].get('pin'): encrypted_config['fyers']['pin'] = fernet.encrypt(
+config['fyers']['pin'].encode()
+).decode()
+
+# Encrypt TrueData password
+if config['truedata'].get('password'): encrypted_config['truedata']['password'] = fernet.encrypt(
+config['truedata']['password'].encode()
+).decode()
+
+# Save encrypted config encrypted_config['_encrypted'] = True with open(output_file, 'w') as f:
+json.dump(encrypted_config, f, indent=2)
+
+
+print(f" Configuration encrypted and saved to: {output_file}")
+print("	Original file still exists for reference. Delete it after verification.")
+
+
+
+Step 4: Create EA Configuration File
+
+Create	:
+
+
+json
+
+
+
+"ea_settings": { "version": "8.0",
+"name": "EA GlobalFlow Pro v8.0 ULTIMATE",
+"magic_number": 20240717,
+"license_expiry": "2025-12-31", "demo_mode": true
+},
+"trading_hours": { "forex": {
+"start": "01:00",
+"end": "23:00",
+"timezone": "America/New_ York",
+"days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+},
+"indian_fo": { "start": "09:30",
+"end": "15:29",
+"timezone": "Asia/Kolkata",
+"days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
+
+},
+"risk_management": { "fo_risk_per _trade": 1.0,
+"non_fo_risk_per_trade": 0.5,
+"max_daily_loss": 3.0,
+"max_positions": 3,
+"emergency_stop_loss": 5.0
+},
+"paths": {
+"mt5_terminal": "C:\\IC Markets MT5\\terminal64.exe",
+"python_venv": "C:\\EA_GlobalFlow_Bridge\\Python\\Scripts\\python.exe", "data_folder": "C:\\EA_GlobalFlow_Data\\",
+"logs_folder": "C:\\EA_GlobalFlow_Data\\Logs\\"
+},
+"api_endpoints": {
+"fyers_base": "https://api-t1.fyers.in/api/v3", "truedata_websocket": "wss://push.truedata.in", "truedata_rest": "https://api.truedata.in/v1"
+}
+
+
+
+
+Step 5: Create Configuration Loader
+
+Create config_loader.py :
+
+
+
+
+importjson import os
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC import base64
+import getpass
+from typing import Diet, Any
+
+
+class Configloader:
+"""Secure configuration loader for EA GlobalFlow Pro v8.0"""
+
+
+def _init_(self, config_dir: str = "C:\\EA_GlobalFlow_Bridge\\Config"): self.config_dir = config_dir
+self.credentials = None self.ea_config = None self._fernet = None
+
+def load_encrypted_credentials(self, password: str = None) -> Dict[str, Any]: "'"'Load and decrypt API credentials"""
+cred_file = os.pathJoin(self.config_dir, "api_credentials_v8_encryptedJson")
+
+
+if not os.path.exists(cred_file):
+raise FileNotFoundError(f"Encrypted credentials not found: {cred_file}")
+
+
+with open(cred_file, 'r') as f: encrypted_config = json.load(f)
+
+if not encrypted_config.get('_encrypted'):
+raise ValueError("Configuration file is not encrypted!")
+
+
+# Get password if not provided
+if not password:
+password = getpass.getpass("Enter decryption password: ")
+
+# Derive key
+salt = encrypted_config['encryption']['salt'].encode() key = self._derive_key(password, salt)
+self._fernet = Fernet(key)
+
+
+# Decrypt sensitive fields
+decrypted_config = encrypted_config.copy()
+
+
+# Decrypt Fyers
+decrypted_config['fyers']['secret_key'] = self._decrypt_field( encrypted_config['fyers']['secret_key']
+
+
+
+
+if 'totp_secret' in encrypted_config['fyers']: decrypted_config['fyers']['totp_secret'] = self._decrypt_field(
+encrypted_config['fyers']['totp_secret']
+
+
+
+if 'pin' in encrypted_config['fyers']: decrypted_config['fyers']['pin'] = self._decrypt_field(
+encrypted_config['fyers']['pin']
+
+
+
+# Decrypt TrueData
+if 'password' in encrypted_config['truedata']: decrypted_config['truedata']['password'] = self._decrypt_field(
+encrypted_config['truedata']['password']
+
+
+
+self.credentials = decrypted_config return decrypted_config
+
+def load_ea_config(self) -> Dict[str, Any]: """Load EA configuration"""
+config_file = os.pathJoin(self.config_dir, "ea_config_v8Json")
+
+
+with open(config_file, 'r') as f: self.ea_config = json.load(f)
+
+return self.ea_config
+
+
+def _derive_key(self, password: str, salt bytes) - > bytes: """Derive encryption key from password"""
+kdf = PBKDF2HMAC(
+algorithm=hashes.SHA256(), length=32,
+salt=salt,
+iterations=100000,
+
+
+return base64.urlsafe_b64encode(kdf.derive(password.encode()))
+
+
+def _decrypt_field(self, encrypted_value: str) -> str: """Decrypt a single field"""
+return self._fernet.decrypt(encrypted_value.encode()).decode()
+
+
+def get_fyers_config(self) -> Dict[str, str]: """Get Fyers configuration"""
+if not self.credentials:
+
+  raise ValueError("Credentials not loaded!") return self.credentials['fyers']
+
+def get_truedata_config(self) -> Dict[str, str]: """Get TrueData configuration"""
+if not self.credentials:
+  raise ValueError("Credentials not loaded!") return self.credentials['truedata']
+
+# Example usage
+if		name_== "_main "· loader = Configloader()
+
+# Load configurations
+try:
+# Load EA config (not encrypted)
+ea_config = loader.load_ea_config()
+print("	EA Configuration loaded successfully")
+
+
+# Load encrypted credentials
+credentials = loader.load_encrypted_credentials() print("	API Credentials decrypted successfully")
+
+# Access specific configs
+fyers = loader.get_fyers_config() print(f"Fyers App ID: {fyers['app_id']}")
+
+except Exception as e: print(f"	Error: {e}")
+
+
+Step 6: Implementation Instructions
+
+1. Create all files in
+
+2. Fill in your actual credentials in	:
+• TOTP Secret from Fyers
+
+• Your Fyers Client ID
+
+• Your Fyers PIN
+
+• Your PAN number
+
+• TrueData password
+
+3. Run encryption script:
+
+
+4. Test configuration loading:
+
+5. Delete the unencrypted file after verifying encryption works:
+
+
+Security Best Practices
+
+1. Never commit unencrypted credentials to version control
+
+2. Use a strong password for encryption (min 12 characters)
+
+3. Store the master password in a secure password manager
+
+4. Backup encrypted config to secure location
+
+5. Set file permissions to restrict access:
+
+
+Configuration Complete!
+
+Your API credentials are now:
+
+• Securely encrypted at rest
+
+• Easy to load in your EA
+
+• Protected with password-based encryption
+
+• Ready for production use
+
+Next step: Test API connections using these credentials!

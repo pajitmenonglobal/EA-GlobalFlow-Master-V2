@@ -1,0 +1,57 @@
+FYERS is harnessing the fast-growing Systematic/Algo trading ecosystem in India. Our launch of free Trading APIs and API Bridge brought a great response from our clients. Therefore, to take our agenda of providing preferred access to Algo trading and reliable data feeds to the trading fraternity further, we have tied up with TrueData, the leading data vendor in the country.
+
+Since most of you are aware that we do not provide Datafeeds through our trading API as we decided to stick to fast & reliable trade execution in order to use our resources efficiently. Many of our API users requested us to bring a better deal on the table in terms of Datafeed and want us to collaborate with the reliable data provider. Among the various market data vendors, we collaborated with TrueData to offer a great deal to our API users keeping in mind that the pricing should be kept at a bare minimum for algo traders. Also, it's worth mentioning here that FYERS does not have any vested interest in this deal as I write this post.
+
+Who is TrueData?
+TrueData Financial Information Pvt. Ltd. is on a mission to become the best market data vendor in the country with a multitude of solutions for the financial services sector, including making market data feeds available in all its forms, to as many applications as possible, including a wide range of technical analysis applications, trading solutions, automated & algorithmic platforms and a lot more all sorts of desktop, web and mobile applications.
+
+The company is now an official Real Time Data Vendor of the NSE and MCX with direct feeds from the exchanges and also garnered strategic partnerships to bring exceptional solutions including Historical Tick data, corporate action adjusted intraday & EOD historical data & unique, programming language agnostic APIs.
+
+TrueData product offering & services in connection with FYERS
+FYERS, in collaboration with TrueData would enable a comprehensive API for retail clients, tapping the expertise of each company in their respective fields. This API synergy would seamlessly integrate the trading API from Fyers and the market data APIs provided by TrueData. The integrated API is essentially for retail traders who want to automate their trades and algorithms. It could enable startups who are keen on building trading and investment platforms and help bring their ideas to realization.
+
+This integrated API can be used with any programming language for building & executing your own strategies using the real-time data feed and also for the automatic placement of your orders. We have provided an integrated python library which could help even beginner developers to get started right away.
+
+Advantages & Features
+1. An entirely new backend customized & hosted to serve very low latency Data feeds directly from the NSE & MCX for Indices, Equities, Futures & Options.
+2. Easy to integrate APIs for Desktop, Web & mobile apps (Websockets / REST API) with readymade code samples and quick technical support for the same.
+
+3. Real-Time Streaming OHLC Data would also be available in case a client does not want tick-by-tick data but wants only the OHLC candles to update for all his symbols every 1/3/5/7/15 or x minutes by contacting TrueData.
+4. Historical Data available in Tick, 1/2/3/4/5/10/15/30/45/60 mins, along with Daily / Weekly & Monthly formats.
+5. The entire History (from Tick to Monthly) is adjusted for corporate actions like splits, bonuses, rights & dividends.
+6. Tick data history for up to 1 calendar month for any of the symbols of NSE/ MCX and 1 minute history for up to 3 months & extended history could be purchased for 6 months by contacting TrueData. Moreover, history from 5 mins up to 60 mins would be available for up to 6 months.
+7. View both Continuous & Contract Futures Simultaneously NIFTY-I & NIFTY20MARFUT at the same time with premium adjusted continuous futures to enable accurate backtesting and averages over longer durations.
+8. Combined Python library which could be imported using pip. Sample code provided to get started with this library and to start receiving the data instantly.
+
+Offered Plans & Pricing
+The plans mentioned here are offered only for Fyers clients. Each end user would therefore need to be verified by Fyers prior to being allowed access to the TrueData APIs.
+
+The per month pricing has been elaborated below which includes all Segments (NSE EQ FO/Indices/MCX)
+
+Real Time Tick Streaming (Level 1 Data) API		- Rs.1599 + GST Historical Data API		- Rs. 1599 + GST Real Time + Historical Data API	- Rs. 2599 + GST
+The Default Subscription would include:
+
+1. Real Time or / and Historical feed for subscribed segments.
+2. Symbols = 200
+3. EOD History = 10+ years
+4. 1 min History = 60 days
+5. Tick History = Current day
+
+Note :
+1. The pricing listed above would be only for retail clients as referred to & verified by Fyers.
+2. Symbols Provided in the default subscription would be 200. For more symbol options & historical data options, please contact to TrueData (support@truedata.in)
+
+3. These APIs are provided for Personal Use only for end users.
+
+How to get started?
+1. Register here for the TrueData WebSocket API by creating an additional 3rd party Data App and receive login details for a 7-day free trial from TrueData instantly.
+2. The Trial would include:-
+i) Real time & Historical data feed APIs for NSE EQ, NSE FO, NSE Indices & MCX.
+ii) Symbol limit of 50 symbols
+iii) EOD History = 5 years
+iv) 1 min History = 5 days
+v) Tick History = Current Day
+3. Python users can pip install the truedata_ws library to help them get started right away. Sample app to work with this library is available in the Market data section, check out Data API documentation for Python & REST based integration.
+4. Before the expiry of your trial, select and subscribe for the API product of choice, from your FYERS 3rd party App page. You would be billed automatically every month from your ledger balance for the same amount till your subscription is active.
+
+You can subscribe for TruData here after creating your third party app on the API Dashboard & availing the trial period offer - TruData Subscription Page for FYERS Clients

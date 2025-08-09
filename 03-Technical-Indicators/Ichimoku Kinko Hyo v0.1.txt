@@ -1,0 +1,470 @@
+//+------------------------------------------------------------------+
+//|                                      Ichimoku Kinko Hyo v0.1.mq5 |
+//|                                 Copyright 2025, EA GlobalFlow     |
+//|                                              https://www.mql5.com |
+//+------------------------------------------------------------------+
+#property version       "0.1"
+#property copyright     "EA GlobalFlow Pro v0.1"
+#property description   "Ichimoku Kinko Hyo - Standardized Buffer Names - EA v0.1 Compatible"
+#property indicator_chart_window
+#property indicator_buffers 9
+#property indicator_plots   5
+
+// Plot 1: Tenkan-sen (Conversion Line)
+#property indicator_label1  "Tenkan-sen"
+#property indicator_type1   DRAW_LINE
+#property indicator_color1  clrRed
+#property indicator_style1  STYLE_SOLID
+#property indicator_width1  1
+
+// Plot 2: Kijun-sen (Base Line)
+#property indicator_label2  "Kijun-sen"
+#property indicator_type2   DRAW_LINE
+#property indicator_color2  clrBlue
+#property indicator_style2  STYLE_SOLID
+#property indicator_width2  1
+
+// Plot 3: Senkou Span A (Leading Span A)
+#property indicator_label3  "Senkou Span A"
+#property indicator_type3   DRAW_LINE
+#property indicator_color3  clrSandyBrown
+#property indicator_style3  STYLE_DOT
+#property indicator_width3  1
+
+// Plot 4: Senkou Span B (Leading Span B)
+#property indicator_label4  "Senkou Span B"
+#property indicator_type4   DRAW_LINE
+#property indicator_color4  clrThistle
+#property indicator_style4  STYLE_DOT
+#property indicator_width4  1
+
+// Plot 5: Chikou Span (Lagging Span)
+#property indicator_label5  "Chikou Span"
+#property indicator_type5   DRAW_LINE
+#property indicator_color5  clrLimeGreen
+#property indicator_style5  STYLE_SOLID
+#property indicator_width5  1
+
+//--- Input parameters
+input int Tenkan = 9;           // Tenkan-sen Period
+input int Kijun = 26;           // Kijun-sen Period
+input int Senkou = 52;          // Senkou Span B Period
+input int Shift = 26;           // Shift for Senkou Spans
+input bool ShowCloud = true;    // Show Ichimoku Cloud
+input bool EnableAlerts = false; // Enable Trend Change Alerts
+input bool EnableDashboard = true; // Enable Status Dashboard
+
+//--- Indicator buffers with EA v4.0 standardized names
+double TENKAN[];        // ✅ STANDARDIZED NAME - Tenkan-sen (Conversion Line)
+double KIJUN[];         // ✅ STANDARDIZED NAME - Kijun-sen (Base Line)  
+double SENKOU_A[];      // ✅ STANDARDIZED NAME - Senkou Span A (Leading Span A)
+double SENKOU_B[];      // ✅ STANDARDIZED NAME - Senkou Span B (Leading Span B)
+double CHIKOU[];        // ✅ STANDARDIZED NAME - Chikou Span (Lagging Span)
+
+// Additional calculation buffers
+double KUMO_TOP[];      // ✅ STANDARDIZED NAME - Top of Kumo Cloud
+double KUMO_BOTTOM[];   // ✅ STANDARDIZED NAME - Bottom of Kumo Cloud
+double TREND_SIGNAL[];  // ✅ STANDARDIZED NAME - Overall trend signal
+double MOMENTUM[];      // ✅ STANDARDIZED NAME - Momentum indicator
+
+//--- Global variables
+datetime g_LastAlert = 0;
+int g_LastTrend = 0; // 1=Bullish, -1=Bearish, 0=Neutral
+
+//+------------------------------------------------------------------+
+//| Custom indicator initialization function                         |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    Print("🔧 Ichimoku Kinko Hyo v4.0 - Starting initialization...");
+    
+    // Input validation
+    if(Tenkan <= 0 || Kijun <= 0 || Senkou <= 0)
+    {
+        Print("❌ INITIALIZATION FAILED: Periods must be greater than 0");
+        return(INIT_PARAMETERS_INCORRECT);
+    }
+    
+    if(Shift < 0)
+    {
+        Print("❌ INITIALIZATION FAILED: Shift cannot be negative");
+        return(INIT_PARAMETERS_INCORRECT);
+    }
+
+    // Set indicator short name
+    IndicatorSetString(INDICATOR_SHORTNAME, "Ichimoku v4.0 (" + 
+                      IntegerToString(Tenkan) + "," + 
+                      IntegerToString(Kijun) + "," + 
+                      IntegerToString(Senkou) + ")");
+
+    // ✅ CRITICAL: Set indicator buffers with standardized names for EA v4.0
+    SetIndexBuffer(0, TENKAN, INDICATOR_DATA);          // Buffer 0 - Tenkan-sen
+    SetIndexBuffer(1, KIJUN, INDICATOR_DATA);           // Buffer 1 - Kijun-sen
+    SetIndexBuffer(2, SENKOU_A, INDICATOR_DATA);        // Buffer 2 - Senkou Span A
+    SetIndexBuffer(3, SENKOU_B, INDICATOR_DATA);        // Buffer 3 - Senkou Span B
+    SetIndexBuffer(4, CHIKOU, INDICATOR_DATA);          // Buffer 4 - Chikou Span
+    SetIndexBuffer(5, KUMO_TOP, INDICATOR_CALCULATIONS);    // Buffer 5 - Kumo Top
+    SetIndexBuffer(6, KUMO_BOTTOM, INDICATOR_CALCULATIONS); // Buffer 6 - Kumo Bottom
+    SetIndexBuffer(7, TREND_SIGNAL, INDICATOR_CALCULATIONS); // Buffer 7 - Trend Signal
+    SetIndexBuffer(8, MOMENTUM, INDICATOR_CALCULATIONS);    // Buffer 8 - Momentum
+
+    // Set plot properties
+    PlotIndexSetInteger(2, PLOT_SHIFT, Shift);  // Shift Senkou Span A
+    PlotIndexSetInteger(3, PLOT_SHIFT, Shift);  // Shift Senkou Span B
+    PlotIndexSetInteger(4, PLOT_SHIFT, -Shift); // Shift Chikou Span backward
+
+    // Set empty values
+    PlotIndexSetDouble(0, PLOT_EMPTY_VALUE, EMPTY_VALUE);
+    PlotIndexSetDouble(1, PLOT_EMPTY_VALUE, EMPTY_VALUE);
+    PlotIndexSetDouble(2, PLOT_EMPTY_VALUE, EMPTY_VALUE);
+    PlotIndexSetDouble(3, PLOT_EMPTY_VALUE, EMPTY_VALUE);
+    PlotIndexSetDouble(4, PLOT_EMPTY_VALUE, EMPTY_VALUE);
+
+    // Set array indexing as series (MQL4 style - newest data at index 0)
+    ArraySetAsSeries(TENKAN, true);
+    ArraySetAsSeries(KIJUN, true);
+    ArraySetAsSeries(SENKOU_A, true);
+    ArraySetAsSeries(SENKOU_B, true);
+    ArraySetAsSeries(CHIKOU, true);
+    ArraySetAsSeries(KUMO_TOP, true);
+    ArraySetAsSeries(KUMO_BOTTOM, true);
+    ArraySetAsSeries(TREND_SIGNAL, true);
+    ArraySetAsSeries(MOMENTUM, true);
+
+    // Set indicator digits
+    IndicatorSetInteger(INDICATOR_DIGITS, _Digits);
+    
+    Print("✅ Ichimoku Kinko Hyo v4.0 - Initialization successful!");
+    Print("📊 Settings: Tenkan:", Tenkan, " Kijun:", Kijun, " Senkou:", Senkou, " Shift:", Shift);
+    
+    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Custom indicator iteration function                              |
+//+------------------------------------------------------------------+
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime &time[],
+                const double &open[],
+                const double &high[],
+                const double &low[],
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
+{
+    // Check for minimum bars
+    if(rates_total < Senkou + Shift)
+    {
+        Print("⚠️ Insufficient bars for calculation. Need: ", Senkou + Shift, " Have: ", rates_total);
+        return(0);
+    }
+
+    // Set arrays as series
+    ArraySetAsSeries(high, true);
+    ArraySetAsSeries(low, true);
+    ArraySetAsSeries(close, true);
+    ArraySetAsSeries(time, true);
+
+    // Determine calculation start
+    int start = prev_calculated;
+    if(prev_calculated == 0)
+        start = Senkou + Shift;
+
+    // Main calculation loop
+    for(int i = start; i < rates_total; i++)
+    {
+        int pos = rates_total - 1 - i;
+        
+        // Calculate Tenkan-sen (Conversion Line)
+        TENKAN[pos] = CalculateMiddleValue(high, low, pos, Tenkan);
+        
+        // Calculate Kijun-sen (Base Line)  
+        KIJUN[pos] = CalculateMiddleValue(high, low, pos, Kijun);
+        
+        // Calculate Senkou Span A (Leading Span A)
+        if(pos >= Shift)
+        {
+            SENKOU_A[pos - Shift] = (TENKAN[pos] + KIJUN[pos]) / 2.0;
+        }
+        
+        // Calculate Senkou Span B (Leading Span B)
+        if(pos >= Shift)
+        {
+            SENKOU_B[pos - Shift] = CalculateMiddleValue(high, low, pos, Senkou);
+        }
+        
+        // Calculate Chikou Span (Lagging Span)
+        if(pos + Shift < rates_total)
+        {
+            CHIKOU[pos + Shift] = close[pos];
+        }
+        
+        // Calculate additional analysis buffers
+        CalculateKumoLevels(pos);
+        CalculateTrendSignal(pos, close[pos]);
+        CalculateMomentum(pos);
+    }
+
+    // Check for trend changes and alerts
+    if(EnableAlerts)
+    {
+        CheckTrendChangeAlert(rates_total - 1, close[0]);
+    }
+    
+    // Update dashboard
+    if(EnableDashboard)
+    {
+        UpdateIchimokuDashboard(rates_total - 1, close[0]);
+    }
+
+    return(rates_total);
+}
+
+//+------------------------------------------------------------------+
+//| Calculate middle value (highest + lowest) / 2                    |
+//+------------------------------------------------------------------+
+double CalculateMiddleValue(const double &high[], const double &low[], int pos, int period)
+{
+    if(pos + period > ArraySize(high))
+        return(EMPTY_VALUE);
+        
+    double highest = high[pos];
+    double lowest = low[pos];
+    
+    for(int j = pos; j < pos + period; j++)
+    {
+        if(high[j] > highest) highest = high[j];
+        if(low[j] < lowest) lowest = low[j];
+    }
+    
+    return((highest + lowest) / 2.0);
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Kumo (Cloud) levels                                   |
+//+------------------------------------------------------------------+
+void CalculateKumoLevels(int pos)
+{
+    if(pos < 0) return;
+    
+    double spanA = SENKOU_A[pos];
+    double spanB = SENKOU_B[pos];
+    
+    if(spanA != EMPTY_VALUE && spanB != EMPTY_VALUE)
+    {
+        KUMO_TOP[pos] = MathMax(spanA, spanB);
+        KUMO_BOTTOM[pos] = MathMin(spanA, spanB);
+    }
+    else
+    {
+        KUMO_TOP[pos] = EMPTY_VALUE;
+        KUMO_BOTTOM[pos] = EMPTY_VALUE;
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Calculate overall trend signal                                  |
+//+------------------------------------------------------------------+
+void CalculateTrendSignal(int pos, double currentPrice)
+{
+    if(pos < 0) return;
+    
+    double tenkan = TENKAN[pos];
+    double kijun = KIJUN[pos];
+    double kumoTop = KUMO_TOP[pos];
+    double kumoBottom = KUMO_BOTTOM[pos];
+    
+    if(tenkan == EMPTY_VALUE || kijun == EMPTY_VALUE || 
+       kumoTop == EMPTY_VALUE || kumoBottom == EMPTY_VALUE)
+    {
+        TREND_SIGNAL[pos] = 0; // Neutral
+        return;
+    }
+    
+    int signal = 0;
+    
+    // Bullish conditions
+    if(tenkan > kijun && currentPrice > kumoTop && currentPrice > tenkan)
+    {
+        signal = 1; // Strong bullish
+    }
+    // Bearish conditions
+    else if(tenkan < kijun && currentPrice < kumoBottom && currentPrice < tenkan)
+    {
+        signal = -1; // Strong bearish
+    }
+    // Neutral/consolidation
+    else
+    {
+        signal = 0; // Neutral
+    }
+    
+    TREND_SIGNAL[pos] = signal;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate momentum indicator                                     |
+//+------------------------------------------------------------------+
+void CalculateMomentum(int pos)
+{
+    if(pos < 1) return;
+    
+    double currentTenkan = TENKAN[pos];
+    double previousTenkan = TENKAN[pos + 1];
+    double currentKijun = KIJUN[pos];
+    double previousKijun = KIJUN[pos + 1];
+    
+    if(currentTenkan == EMPTY_VALUE || previousTenkan == EMPTY_VALUE ||
+       currentKijun == EMPTY_VALUE || previousKijun == EMPTY_VALUE)
+    {
+        MOMENTUM[pos] = 0;
+        return;
+    }
+    
+    // Calculate momentum based on Tenkan-Kijun relationship change
+    double tenkanMomentum = currentTenkan - previousTenkan;
+    double kijunMomentum = currentKijun - previousKijun;
+    
+    MOMENTUM[pos] = (tenkanMomentum + kijunMomentum) / 2.0;
+}
+
+//+------------------------------------------------------------------+
+//| Check for trend change and send alerts                          |
+//+------------------------------------------------------------------+
+void CheckTrendChangeAlert(int pos, double currentPrice)
+{
+    if(pos < 0) return;
+    
+    int currentTrend = (int)TREND_SIGNAL[pos];
+    
+    if(currentTrend != g_LastTrend && TimeCurrent() - g_LastAlert > 300) // 5 min interval
+    {
+        string alertMessage = "";
+        
+        switch(currentTrend)
+        {
+            case 1:
+                alertMessage = "Ichimoku: BULLISH trend confirmed on " + Symbol();
+                break;
+            case -1:
+                alertMessage = "Ichimoku: BEARISH trend confirmed on " + Symbol();
+                break;
+            case 0:
+                alertMessage = "Ichimoku: NEUTRAL trend on " + Symbol();
+                break;
+        }
+        
+        if(alertMessage != "")
+        {
+            Alert(alertMessage);
+            Print("📢 ", alertMessage);
+            g_LastAlert = TimeCurrent();
+            g_LastTrend = currentTrend;
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Update Ichimoku dashboard display                               |
+//+------------------------------------------------------------------+
+void UpdateIchimokuDashboard(int pos, double currentPrice)
+{
+    if(pos < 0) return;
+    
+    string trendStatus = "";
+    color trendColor = clrWhite;
+    
+    int trend = (int)TREND_SIGNAL[pos];
+    switch(trend)
+    {
+        case 1:
+            trendStatus = "BULLISH";
+            trendColor = clrLimeGreen;
+            break;
+        case -1:
+            trendStatus = "BEARISH";
+            trendColor = clrRed;
+            break;
+        default:
+            trendStatus = "NEUTRAL";
+            trendColor = clrYellow;
+            break;
+    }
+    
+    // Create dashboard text
+    string dashboardText = StringFormat(
+        "📊 ICHIMOKU v4.0 STATUS\n" +
+        "════════════════════════\n" +
+        "Trend: %s\n" +
+        "Tenkan: %.5f\n" +
+        "Kijun: %.5f\n" +
+        "Kumo Top: %.5f\n" +
+        "Kumo Bottom: %.5f\n" +
+        "Price vs Kumo: %s\n" +
+        "TK Cross: %s\n" +
+        "Momentum: %.5f",
+        trendStatus,
+        TENKAN[pos],
+        KIJUN[pos],
+        KUMO_TOP[pos],
+        KUMO_BOTTOM[pos],
+        (currentPrice > KUMO_TOP[pos]) ? "ABOVE" : (currentPrice < KUMO_BOTTOM[pos]) ? "BELOW" : "INSIDE",
+        (TENKAN[pos] > KIJUN[pos]) ? "BULLISH" : "BEARISH",
+        MOMENTUM[pos]
+    );
+    
+    // Display dashboard (implementation depends on EA integration)
+    Comment(dashboardText);
+}
+
+//+------------------------------------------------------------------+
+//| Get Ichimoku trend direction for EA integration                 |
+//+------------------------------------------------------------------+
+int GetIchimokuTrend(int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(TREND_SIGNAL))
+        return((int)TREND_SIGNAL[pos]);
+    return(0);
+}
+
+//+------------------------------------------------------------------+
+//| Check if price is above Kumo cloud                             |
+//+------------------------------------------------------------------+
+bool IsPriceAboveKumo(double price, int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(KUMO_TOP))
+        return(price > KUMO_TOP[pos]);
+    return(false);
+}
+
+//+------------------------------------------------------------------+
+//| Check if price is below Kumo cloud                             |
+//+------------------------------------------------------------------+
+bool IsPriceBelowKumo(double price, int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(KUMO_BOTTOM))
+        return(price < KUMO_BOTTOM[pos]);
+    return(false);
+}
+
+//+------------------------------------------------------------------+
+//| Check if Tenkan is above Kijun (bullish TK cross)             |
+//+------------------------------------------------------------------+
+bool IsTenkanAboveKijun(int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(TENKAN) && pos < ArraySize(KIJUN))
+        return(TENKAN[pos] > KIJUN[pos]);
+    return(false);
+}
+
+//+------------------------------------------------------------------+
+//| Get Ichimoku momentum value                                     |
+//+------------------------------------------------------------------+
+double GetIchimokuMomentum(int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(MOMENTUM))
+        return(MOMENTUM[pos]);
+    return(0.0);
+}

@@ -1,0 +1,253 @@
+EA GlobalFlow Pro v6.4 - Rules 252+ Strategy Description Reference
+?? Document Information
+  File Reference: #57 for future chats
+  Previous Rules: 1-251 (documented in files #56 and ea_globalflow_rules_57_251.md)
+  New Rules: Starting from Rule 252
+ Status: Strategy Description Documentation
+ Build Upon: Complete file #56 for EA development
+
+252-260: Core Strategy Framework
+Rule 252: Dual-Path Market Entry Strategy
+ Ichimoku-TDI-PA-BBsqueeze-Kumocross Strategy: Make money by entering trending markets through 2 distinct paths
+ Path 1 - Continuation (CT): Enter during ongoing trends in trendi
+  Path 2 - Pull-back (PB): Enter during market reversals an
+  Universal Rule: Entry ALWAYS with the trend in BOT
+
+Rule 253: STR-EXIT Trend Change Exit Pro
+  Exit Execution: Trade exit when STR-EXIT in
+  Exit Timeframe: Monitor on 1-hour time
+  Exit Trigger: Change in STR-EXIT trend	exit
+
+Rule 254: Strike Price Interval Confi
+ NIFTY INDEX: 50 point intervals for all
+ ALL OTHER INDICES/STOCKS: 100 po	es
+  Application: Applies to all Options trad	ck Options)
+
+255-265: Market Classification
+Rule 255: Market Type Auto-Detect
+ Primary Chart Detection: EA first iden	ndex Options, Stock Options)
+
+  Execution Condition: EA WILL RUN ON parent chart ONLY if market type is identified as true
+  Market Categories: Futures, Index Options, Stock Options specifically
+
+Rule 256: Sequential Path Analysis Protocol
+  Sequential Execution: EA runs in specific sequence - 1st Continuation path, THEN Pull-back path
+  Trend Analysis Hierarchy: First check Major trend (Daily/4H), then Middle trend (1H/30M)
+  Parent Chart Operation: All trend analysis occurs on parent chart before secondary chart creation
+
+Rule 257: Multi-Timeframe Trend Validation Framework
+  Major Trend Timeframes: Daily (D1) OR 4-Hour (H4) timeframe analysis
+  Middle Trend Timeframes: 1-Hour (H1) OR 30-Minute (M30) timeframe analysis
+  Validation Requirement: BOTH major and middle trends must be true from either CT or PB path
+
+Rule 258: Option Chain Analysis & Strike Selection
+  Trigger Condition: When both major and middle trends are validated true
+ Process: EA reads option chain of the asset to determine strike prices
+  Selection Priority: First ATM strike price, then slightly OTM strike price (50-points away from ATM)
+
+Rule 259: Dynamic Secondary Chart Creation Protocol
+  Chart Creation: EA dynamically opens 2 charts at slightly OTM strike price level
+ Chart Types: One Call side chart AND one Put side chart
+  Location: At slightly OTM strike price level determined by option chain analysis
+
+266-275: Strike Price Selection Criteria
+Rule 260: ATM Strike Price Selection Algorithm
+  Primary Criterion: Strike price nearest to current spot price
+ OI Difference Requirement: >30% relative difference of Open Interest (OI) between Call side and Put side
+  Alternative: Change in OI can be used instead of absolute OI for >30% calculation
+
+Rule 261: OTM Strike Price Selection Algorithm
+  Distance Requirement: 1 level away from ATM strike price
+  OI Difference Requirement: >30% relative difference between Call side and Put side Open Interest
+
+  Validation: Must also maintain the 1-level distance from ATM requirement
+
+Rule 262: Directional Alignment Validation
+ Critical Requirement: Both ATM and OTM strike prices must have >30% OI difference in SAME direction
+ Direction Options: Either Call side OR Put side, but must be consistent
+ Example: If ATM shows Call side >30%, then OTM must also show Call side >30%
+
+Rule 263: Secondary Chart Configuration
+  Call Side Chart: Opens at the determined slightly OTM strike price level
+ Put Side Chart: Opens at the same determined slightly OTM strike price level
+  EA Integration: Both charts will have EA running after validation checks
+
+Rule 264: Expiry Day Exception Protocol
+  Special Rule: On expiry days, secondary charts open at ATM strike price level
+  Override: This overrides the normal slightly OTM strike price selection
+ Application: Applies to both Call side and Put side charts
+
+Rule 265: Continuous Parent Chart Operation
+  Ongoing Process: Parent chart EA keeps running continuously
+  Monitoring: Looks for confirmation of major and middle trend in both paths
+  Iteration: Proceeds to get next ATM strike price and repeats the process
+
+266-275: Secondary Chart Trading Rules
+Rule 266: Secondary Chart EA Execution
+ Same EA Logic: Identical EA runs on secondary charts with same sequential approach
+  Top-Down Analysis: Find Major trend, then Middle trend, then execute entry
+ Entry Decision: Buy or Sell based on specific entry conditions
+
+Rule 267: Entry Timeframe Restriction
+  Allowed Timeframes: Trade entry ONLY in 5-minute OR 15-minute timeframes
+  Strict Limitation: No entries allowed in any other timeframes
+  Application: Applies to all secondary chart trading
+
+Rule 268: Visual Chart Consistency
+  Chart Elements: Secondary charts display same visual elements as parent chart
+  Components: Colors, lines, arrows, and all relevant drawings
+  Synchronization: Maintain visual consistency across all charts
+
+Rule 269: Chart Quantity Limitation
+  Maximum Limit: Do NOT open more than 1 Call side and 1 Put side chart per strike price level
+  Application: At slightly OTM price (50-point away) OR ATM price as applicable
+  Enforcement: Strict adherence to prevent chart proliferation
+
+Rule 270: Auto-Close Trigger Conditions
+  Stop Loss Hit: Secondary chart auto-closes when stop loss is triggered
+  Exit Trade: Chart closes when trade exit signal is generated
+  Take Profit: Chart closes when take profit level is reached
+ Expiry Time: Auto-close at 3:29 PM on expiry day regardless of position status
+
+Rule 271: Multiple Trade Capability
+  Trade Quantity: "n" number of trades allowed in each secondary chart
+ Basis: Number of trades based on EA entry criteria being met
+  Limitation: Subject to risk management and position sizing rules
+
+Rule 272: Input Parameter Customization
+  External Properties: Add required input parameters in external properties dialog box
+  Chart-Specific: Allow customization of EA parameters for each chart if required
+  Flexibility: Enable trader to modify settings per chart basis
+
+273-285: Forex & International Markets
+Rule 273: Forex/Commodities Market Detection
+  Market Identification: EA first identifies if market type is Forex OR Commodities
+  Execution Condition: If true, EA proceeds with single chart operation
+  Scope: Applies to Forex currencies and International Commodities and CFD trading
+
+Rule 274: Single Chart Operation for Forex/Commodities
+
+ Chart Structure: EA runs on ONE parent chart ONLY
+ No Secondary Charts: No dynamic chart creation or secondary chart issues
+  Simplified Architecture: Streamlined approach for non-Options markets
+
+Rule 275: Sequential Trend Analysis for Forex/Commodities
+  Process Flow: Find Major trend, confirm Middle trend, then execute Buy/Sell entry
+  Same Logic: Uses identical trend analysis as Options markets
+ Entry Basis: Based on same entry conditions framework
+
+Rule 276: Forex/Commodities Timeframe Structure
+  Major Trend: Daily OR 4-hour timeframe analysis
+  Middle Trend: 1-hour OR 30-minute timeframe confirmation
+ Entry Execution: EA runs in 5-minute OR 15-minute timeframes for entry signals
+
+Rule 277: Forex/Commodities Order Types
+ Buy Orders: Buy Stop order type
+  Sell Orders: Sell Stop order type
+  Order Management: Standard stop-loss and take-profit management
+
+278-290: Technical Indicator Specifications
+Rule 278: Core Indicator Suite
+  Ichimoku Kinko Hyo: Primary trend and momentum indicator
+  Ichi-Trader Dynamic Index: Secondary trend confirmation
+  SMMA 50 Period: Smoothed Moving Average for trend filtering
+  Bollinger Bands: Volatility and squeeze detection
+  Supertrend Entry (STR-ENTRY): ATR multiplier 1.0, ATR period 20
+  Supertrend Exit (STR-EXIT): ATR multiplier 1.5, ATR period 20
+
+Rule 279: Entry Signal Generation Methods
+ Price Action Crosses: Clean breakouts and reversal patterns  Bollinger Band Squeeze: Expansion after contraction signals  Kumo Cross: Ichimoku cloud breakout signals
+  Ichi-Trader Dynamic Index: Momentum confirmation criteria
+
+Rule 280: Risk Management Integration
+  Optimal Rules: Professional-grade risk management implementation
+  Stop Loss: Systematic stop-loss placement and management
+  Position Sizing: Dynamic position sizing based on market conditions
+  Drawdown Protection: Maximum drawdown limits and controls
+
+281-290: Platform & Integration Specifications
+Rule 281: MT5 Platform Configuration
+  Trading Platform: MetaTrader 5 platform provided by IC Markets
+  Market Access: Trade Futures and Options of Indian Indices and Stock Options
+  Broker: IC Markets as primary trading platform provider
+
+Rule 282: Indian Broker Integration
+  Trading Account: Fyers India for actual trade execution
+  Real-time Data: NSE data feeds from TrueData firm India
+  Data Installation: TrueData feeds installed in IC Markets data folder
+
+Rule 283: Universal Market Access Framework
+  Market Coverage: All markets tradeable on MT5 platform through data feed integration
+  Supported Assets: Forex, Cryptocurrencies, CFDs, Metals, Indices
+  Broker Subscription: TrueData feed provider integration with broker
+
+Rule 284: Fyers API Integration
+  API Access: Fyers API credentials and login integration required
+  Authentication: TOTP and login credentials to be provided
+  Live Trading: API connection for live trade execution
+
+Rule 285: TrueData Compatibility
+  Platform Compatibility: TrueData NSE feeds compatible with MT5 platform
+  Data Streaming: Broker subscribes to TrueData feed provider
+  Direct Integration: Data streams directly to MT5 platform
+
+Rule 286: Comprehensive Asset Coverage
+  Forex Currencies: All major and minor currency pairs
+  Cryptocurrencies: Bitcoin, Ethereum, and major altcoins
+  CFDs: Contract for Difference instruments
+  Metals: Gold, Silver, Platinum, Palladium
+  Indices: Global stock indices and commodities
+
+287-295: Development Approach & Logic Framework
+Rule 287: Collaborative Development Process
+  Coding Steps: Developer to provide coding steps in overall EA plan
+  Progressive Development: Step-by-step development as project progresses
+  Expert Contribution: Developer contribution essential for functional implementation
+
+Rule 288: Logic Development Assistance
+  User Limitation: User acknowledges limited coding expertise
+  Logic Gaps: User not expert in step-by-step logic flow
+  Developer Value: Developer contribution invaluable for proper logic implementation
+
+Rule 289: Functional Error-Free Implementation
+  Target: Create functional EA without errors
+  Coding Ideas: Developer to provide coding steps and implementation ideas
+  Quality Assurance: Ensure proper functionality through expert development
+
+Rule 290: Documentation Restriction Protocol
+  No Implementation Guides: Do not provide implementation guides until "DONE with rules"
+  No Enhancement Documents: Do not provide various enhancement documents
+  No EA Code: Do not provide EA code until completion signal
+  Wait for Signal: Wait for "DONE with rules" before providing implementation
+
+Rule 291: Future Reference System
+  Document Reference: Reference as "ea_globalflow_rules_57_251.md" document in future chats
+  File Integration: Use alongside file #56 for complete EA development
+
+  Rule Continuation: Continue adding new rules from Rule 296 onwards in future sessions
+
+Rule 292: Complete Strategy Documentation Status
+  Current Status: Strategy description rules 252-292 documented
+  Integration Ready: Ready for integration with existing rule base (1-251)
+  Development Ready: All strategy specifications defined for EA development
+  Next Phase: Awaiting "DONE with rules" signal for implementation phase
+
+?? Complete Rule Repository Status
+Total Rules Documented: 292
+  Foundation Rules: 1-56 (from file #56)
+  Extended Rules: 57-251 (from ea_globalflow_rules_57_251.md)
+  Strategy Rules: 252-292 (this document)
+
+Ready for Implementation:
+? Core Strategy Framework (Rules 252-
+? Market Classification & Execution (Ru
+? Strike Price Selection (Rules 260-265)
+? Secondary Chart Operations (Rules 26
+? Forex/Commodities Framework (Rule
+? Technical Indicators (Rules 278-280)
+? Platform Integration (Rules 281-286)
+? Development Approach (Rules 287-29
+Status: ? COMPLETE STRATEGY D	waiting "DONE with rules" signal
+
+This document (#57) contains strategy descr	uld be referenced alongside
+existing project knowledge files #56 and ea_	for complete EA GlobalFlow Pro v6.4 development implementation.

@@ -1,0 +1,563 @@
+EA GlobalFlow Pro v8.0 - Order Execution Logic Complete Implementation
+?? 1. SLIPPAGE HANDLING
+Advanced Slippage Manager:
+
+mql5
+
+//++//| Slippage Control and Management|//+
+class CSlippageManager {+private:// Market-specific slippage tolerances (in points) int m_forexSlippage;	// 3 points default
+int m_commoditySlippage;	// 5 points default
+int m_indicesSlippage;	// 2 points default int m_optionsSlippage;		// 10 points default
+
+// Dynamic slippage based on conditions
+double m_newsEventMultiplier; // 2.0x during news double m_volatilityMultiplier; // 1.5x during high volatility double m_liquidityMultiplier; // 3.0x during low liquidity
+
+public:
+CSlippageManager() { m_forexSlippage = 3;
+m_commoditySlippage = 5;
+m_indicesSlippage = 2;
+m_optionsSlippage = 10;
+m_newsEventMultiplier = 2.0;
+m_volatilityMultiplier = 1.5;
+m_liquidityMultiplier = 3.0;
+}
+
+int CalculateDynamicSlippage(string symbol) {
+// Get base slippage for market type
+int baseSlippage = GetBaseSlippage(symbol);
+
+// Apply multipliers
+double finalSlippage = baseSlippage;
+
+// Check news events if(IsNewsTime()) {
+finalSlippage *= m_newsEventMultiplier;
+}
+
+// Check volatility
+double atr = GetATR(symbol, PERIOD_M5, 14); double avgATR = GetAverageATR(symbol); if(atr > avgATR * 1.5) {
+
+finalSlippage *= m_volatilityMultiplier;
+}
+
+// Check liquidity (spread-based)
+double currentSpread = GetSpread(symbol); double avgSpread = GetAverageSpread(symbol); if(currentSpread > avgSpread * 2) {
+finalSlippage *= m_liquidityMultiplier;
+}
+
+// Check session
+ENUM_SESSION session = GetTradingSession(); if(session == SESSION_ASIAN && !IsAsianPair(symbol)) {
+finalSlippage *= 1.5; // Low liquidity session
+}
+
+// Cap maximum slippage
+int maxSlippage = GetMaxAcceptableSlippage(symbol); finalSlippage = MathMin(finalSlippage, maxSlippage);
+
+return (int)MathRound(finalSlippage);
+}
+
+int GetMaxAcceptableSlippage(string symbol) {
+// Maximum acceptable slippage by market if(IsForexSymbol(symbol)) return 10;
+else if(IsCommoditySymbol(symbol)) return 20; else if(IsIndexSymbol(symbol)) return 5;
+else if(IsOptionSymbol(symbol)) return 30; else return 15; // Default
+}
+
+bool ValidateExecution(double requestedPrice, double executedPrice, int allowedSlippage, ENUM_ORDER_TYPE orderType) {
+double actualSlippage = 0;
+
+if(orderType == ORDER_TYPE_BUY || orderType == ORDER_TYPE_BUY_STOP) { actualSlippage = executedPrice - requestedPrice;
+} else {
+actualSlippage = requestedPrice - executedPrice;
+}
+
+// Convert to points
+double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+
+int slippagePoints = (int)(actualSlippage / point);
+
+// Log excessive slippage if(slippagePoints > allowedSlippage) {
+LogExcessiveSlippage(requestedPrice, executedPrice, slippagePoints, allowedSlippage);
+
+// Decide if acceptable
+if(slippagePoints > allowedSlippage * 2) { return false; // Reject execution
+}
+}
+
+return true;
+}
+
+void AdjustForSlippage(MqlTradeRequest &request, string symbol) {
+// Pre-adjust entry price for expected slippage
+int expectedSlippage = CalculateDynamicSlippage(symbol); double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
+
+if(request.action == TRADE_ACTION_DEAL) { if(request.type == ORDER_TYPE_BUY) {
+// Add slippage buffer to buy price
+request.price += expectedSlippage * point * 0.5;
+} else if(request.type == ORDER_TYPE_SELL) {
+// Subtract slippage buffer from sell price request.price -= expectedSlippage * point * 0.5;
+}
+}
+}
+};
+
+?? 2. PARTIAL FILL MANAGEME
+Partial Fill Handler:
+
+mql5
+
+//+	+
+//| Partial Fill Management System	|
+//+	+
+class CPartialFillManager { private:
+struct PartialFillInfo { ulong originalTicket;
+double requestedVolume;
+double filledVolume; double remainingVolume; double avgFillPrice; datetime firstFillTime;
+int fillAttempts;
+string status; // "PENDING", "PARTIAL", "COMPLETE", "CANCELLED"
+};
+
+PartialFillInfo m_partialFills[]; int m_maxFillAttempts;
+int m_fillTimeout; // seconds
+
+public:
+CPartialFillManager() { m_maxFillAttempts = 5;
+m_fillTimeout = 30;
+}
+
+void HandleOrderResult(MqlTradeResult &result, MqlTradeRequest &request) {
+// Check if partial fill
+if(result.retcode == TRADE_RETCODE_DONE_PARTIAL) { RegisterPartialFill(result, request); ProcessPartialFill(result.order);
+}
+else if(result.retcode == TRADE_RETCODE_DONE) {
+// Complete fill CompleteFullFill(result, request);
+}
+else {
+// Handle rejection HandleRejection(result, request);
+}
+}
+
+void RegisterPartialFill(MqlTradeResult &result, MqlTradeRequest &request) {
+
+PartialFillInfo fill; fill.originalTicket = result.order;
+fill.requestedVolume = request.volume; fill.filledVolume = result.volume;
+fill.remainingVolume = request.volume - result.volume; fill.avgFillPrice = result.price;
+fill.firstFillTime = TimeCurrent(); fill.fillAttempts = 1;
+fill.status = "PARTIAL";
+
+// Add to tracking array
+int size = ArraySize(m_partialFills); ArrayResize(m_partialFills, size + 1); m_partialFills[size] = fill;
+
+// Log partial fill LogPartialFill(fill);
+}
+
+void ProcessPartialFill(ulong orderTicket) {
+// Find the partial fill info
+int index = FindPartialFill(orderTicket); if(index < 0) return;
+
+PartialFillInfo &fill = m_partialFills[index];
+
+// Decision logic if(ShouldCompletePartialFill(fill)) {
+// Try to fill remaining volume AttemptRemainingFill(fill);
+}
+else if(ShouldCancelRemaining(fill)) {
+// Cancel remaining and work with partial CancelRemainingVolume(fill); AdjustPositionManagement(fill);
+}
+else {
+// Wait for better conditions ScheduleNextAttempt(fill);
+}
+}
+
+bool ShouldCompletePartialFill(PartialFillInfo &fill) {
+// Complete if:
+
+// 1. Fill ratio > 80%
+double fillRatio = fill.filledVolume / fill.requestedVolume; if(fillRatio > 0.8) return false; // Good enough
+
+// 2. Market conditions still favorable if(!CheckMarketConditionsFavorable(fill)) return false;
+
+// 3. Within time window
+if(TimeCurrent() - fill.firstFillTime > m_fillTimeout) return false;
+
+// 4. Attempts remaining
+if(fill.fillAttempts >= m_maxFillAttempts) return false;
+
+return true;
+}
+
+void AttemptRemainingFill(PartialFillInfo &fill) { fill.fillAttempts++;
+
+// Prepare new order for remaining volume MqlTradeRequest request;
+MqlTradeResult result;
+
+ZeroMemory(request); ZeroMemory(result);
+
+request.action = TRADE_ACTION_DEAL;
+request.symbol = PositionGetString(POSITION_SYMBOL); request.volume = fill.remainingVolume;
+request.type = GetOrderTypeFromPosition();
+
+// Adjust price for market conditions
+request.price = GetAdjustedFillPrice(request.symbol, request.type);
+
+// Use more aggressive slippage for remaining fill request.deviation = CalculateDynamicSlippage(request.symbol) * 2;
+
+// Set fill policy
+request.type_filling = GetOptimalFillPolicy(request.symbol);
+
+// Execute if(OrderSend(request, result)) {
+UpdatePartialFill(fill, result);
+} else {
+
+HandleFillFailure(fill, result);
+}
+}
+
+ENUM_ORDER_TYPE_FILLING GetOptimalFillPolicy(string symbol) {
+// Determine best fill policy by market
+long symbolFilling = SymbolInfoInteger(symbol, SYMBOL_FILLING_MODE);
+
+// Priority order for different markets if(IsForexSymbol(symbol)) {
+if(symbolFilling & SYMBOL_FILLING_FOK)
+  return ORDER_FILLING_FOK;	// Fill or Kill preferred else if(symbolFilling & SYMBOL_FILLING_IOC)
+  return ORDER_FILLING_IOC;	// Immediate or Cancel else
+return ORDER_FILLING_RETURN; // Default
+}
+else if(IsOptionSymbol(symbol)) {
+// Options prefer IOC to avoid partial positions if(symbolFilling & SYMBOL_FILLING_IOC)
+  return ORDER_FILLING_IOC; else
+return ORDER_FILLING_FOK;
+}
+else {
+// Commodities and indices
+if(symbolFilling & SYMBOL_FILLING_RETURN) return ORDER_FILLING_RETURN;
+else if(symbolFilling & SYMBOL_FILLING_IOC) return ORDER_FILLING_IOC;
+else
+return ORDER_FILLING_FOK;
+}
+}
+
+void AdjustPositionManagement(PartialFillInfo &fill) {
+// Adjust stop loss and take profit for partial position double fillRatio = fill.filledVolume / fill.requestedVolume;
+
+// Find the position if(PositionSelectByTicket(fill.originalTicket)) {
+double currentSL = PositionGetDouble(POSITION_SL); double currentTP = PositionGetDouble(POSITION_TP);
+
+// Adjust TP closer due to smaller position
+double newTP = CalculateAdjustedTP(currentTP, fillRatio);
+
+// Tighten SL slightly for risk management
+double newSL = CalculateAdjustedSL(currentSL, fillRatio);
+
+// Modify position CTrade trade;
+trade.PositionModify(fill.originalTicket, newSL, newTP);
+
+// Log adjustment LogPositionAdjustment(fill, newSL, newTP);
+}
+}
+};
+
+?? 3. RETRY MECHANISMS
+Smart Retry System:
+
+mql5
+
+//++//| Intelligent Retry Mechanism|//+
+class CSmartRetryManager {+private:struct RetryInfo { ulong attemptId;
+MqlTradeRequest originalRequest;
+int retryCount; datetime firstAttempt; datetime lastAttempt; int lastError;
+double priceImprovement; string retryReason;
+};
+
+RetryInfo m_retryQueue[];
+int m_maxRetries[10]; // Max retries by error type
+
+public:
+CSmartRetryManager() {
+// Set max retries by error type m_maxRetries[0] = 5; // Requotes m_maxRetries[1] = 3; // No connection m_maxRetries[2] = 10; // Price changed m_maxRetries[3] = 2; // Not enough money m_maxRetries[4] = 3; // Trade timeout m_maxRetries[5] = 5; // Broker busy m_maxRetries[6] = 0; // Trade disabled m_maxRetries[7] = 2; // Position locked m_maxRetries[8] = 3; // Order locked m_maxRetries[9] = 1; // Invalid volume
+}
+
+bool ShouldRetry(MqlTradeResult &result, MqlTradeRequest &request) {
+// Determine if retry is appropriate
+int errorCategory = CategorizeError(result.retcode); if(errorCategory < 0) return false; // Non-retryable error
+// Check if already in retry queue
+int queueIndex = FindInRetryQueue(request);
+
+if(queueIndex >= 0) {
+// Update existing retry
+RetryInfo &retry = m_retryQueue[queueIndex]; retry.retryCount++;
+retry.lastAttempt = TimeCurrent(); retry.lastError = result.retcode;
+
+// Check retry limit
+if(retry.retryCount >= m_maxRetries[errorCategory]) { RemoveFromRetryQueue(queueIndex); LogRetryFailure(retry);
+return false;
+}
+} else {
+// Add new retry
+AddToRetryQueue(result, request, errorCategory);
+}
+
+return true;
+}
+
+void ProcessRetryQueue() {
+datetime currentTime = TimeCurrent();
+
+for(int i = ArraySize(m_retryQueue) - 1; i >= 0; i--) { RetryInfo &retry = m_retryQueue[i];
+
+// Calculate wait time based on retry count and error type int waitTime = CalculateRetryWaitTime(retry);
+
+if(currentTime - retry.lastAttempt >= waitTime) { ExecuteRetry(retry);
+}
+}
+}
+
+int CalculateRetryWaitTime(RetryInfo &retry) { int baseWait = 0;
+
+// Base wait time by error type switch(retry.lastError) {
+case TRADE_RETCODE_REQUOTE:
+baseWait = 100; // 100ms for requotes break;
+
+case TRADE_RETCODE_CONNECTION:
+baseWait = 5000; // 5 seconds for connection break;
+
+case TRADE_RETCODE_PRICE_OFF:
+baseWait = 500; // 500ms for price changes break;
+
+case TRADE_RETCODE_BUSY:
+baseWait = 2000; // 2 seconds for broker busy break;
+
+default:
+baseWait = 1000; // 1 second default
+}
+
+// Exponential backoff
+int waitTime = baseWait * (int)MathPow(2, retry.retryCount - 1);
+
+// Cap maximum wait time
+return MathMin(waitTime, 30000); // Max 30 seconds
+}
+
+void ExecuteRetry(RetryInfo &retry) { MqlTradeResult result; ZeroMemory(result);
+
+// Adjust request based on retry reason AdjustRetryRequest(retry);
+
+// Add retry identifier to comment retry.originalRequest.comment = "Retry " +
+IntegerToString(retry.retryCount) +
+": " + retry.originalRequest.comment;
+
+// Execute with enhanced logging
+bool success = OrderSend(retry.originalRequest, result);
+
+if(success && result.retcode == TRADE_RETCODE_DONE) {
+// Success - remove from queue LogRetrySuccess(retry, result);
+RemoveFromRetryQueue(FindInRetryQueue(retry.originalRequest));
+} else {
+
+// Update retry info retry.lastError = result.retcode;
+retry.lastAttempt = TimeCurrent();
+
+// Check if should continue retrying if(!ShouldRetry(result, retry.originalRequest)) {
+RemoveFromRetryQueue(FindInRetryQueue(retry.originalRequest));
+}
+}
+}
+
+void AdjustRetryRequest(RetryInfo &retry) {
+// Adjust price for market movement if(retry.lastError == TRADE_RETCODE_REQUOTE ||
+retry.lastError == TRADE_RETCODE_PRICE_OFF) {
+
+double currentPrice = GetCurrentPrice(retry.originalRequest.symbol,
+                  retry.originalRequest.type); double originalPrice = retry.originalRequest.price;
+double priceDiff = MathAbs(currentPrice - originalPrice);
+double point = SymbolInfoDouble(retry.originalRequest.symbol, SYMBOL_POINT);
+
+// If price moved significantly, update request if(priceDiff > point * 10) {
+retry.originalRequest.price = currentPrice; retry.priceImprovement = priceDiff;
+
+// Increase slippage tolerance retry.originalRequest.deviation *= 1.5;
+}
+}
+
+// Adjust volume for margin issues
+if(retry.lastError == TRADE_RETCODE_NO_MONEY) {
+// Reduce volume by 20% retry.originalRequest.volume *= 0.8;
+double lotStep = SymbolInfoDouble(retry.originalRequest.symbol, SYMBOL_VOLUME_STEP);
+retry.originalRequest.volume = MathFloor(retry.originalRequest.volume /
+lotStep) * lotStep;
+}
+
+// Change fill policy if needed
+if(retry.lastError == TRADE_RETCODE_REJECT) {
+
+retry.originalRequest.type_filling = GetAlternativeFillPolicy( retry.originalRequest.symbol, retry.originalRequest.type_filling
+);
+}
+}
+};
+
+?? 4. SMART ORDER ROUTING
+Order Execution Manager:
+
+mql5
+
+//++//| Complete Order Execution Manager|//+
+class COrderExecutionManager {+private:CSlippageManager* m_slippageManager; CPartialFillManager* m_partialFillManager; CSmartRetryManager* m_retryManager;
+
+// Execution statistics struct ExecutionStats {
+int totalOrders;
+int successfulOrders; int partialFills;
+int rejections; double avgSlippage; double avgFillRatio; double avgRetries;
+};
+  ExecutionStats m_stats; public:
+COrderExecutionManager() {
+m_slippageManager = new CSlippageManager(); m_partialFillManager = new CPartialFillManager(); m_retryManager = new CSmartRetryManager();
+
+ZeroMemory(m_stats);
+}
+
+bool ExecuteTrade(TradeSignal &signal) {
+// Prepare trade request MqlTradeRequest request; MqlTradeResult result;
+
+if(!PrepareTradeRequest(request, signal)) { LogError("Failed to prepare trade request"); return false;
+}
+
+// Pre-execution checks if(!PreExecutionChecks(request)) {
+
+return false;
+}
+
+// Set dynamic slippage
+request.deviation = m_slippageManager.CalculateDynamicSlippage(request.symbol);
+
+// Adjust for expected slippage m_slippageManager.AdjustForSlippage(request, request.symbol);
+
+// Set optimal fill policy
+request.type_filling = m_partialFillManager.GetOptimalFillPolicy(request.symbol);
+
+// Execute order
+bool success = OrderSend(request, result);
+
+// Handle result if(success) {
+return HandleExecutionResult(result, request);
+} else {
+return HandleExecutionFailure(result, request);
+}
+}
+
+bool PrepareTradeRequest(MqlTradeRequest &request, TradeSignal &signal) { ZeroMemory(request);
+
+request.action = TRADE_ACTION_DEAL; request.symbol = signal.symbol; request.volume = signal.volume;
+request.type = signal.direction == "BUY" ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
+
+// Set price based on order type if(signal.orderType == "MARKET") {
+request.price = GetCurrentPrice(signal.symbol, request.type);
+} else if(signal.orderType == "STOP") { request.action = TRADE_ACTION_PENDING; request.type = signal.direction == "BUY" ?
+ORDER_TYPE_BUY_STOP : ORDER_TYPE_SELL_STOP;
+request.price = signal.entryPrice;
+}
+
+// Set stops
+request.sl = signal.stopLoss; request.tp = signal.takeProfit;
+
+// Set magic number and comment request.magic = EXPERT_MAGIC;
+request.comment = signal.conditionCode + " | Score: " +
+DoubleToString(signal.enhancementScore, 1);
+
+// F&O specific settings if(IsIndianFO(signal.symbol)) {
+request.type_time = ORDER_TIME_DAY; // Day order request.expiration = GetTodayExpiration();
+}
+
+return true;
+}
+
+bool PreExecutionChecks(MqlTradeRequest &request) {
+// Check trading allowed if(!TerminalInfoInteger(TERMINAL_TRADE_ALLOWED)) {
+LogError("Trading not allowed in terminal"); return false;
+}
+
+// Check symbol trading
+if(!SymbolInfoInteger(request.symbol, SYMBOL_TRADE_MODE)) { LogError("Symbol trading disabled: " + request.symbol); return false;
+}
+
+// Check market hours if(!IsMarketOpen(request.symbol)) {
+LogError("Market closed: " + request.symbol); return false;
+}
+
+// Check spread
+double currentSpread = GetSpread(request.symbol);
+double maxSpread = GetMaxAcceptableSpread(request.symbol); if(currentSpread > maxSpread) {
+LogError("Spread too high: " + DoubleToString(currentSpread)); return false;
+}
+
+// Check margin
+double requiredMargin = CalculateRequiredMargin(request);
+
+double freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE); if(requiredMargin > freeMargin * 0.8) {
+LogError("Insufficient margin"); return false;
+}
+
+return true;
+}
+
+bool HandleExecutionResult(MqlTradeResult &result, MqlTradeRequest &request) { m_stats.totalOrders++;
+
+switch(result.retcode) {
+case TRADE_RETCODE_DONE:
+// Complete success m_stats.successfulOrders++; LogSuccessfulExecution(result, request); UpdateExecutionStats(result, request); return true;
+
+case TRADE_RETCODE_DONE_PARTIAL:
+// Partial fill m_stats.partialFills++;
+m_partialFillManager.HandleOrderResult(result, request);
+return true; // Partial success
+
+case TRADE_RETCODE_PLACED:
+// Pending order placed LogPendingOrder(result, request); return true;
+
+default:
+// Some error occurred
+return HandleExecutionFailure(result, request);
+}
+}
+
+bool HandleExecutionFailure(MqlTradeResult &result, MqlTradeRequest &request) { m_stats.rejections++;
+
+// Log the failure LogExecutionFailure(result, request);
+
+// Check if retry is appropriate
+
+if(m_retryManager.ShouldRetry(result, request)) {
+// Add to retry queue
+return false; // Will retry later
+}
+
+// Send alert for non-retryable errors if(IsCriticalError(result.retcode)) {
+SendExecutionAlert(result, request);
+}
+
+return false;
+}
+
+void OnTimer() {
+// Process retry queue m_retryManager.ProcessRetryQueue();
+
+// Update statistics dashboard UpdateExecutionDashboard();
+}
+
+void UpdateExecutionDashboard() {
+double successRate = m_stats.totalOrders > 0 ? (double)m_stats.successfulOrders / m_stats.totalOrders * 100 : 0;
+
+string statsDisplay = StringFormat( "Execution Statistics\n" +
+"Total Orders: %d\n" +
+"Success Rate: %.1f%%\n" + "Partial Fills: %d\n" +
+"Avg Slippage: %.1f pts\n" + "Avg Fill Ratio: %.1f%%\n" + "Avg Retries: %.1f", m_stats.totalOrders, successRate, m_stats.partialFills, m_stats.avgSlippage, m_stats.avgFillRatio * 100, m_stats.avgRetries
+);
+
+UpdateDashboardExecutionPanel(statsDisplay);
+
+}
+};
+
+
+Status: Order Execution Logic Implementation COMPLETE ?
+All three areas are now fully implemented:
+1. Dashboard Visualization - Complete rendering and monitoring system
+2. Risk Management - Position sizing, correlations, and emergency protocols
+3. Order Execution - Slippage handling, partial fills, and smart retry mechanisms

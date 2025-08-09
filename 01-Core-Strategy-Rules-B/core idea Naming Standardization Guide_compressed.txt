@@ -1,0 +1,156 @@
+EA GlobalFlow Pro v8.0 - Naming Standardization Guide
+Project Overview
+Objective: Standardize all indicator buffer names to match EA shortened naming convention for seamless integration without translation layers.
+Current Naming Convention (EA Standard)
+Ichimoku Indicator Buffers
+- Tenkan-sen (currently ExtTenkanBuffer)
+- Kijun-sen (currently ExtKijunBuffer)
+- Senkou Span A (currently ExtSpanA_Buffer)
+- Senkou Span B (currently ExtSpanB_Buffer)
+- Chikou Span (currently ExtChikouBuffer)
+
+TDI (Ichi-Trader Dynamic Index) Buffers
+- RSI Price Line (currently MaBuf)
+- Market Base Line (currently MdZone)
+- Trade Signal Line (currently MbBuf)
+- Upper Volatility Band (currently UpZone)
+- Lower Volatility Band (currently DnZone)
+
+Bollinger Bands Buffers
+- Upper Band (currently ExtUpperBuffer)
+- Lower Band (currently ExtLowerBuffer)
+- Middle Band (currently ExtMovingBuffer) [if needed]
+
+SMMA50 Buffer
+- 50-period SMMA (currently ExtLineBuffer)
+
+Supertrend Buffers
+- Supertrend Entry (ATR 1.0)
+- Supertrend Exit (ATR 1.5)
+
+Required Changes by Indicator
+1. Ichimoku Kinko Hyo (ichimoku_mql5.txt)
+
+mql5
+// CHANGE FROM:
+double ExtTenkanBuffer[]; double ExtKijunBuffer[]; double ExtSpanA_Buffer[]; double ExtSpanB_Buffer[]; double ExtChikouBuffer[];
+
+// CHANGE TO:
+double TS[];	// Tenkan-sen double KS[];	 // Kijun-sen double SSA[];		 // Senkou Span A double SSB[];		// Senkou Span B double CSpan[];			// Chikou Span
+
+2. Ichi-Trader Dynamic Index (ichi_trader_mql5.txt)
+
+mql5
+// CHANGE FROM:
+double MaBuf[];	// RSI price line double MdZone[];		// Market base line double MbBuf[];	 // Trade signal line
+double UpZone[];	 // Upper volatility band double DnZone[];	// Lower volatility band
+
+// CHANGE TO:
+double rsig[];	// RSI Price Line double MB[];			// Market Base Line double TSL[];		// Trade Signal Line
+double VB_High[]; // Upper Volatility Band double VB_Low[];	// Lower Volatility Band
+
+3. Bollinger Bands (bollinger_bands_mql5.txt)
+
+mql5
+
+// CHANGE FROM:
+double ExtMovingBuffer[]; double ExtUpperBuffer[]; double ExtLowerBuffer[];
+
+// CHANGE TO:
+double MiddleBoll[]; // Middle Band (if needed) double UpperBoll[]; // Upper Band
+double LowerBoll[]; // Lower Band
+
+4. SMMA50 (smma50_mql5.txt)
+
+mql5
+// CHANGE FROM:
+double ExtLineBuffer[];
+
+// CHANGE TO:
+double SMMA50[];	// 50-period SMMA
+
+5. STR-ENTRY (str_entry_mql5.txt)
+
+mql5
+// Ensure main buffer is named:
+double STR_ENTRY[]; // Supertrend Entry
+
+6. STR-EXIT (str_exit_mql5.txt)
+
+mql5
+// Ensure main buffer is named: double STR_EXIT[]; // Supertrend Exit
+
+Buffer Index Mapping Reference
+Ichimoku Buffer Indices
+
+Buffer 0:
+Buffer 1:
+
+(Tenkan-sen) (Kijun-sen)
+
+Buffer 2: Senkou Span A Histogram (visual only) Buffer 3: Senkou Span B Histogram (visual only)
+
+Buffer 4:
+Buffer 5:
+Buffer 6:
+  
+(Chikou Span) (Senkou Span A Line) (Senkou Span B Line)
+
+TDI Buffer Indices
+ Buffer 0: RSI values (internal calculation)
+
+Buffer 1:
+Buffer 2:
+Buffer 3:
+Buffer 4:
+Buffer 5:
+    
+(Upper Band) (Market Base Line)
+   (Lower Band) (RSI Price Line) (Trade Signal Line)
+
+  Buffer 6: Trade Signal Line 2 (if used)
+
+Bollinger Bands Buffer Indices
+
+Buffer 0:
+Buffer 1:
+Buffer 2:
+
+(SMA)
+(Upper Band) (Lower Band)
+
+  Buffer 3: StdDev (internal calculation)
+
+SMMA50 Buffer Index
+Buffer 0:	(Moving Average)
+STR Indicators Buffer Indices
+ Buffer 0: Trend Up values
+ Buffer 1: Trend Down values
+
+Implementation Checklist
+For Each Indicator:
+ Replace buffer array names with standardized names  Update SetIndexBuffer() calls with new names
+ Update all references in OnCalculate()
+ Update any helper functions using these buffers  Update comments to reflect new names
+ Test compilation for errors
+
+For the EA:
+ Ensure array declarations match exactly
+ Remove any translation/mapping functions  Direct CopyBuffer() calls without remapping  Test complete integration
+Benefits of Standardization
+1. Direct Connection: No translation layer needed
+2. Better Performance: No mapping overhead
+3. Cleaner Code: Consistent naming throughout
+4. Easier Maintenance: One naming convention
+5. Reduced Errors: No confusion about buffer mappings
+
+Next Steps for New Chat
+1. Start new chat with reference: "Continue EA GlobalFlow Pro v8.0 naming standardization"
+2. Attach or paste indicators one at a time
+3. Apply changes from this guide
+4. Test integration with EA
+
+Important Notes
+ All buffer names must match EXACTLY (case-sensitive)  Update both declaration and all usage points
+ Maintain original buffer indices for SetIndexBuffer()  Keep original indicator functionality intact
+This guide ensures perfect synchronization between EA GlobalFlow Pro v8.0 and all its indicators through standardized naming conventions.

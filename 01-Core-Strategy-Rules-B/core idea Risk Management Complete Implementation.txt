@@ -1,0 +1,480 @@
+EA GlobalFlow Pro v8.0 - Risk Management Complete Implementation
+?? 1. POSITION SIZING CALCULATIONS
+Dynamic Position Size Calculator:
+
+mql5
+
+//+	+
+//| Advanced Position Sizing with Margin Calculations	|
+//+	+
+class CPositionSizeCalculator { private:
+double m_baseRiskPercent;	// 5% for margin-based
+double m_maxPositionSize;	// Maximum allowed by broker double m_vixAdjustments[4];		// VIX-based adjustments
+
+public:
+CPositionSizeCalculator() { m_baseRiskPercent = 5.0; m_vixAdjustments[0] = 1.0; // VIX < 20 m_vixAdjustments[1] = 0.8; // VIX 20-30
+m_vixAdjustments[2] = 0.6; // VIX 30-40 m_vixAdjustments[3] = 0.0; // VIX > 40 (paper only)
+}
+
+double CalculatePositionSize(string symbol, double stopLossDistance) {
+// Get account information
+double accountBalance = AccountInfoDouble(ACCOUNT_BALANCE); double accountEquity = AccountInfoDouble(ACCOUNT_EQUITY); double freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+
+// Use the lesser of balance and equity for safety
+double riskBase = MathMin(accountBalance, accountEquity);
+
+// Calculate base position size (5% margin-based)
+double marginRequired = CalculateMarginRequired(symbol, 1.0);
+double basePositionSize = (riskBase * m_baseRiskPercent / 100) / marginRequired;
+
+// Apply VIX adjustment
+double vixLevel = GetCurrentVIX();
+double vixMultiplier = GetVIXMultiplier(vixLevel); double adjustedSize = basePositionSize * vixMultiplier;
+
+// Apply enhancement score adjustment
+double enhancementScore = GetLatestEnhancementScore();
+double enhancementMultiplier = CalculateEnhancementMultiplier(enhancementScore); adjustedSize *= enhancementMultiplier;
+
+// Apply correlation adjustment
+double correlationPenalty = CalculateCorrelationPenalty(symbol); adjustedSize *= (1.0 - correlationPenalty);
+
+// Check margin requirements
+
+double totalMarginNeeded = marginRequired * adjustedSize; if(totalMarginNeeded > freeMargin * 0.8) { // Use max 80% of free margin
+adjustedSize = (freeMargin * 0.8) / marginRequired;
+}
+
+// Apply position limits
+adjustedSize = ApplyPositionLimits(symbol, adjustedSize);
+
+// Round to valid lot size
+double lotStep = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP); adjustedSize = MathFloor(adjustedSize / lotStep) * lotStep;
+
+// Final validation
+double minLot = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN); double maxLot = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX); adjustedSize = MathMax(minLot, MathMin(adjustedSize, maxLot));
+
+return adjustedSize;
+}
+
+double CalculateMarginRequired(string symbol, double lots) {
+// Get margin calculation mode
+ENUM_SYMBOL_CALC_MODE calcMode = (ENUM_SYMBOL_CALC_MODE)
+SymbolInfoInteger(symbol, SYMBOL_TRADE_CALC_MODE);
+
+double margin = 0;
+double price = SymbolInfoDouble(symbol, SYMBOL_ASK);
+double tickValue = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE); double tickSize = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_SIZE);
+double contractSize = SymbolInfoDouble(symbol, SYMBOL_TRADE_CONTRACT_SIZE);
+
+switch(calcMode) {
+case SYMBOL_CALC_MODE_FOREX:
+margin = lots * contractSize / AccountInfoInteger(ACCOUNT_LEVERAGE); break;
+
+case SYMBOL_CALC_MODE_FUTURES:
+margin = lots * SymbolInfoDouble(symbol, SYMBOL_MARGIN_INITIAL); break;
+
+case SYMBOL_CALC_MODE_CFD:
+margin = lots * contractSize * price / AccountInfoInteger(ACCOUNT_LEVERAGE);
+break;
+
+case SYMBOL_CALC_MODE_CFDINDEX:
+margin = lots * contractSize * price *
+
+    SymbolInfoDouble(symbol, SYMBOL_MARGIN_RATE); break;
+}
+
+// Add margin for Indian F&O if(IsIndianFO(symbol)) {
+margin = CalculateIndianFOMargin(symbol, lots);
+}
+
+return margin;
+}
+
+double CalculateIndianFOMargin(string symbol, double lots) {
+// SPAN margin calculation for Indian markets double margin = 0;
+
+if(StringFind(symbol, "NIFTY") >= 0) {
+// NIFTY specific margins
+double niftyPrice = SymbolInfoDouble(symbol, SYMBOL_LAST); margin = lots * 75 * niftyPrice * 0.15; // 15% margin
+}
+else if(StringFind(symbol, "BANKNIFTY") >= 0) {
+// BANKNIFTY specific margins
+double bnfPrice = SymbolInfoDouble(symbol, SYMBOL_LAST); margin = lots * 25 * bnfPrice * 0.15; // 15% margin
+}
+else {
+// Stock options/futures
+double stockPrice = SymbolInfoDouble(symbol, SYMBOL_LAST); double lotSize = GetStockLotSize(symbol);
+margin = lots * lotSize * stockPrice * 0.20; // 20% margin
+}
+
+return margin;
+}
+
+double GetVIXMultiplier(double vixLevel) { if(vixLevel < 20) return m_vixAdjustments[0]; else if(vixLevel < 30) return m_vixAdjustments[1]; else if(vixLevel < 40) return m_vixAdjustments[2]; else return m_vixAdjustments[3];
+}
+
+double CalculateEnhancementMultiplier(double score) {
+// Higher enhancement score = larger position if(score >= 95) return 1.5;	// 150% size
+else if(score >= 90) return 1.3; // 130% size
+
+else if(score >= 85) return 1.0; // 100% size (baseline) else return 0;	// No trade
+}
+
+double ApplyPositionLimits(string symbol, double size) {
+// Check global limits
+int totalPositions = PositionsTotal();
+if(totalPositions >= 10) return 0; // Max 10 positions total
+
+// Check per-chart limits
+int chartPositions = CountChartPositions(ChartID()); if(chartPositions >= 5) return 0; // Max 5 per chart
+
+// Check per-strike limits (F&O) if(IsOptionSymbol(symbol)) {
+string strike = ExtractStrikePrice(symbol);
+int strikePositions = CountStrikePositions(strike); if(strikePositions >= 3) return 0; // Max 3 per strike
+}
+
+return size;
+}
+};
+
+
+?? 2. CORRELATION LIMITS
+Portfolio Correlation Manager:
+
+mql5
+
+//+	+
+//| Correlation Matrix and Limits	|
+//+	+
+class CCorrelationManager { private:
+double m_correlationMatrix[20][20]; // Max 20 symbols string m_symbols[];
+double m_maxCorrelation;	// 0.7 default
+double m_portfolioHeatLimit; // Maximum portfolio correlation
+
+public:
+CCorrelationManager() { m_maxCorrelation = 0.7;
+m_portfolioHeatLimit = 3.0; // Sum of abs correlations
+}
+
+void UpdateCorrelationMatrix() {
+// Get all traded symbols GetTradedSymbols(m_symbols); int count = ArraySize(m_symbols);
+
+// Calculate correlations for(int i = 0; i < count; i++) {
+for(int j = 0; j < count; j++) {
+if(i == j) { m_correlationMatrix[i][j] = 1.0;
+} else {
+m_correlationMatrix[i][j] = CalculateCorrelation( m_symbols[i], m_symbols[j], PERIOD_H1, 100
+);
+}
+}
+}
+}
+
+double CalculateCorrelation(string symbol1, string symbol2, ENUM_TIMEFRAMES timeframe, int periods) {
+double prices1[], prices2[]; ArrayResize(prices1, periods); ArrayResize(prices2, periods);
+
+// Get price data
+for(int i = 0; i < periods; i++) {
+prices1[i] = iClose(symbol1, timeframe, i); prices2[i] = iClose(symbol2, timeframe, i);
+}
+
+// Calculate Pearson correlation
+double mean1 = ArrayAverage(prices1); double mean2 = ArrayAverage(prices2); double cov = 0, var1 = 0, var2 = 0;
+
+for(int i = 0; i < periods; i++) {
+cov += (prices1[i] - mean1) * (prices2[i] - mean2); var1 += MathPow(prices1[i] - mean1, 2);
+var2 += MathPow(prices2[i] - mean2, 2);
+}
+
+double correlation = cov / (MathSqrt(var1) * MathSqrt(var2)); return correlation;
+}
+
+double CalculateCorrelationPenalty(string newSymbol) { double totalCorrelation = 0;
+double maxCorrelation = 0;
+
+// Check correlation with existing positions for(int i = 0; i < PositionsTotal(); i++) {
+ulong ticket = PositionGetTicket(i); if(PositionSelectByTicket(ticket)) {
+string symbol = PositionGetString(POSITION_SYMBOL); double correlation = GetCorrelation(newSymbol, symbol);
+
+totalCorrelation += MathAbs(correlation);
+maxCorrelation = MathMax(maxCorrelation, MathAbs(correlation));
+}
+}
+
+// Calculate penalty double penalty = 0;
+
+// Penalty for high individual correlation if(maxCorrelation > m_maxCorrelation) {
+penalty = (maxCorrelation - m_maxCorrelation) * 0.5; // 50% reduction
+}
+
+// Penalty for high portfolio heat if(totalCorrelation > m_portfolioHeatLimit) {
+penalty += (totalCorrelation - m_portfolioHeatLimit) * 0.1;
+}
+
+return MathMin(penalty, 0.9); // Max 90% penalty
+}
+
+bool ValidateNewPosition(string symbol) {
+// Check correlation limits StringDynamicArray highlyCorrelated;
+
+for(int i = 0; i < PositionsTotal(); i++) { ulong ticket = PositionGetTicket(i); if(PositionSelectByTicket(ticket)) {
+string posSymbol = PositionGetString(POSITION_SYMBOL); double corr = GetCorrelation(symbol, posSymbol);
+
+if(MathAbs(corr) > 0.8) { highlyCorrelated.Add(posSymbol);
+}
+}
+}
+
+if(highlyCorrelated.Size() > 0) {
+string alert = "High correlation detected with: "; for(int i = 0; i < highlyCorrelated.Size(); i++) {
+alert += highlyCorrelated[i] + " ";
+}
+SendAlert(alert); return false;
+}
+
+return true;
+}
+
+void DisplayCorrelationHeatMap() {
+// Create heat map on dashboard
+for(int i = 0; i < ArraySize(m_symbols); i++) { for(int j = 0; j < ArraySize(m_symbols); j++) {
+double corr = m_correlationMatrix[i][j]; color corrColor = GetCorrelationColor(corr);
+
+// Update dashboard heat map UpdateHeatMapCell(i, j, corr, corrColor);
+}
+}
+}
+};
+
+
+?? 3. EMERGENCY PROTOCOLS
+
+Emergency Risk Manager:
+
+mql5
+
+//++//| Emergency Risk Management System|//+
+class CEmergencyRiskManager {+private:double m_vixPanicLevel;	// 35int m_apiDisconnectTimeout;	// 5 minutes datetime m_lastAPIResponse;
+bool m_emergencyMode;
+
+public:
+CEmergencyRiskManager() { m_vixPanicLevel = 35.0;
+m_apiDisconnectTimeout = 300; // 5 minutes m_emergencyMode = false;
+}
+
+void CheckEmergencyConditions() {
+// Check VIX level
+double currentVIX = GetCurrentVIX();
+if(currentVIX > m_vixPanicLevel && !m_emergencyMode) { TriggerEmergencyProtocol("VIX_PANIC", currentVIX);
+}
+
+// Check API connectivity
+if(TimeCurrent() - m_lastAPIResponse > m_apiDisconnectTimeout) { TriggerEmergencyProtocol("API_DISCONNECT", 0);
+}
+
+// Check drawdown
+double drawdown = CalculateDrawdown(); if(drawdown > 15.0) { // 15% drawdown
+TriggerEmergencyProtocol("MAX_DRAWDOWN", drawdown);
+}
+
+// Check margin level
+double marginLevel = AccountInfoDouble(ACCOUNT_MARGIN_LEVEL); if(marginLevel > 0 && marginLevel < 150) { // Below 150%
+TriggerEmergencyProtocol("MARGIN_CALL_RISK", marginLevel);
+}
+
+// Check rapid losses if(CheckRapidLosses()) {
+TriggerEmergencyProtocol("RAPID_LOSSES", 0);
+}
+}
+
+void TriggerEmergencyProtocol(string reason, double value) { m_emergencyMode = true;
+
+// Log emergency
+Print("?? EMERGENCY PROTOCOL TRIGGERED: ", reason, " Value: ", value);
+
+// Send alerts SendEmergencyAlerts(reason, value);
+
+// Execute emergency actions switch(reason) {
+case "VIX_PANIC": ExecuteVIXPanicProtocol(); break;
+
+case "API_DISCONNECT":
+ExecuteAPIDisconnectProtocol(); break;
+
+case "MAX_DRAWDOWN":
+ExecuteDrawdownProtocol(); break;
+
+case "MARGIN_CALL_RISK":
+ExecuteMarginProtocol(); break;
+
+case "RAPID_LOSSES":
+ExecuteRapidLossProtocol(); break;
+}
+}
+
+void ExecuteVIXPanicProtocol() {
+// 1. Cancel all pending orders CancelAllPendingOrders();
+
+// 2. Close all losing positions CloseLosingPositions();
+
+// 3. Tighten stops on profitable positions for(int i = 0; i < PositionsTotal(); i++) {
+ulong ticket = PositionGetTicket(i);
+if(PositionSelectByTicket(ticket)) { if(PositionGetDouble(POSITION_PROFIT) > 0) {
+TightenStopLoss(ticket, 50); // 50% tighter
+
+}
+}
+}
+
+// 4. Disable new trades GlobalVariableSet("EA_TRADING_ENABLED", 0);
+
+// 5. Switch to paper trading GlobalVariableSet("EA_PAPER_MODE", 1);
+}
+
+void ExecuteAPIDisconnectProtocol() {
+// 1. Try reconnection
+bool reconnected = AttemptReconnection();
+
+if(!reconnected) {
+// 2. Close all F&O positions (time-sensitive) CloseAllFOPositions();
+
+// 3. Set protective stops for forex SetEmergencyStops();
+
+// 4. Disable automated trading ExpertRemove();
+}
+}
+
+void ExecuteDrawdownProtocol() {
+// 1. Reduce all position sizes by 50% ReduceAllPositions(0.5);
+
+// 2. Cancel pending orders CancelAllPendingOrders();
+
+// 3. Increase minimum conditions to 12 GlobalVariableSet("MIN_CONDITIONS_REQUIRED", 12);
+
+// 4. Disable marginal setups GlobalVariableSet("ENHANCEMENT_THRESHOLD", 90);
+}
+
+void SendEmergencyAlerts(string reason, double value) { string message = StringFormat(
+"?? EMERGENCY ALERT - EA GlobalFlow Pro v8.0\n" +
+"Reason: %s\n" + "Value: %.2f\n" + "Time: %s\n" +
+
+"Account: %d\n" + "Balance: %.2f\n" +
+"Action: Emergency protocol activated", reason, value, TimeToString(TimeCurrent()), AccountInfoInteger(ACCOUNT_LOGIN), AccountInfoDouble(ACCOUNT_BALANCE)
+);
+
+// WhatsApp alert SendWhatsAppAlert("+971507423656", message);
+
+// Email alert
+SendMail("?? EA EMERGENCY: " + reason, message);
+
+// Dashboard alert DisplayEmergencyBanner(reason);
+}
+
+bool CheckRapidLosses() {
+// Check for 3 consecutive losses or 5 losses in last 10 trades int consecutiveLosses = 0;
+int recentLosses = 0;
+
+// Analyze recent trades
+for(int i = 0; i < 10 && i < HistoryDealsTotal(); i++) { ulong ticket = HistoryDealGetTicket(i); if(HistoryDealSelect(ticket)) {
+double profit = HistoryDealGetDouble(ticket, DEAL_PROFIT);
+
+if(profit < 0) { recentLosses++;
+if(i < 3) consecutiveLosses++;
+} else {
+consecutiveLosses = 0;
+}
+}
+}
+
+return (consecutiveLosses >= 3 || recentLosses >= 5);
+}
+};
+
+
+Daily Risk Monitor:
+
+mql5
+
+//++//| Daily Risk Limits and Monitoring|//+
+class CDailyRiskMonitor {+private:double m_dailyLossLimit;	// 5% default double m_dailyStartBalance;
+datetime m_dayStart;
+
+public:
+void OnNewDay() {
+m_dailyStartBalance = AccountInfoDouble(ACCOUNT_BALANCE); m_dayStart = TimeCurrent();
+ResetDailyCounters();
+}
+
+bool CheckDailyLimits() {
+double currentBalance = AccountInfoDouble(ACCOUNT_BALANCE); double dailyPL = currentBalance - m_dailyStartBalance;
+double dailyPLPercent = (dailyPL / m_dailyStartBalance) * 100;
+
+// Check daily loss limit if(dailyPLPercent < -m_dailyLossLimit) {
+DisableTradingForDay("Daily loss limit reached");
+return false;
+}
+
+// Check consecutive losses if(GetConsecutiveLosses() >= 3) {
+PauseTradingTemporary(3600); // 1 hour pause return false;
+}
+
+// Check win rate degradation
+double sessionWinRate = CalculateSessionWinRate(); if(sessionWinRate < 50 && GetTradesToday() > 5) {
+ReduceRiskParameters(); return false;
+}
+
+return true;
+}
+
+void UpdateRiskDashboard() {
+// Calculate metrics
+double dailyPL = AccountInfoDouble(ACCOUNT_BALANCE) - m_dailyStartBalance;
+
+double usedRisk = MathAbs(dailyPL) / m_dailyStartBalance * 100; double remainingRisk = m_dailyLossLimit - usedRisk;
+
+// Update dashboard
+string riskDisplay = StringFormat( "Daily Risk Status\n" +
+"Used: %.1f%% / %.1f%%\n" + "Remaining: %.1f%%\n" + "Status: %s",
+usedRisk, m_dailyLossLimit, remainingRisk,
+remainingRisk > 0 ? "ACTIVE" : "LOCKED"
+);
+
+UpdateDashboardRiskPanel(riskDisplay);
+}
+};
+
+
+?? 4. PORTFOLIO HEAT MAP
+Visual Risk Monitor:
+
+mql5
+
+class CPortfolioHeatMap { void GenerateHeatMap() {
+// Create visual heat map showing:
+// - Position sizes
+// - Correlations
+// - Risk concentrations
+// - P&L by symbol
+
+for(int i = 0; i < PositionsTotal(); i++) { PositionInfo pos = GetPositionInfo(i); double heat = CalculatePositionHeat(pos); color heatColor = GetHeatColor(heat);
+
+UpdateHeatMapDisplay(pos.symbol, heat, heatColor);
+}
+}
+
+double CalculatePositionHeat(PositionInfo &pos) { double heat = 0;
+
+// Size component (0-40 points)
+heat += (pos.volume / AccountInfoDouble(ACCOUNT_BALANCE)) * 1000;
+
+// Correlation component (0-30 points)
+heat += GetSymbolCorrelationHeat(pos.symbol) * 30;
+
+// Volatility component (0-30 points)
+heat += GetSymbolVolatility(pos.symbol) / GetAverageVolatility() * 30;
+
+return MathMin(heat, 100);
+}
+};
+
+
+Status: Risk Management Implementation COMPLETE ?

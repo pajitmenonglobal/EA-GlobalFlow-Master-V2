@@ -1,0 +1,36 @@
+Easier Method:
+1. Create the folder in C: drive
+ Yes,create
+2. Navigate to Command Prompt (2 easy ways):
+Method A (Easiest):
+• Open the folder	in File Explorer
+• Click in the address bar where it shows the path
+• Type	and press Enter
+• Command Prompt opens directly in that folder!
+Method B (Your way also works):
+• Open Command Prompt (Win+R, type	)
+• Type:
+• Press Enter
+3. Run commands one by one:
+ Command 1:
+
+python -m venv Python
+
+(Wait for it to finish)
+ Command 2:
+
+Python\Scripts\activate
+
+
+(You'll see
+Command 3:
+
+appear)
+
+
+pip  install  truedata_ws
+
+(Downloads and installs)
+You'll know it worked when:
+• After activate: You see
+• After pip install: You see "Successfully installed truedata_ws" That's it! Your method will work perfectly.

@@ -1,0 +1,299 @@
+56. EA GlobalFlow Pro v6.4 - Rules 22-55 Complete Reference for Project Knowledge
+?? New Rules Added (22-55) - Session Reference
+This document contains all new rules added to EA GlobalFlow Pro v6.4 development. Reference this file number: 56 in future chat sessions for continuation of EA development and enhancements.
+
+22. Chart Visual Differentiation & Identification System
+?? Primary Chart Markers & Emblems:
+ Top-left corner badge:
+
+Background color: Deep Blue (
+Status emblem:
+     
+) with gold border with crown icon
+
+Market type indicator: Dynamic text showing "F&O Master" / "Forex Master" / "Commodity Master"
+
+Active path indicator:
+
+or
+
+with color coding
+
+?? Secondary Chart Markers & Em
+
+Call Side: Put Side:
+ 
+with Forest G with Dark Red
+
+Strike price display: Large bold text sh
+Parent link:	with
+?? Visual Hierarchy & Color Codin  Primary Chart: Dark blue gradient the  Call Secondary: Dark green theme with  Put Secondary: Dark red theme with s
+
+23. External Properties Dialog	ters Configuration
+  Comprehensive input parameters for EA
+  External properties dialog box for each	ondary charts)
+
+24. Forex & International Comm	ng Rules
+
+EA identifies market type (forex or commodities/CFD)
+Sequential operation: Major trend ? Middle trend ? Entry execution Entry order types: Buy stop and Sell stop only
+Single parent chart operation - NO secondary or dynamic charts
+
+25. Forex & International Commodities/CFD - Timeframe & Indicator Specifications
+Timeframe Hierarchy:
+  Major trend analysis: Daily or 4-hour timeframe
+ Trend confirmation: 1-hour or 30-minutes timeframe  EA execution: 5-mins or 15-mins timeframes
+Technical Indicators:
+ Ichimoku Kinko Hyo
+ Ichi-Trader Dynamic Index  SMMA 50 period
+ Bollinger Bands
+ Supertrend-ENTRY (STR-ENTRY): ATR multiplier 1.0, ATR period = 20  Supertrend-EXIT (STR-EXIT): ATR multiplier 1.5, ATR period = 20
+Entry Criteria:
+ Price action crosses
+ Bollinger band squeeze  Kumo cross
+ Ichi-Trader Dynamic index criteria
+
+26. Trade Type Selection & Order Configuration
+A. Options Trade Type Configuration:
+ Input parameter in dialog box for trade type selection
+ Margin SL-L ORDER - Buy: true or false (user selectable)
+ Margin SL-L ORDER - Sell: true or false (user selectable)
+
+B. Forex and Commodities Market:
+ Both buy and sell trades execute on same chart  Based on entry conditions
+
+27. Overnight Orders - Margin Product Type Specifications
+A. Margin SL-L ORDER - Buy (Buy Trigger-Limit Order):
+ Type: Overnight order
+  Application: Buy Call on call side AND Sell Put on put side of option chain
+  Market Expectation: Price expected to move upwards
+ Order Placement: Above LTP (Last Traded Price)
+ Pending Order Structure:
+ Trigger Price: 0.75% above LTP (activates the order when hit)  Limit Price: 1.25% above trigger price level
+ Execution Condition: Trade executes when price is within range between buy trigger price and limit price
+
+28. Margin SL-L ORDER - Sell Specifications
+B. Margin SL-L ORDER - Sell (Sell Trigger-Limit Order):
+ Type: Overnight order
+  Application: Buy Put on Put side AND Sell Call on Call side of option chain
+  Market Expectation: Price expected to move downwards
+ Order Placement: Below LTP (Last Traded Price)
+ Pending Order Structure:
+ Sell Trigger Price: 0.75% below LTP (activates the order when hit)  Limit Price: 1.25% below trigger price level
+ Execution Condition: Trade executes when price is within range between sell trigger price and limit price
+Key Summary Rule:
+ Buy trigger price: Above LTP
+  Sell trigger price: Below LTP
+
+29. Order Type Selection Based on Trading Day
+A. Futures and Options Market - Order Type Logic:
+ Regular Working Days (except expiry day): Place Margin SL-L order of Overnight order type  Expiry Day (Thursday - default but customizable): Place Market Order
+  Customizable Expiry Day: User can modify default Thursday expiry day setting
+
+30. Forex & International Commodities/CFD Order Types
+A. Order Types for Entry:
+1. Buy Stop: Placed default pips (customizable) above the Ask price
+2. Sell Stop: Placed default pips (customizable) below the Bid price
+
+31. Stop Loss Criteria - Universal Market Rules
+A. Stop Loss Criteria for All Markets:
+  Stop Loss Placement Condition: Place stop loss ONLY if trade is running (not in pending state)
+ Buy Trade Stop Loss: Place stop loss 0.25% below STR-EXIT level in 1-HOUR TIMEFRAME at Candle Close(1)
+
+32. Sell Trade Stop Loss & Dynamic Stop Loss Movement
+ Sell Trade Stop Loss: Place stop loss 0.25% above STR-EXIT level in 1-HOUR TIMEFRAME at Candle Close(1)
+  Dynamic Stop Loss Behavior: Stop loss keeps moving parallel to STR-EXIT price
+  Trade Closure: Close the trade if stop loss is hit
+
+33. Take Profit/Exit Trade Criteria - Universal Market Rules
+B. Take Profit or Exit Trade Criteria for All Markets:
+  Timeframe Check: 1-hour timeframe only
+  Buy Trade Exit: If STR-EXIT > Candle close(1)
+  Sell Trade Exit: If STR-EXIT < Candle close(1)
+
+34. Entry Conditions - Futures and Options Asset Rules
+Entry Conditions for Futures and Options Asset:
+1. 17 Buy Trade Entry Conditions: Per chart should have only 1 buy trade per entry condition (Maximum 17 buy trades total per chart)
+2. 17 Sell Trade Entry Conditions: Per chart should have only 1 sell trade per entry condition (Maximum 17 sell trades total per chart)
+3. Total: 34 distinct entry criteria per chart
+
+35. MT5 Economic Calendar & News Impact Analysis
+MT5 Economic Calendar Integration:
+  Put MT5 Economic Calendar with digital display box
+ Purpose: Analyze if EA trade is smarter than news impact OR related to news impact  Display system to correlate trade performance with economic news events
+
+36. EA Properties Window - Customizable Variables Structure
+EA Properties Window Construction Requirement:
+  Must construct EA properties window with various variables
+ Variables grouped under respective headings for customization  Organized structure for easy user configuration
+
+37. Error Code Handling & MT5 Error Code Implementation
+Error Code Handling Requirements:
+ Write comment with error code for all errors
+ Use full MT5 error code set whenever there is relevant error  Comprehensive error code documentation and handling
+
+38. EA Initialization Triggers
+A. Initialize EA After:
+1. Program has been attached to chart
+
+2. Client terminal has been started
+3. Symbol and/or chart period have been changed
+4. Program has been recompiled in MetaTrader
+5. Inputs have been changed from the window of expert
+6. Account has been changed
+7. Any other conditions as required for initialization
+
+39. Trade Alerts & System Requirements Notifications
+A. Trade Entry/Exit Alert System:
+Trade Notifications:
+ Trade Comment for orders
+ Sound Alert - true or false (customizable)  Email Alert - true or false (customizable)
+ Phone Alert - to mobile number 00971507423656  Email alert - to email id: pajitmenonai@gmail.com
+System Configuration Messages:
+ "Please enable the setting 'Allow live trading' under the Common tab in the Expert Properties"  "Expert advisors are disabled! Please enable the Expert Advisors button on the toolbar."
+ "Please enable the setting 'Allow DLL imports' under the Common tab in the Expert Properties."  Enable all other imports in settings required for EA functionality
+40. Trading Hours Configuration - Forex Market
+A. Input Parameter External Dialog Box - Trading Hours:
+1. Forex Market Trading Hours:
+ Trading start hour = 0100hrs  Trading end hour = 2300hrs
+ Trading hours timing based on server time  Trading days = Monday to Friday
+
+41. Trading Hours Configuration - Indian Options/Futures/Stocks
+1. Options Trading in India (Options, Futures and Indian Stocks):
+ Trading start hour = 9.30am IST  Trading end hour = 3.29pm IST
+ Trading start day = Monday (default) to Friday (dropdown menu selection)  Trading end day = Friday (default) (dropdown menu selection)
+  Trading hours timing based on server time: 9.30am IST to 3.29pm IST
+
+42. Expiry Day Configuration - Indian Contracts
+A. NIFTY Weekly Contract:
+  Expiry day = Thursday (default) (dropdown menu selection)
+
+B. Last Thursday (default) of Each Month - OPTIONS Index Expiry:
+(Dropdown menu selection for day)
+ NIFTY - Monthly/Quarterly and yearly contracts  Bank Nifty - Monthly and Quarterly contracts
+ FINNIFTY, MIDCPNIFTY and NIFTYNXT50 monthly contracts  All monthly Stock options expiry day
+
+43. Futures Market Expiry Configuration
+A. Futures Market Expiry:
+ Last Thursday of each month is Futures market expiry (dropdown menu selection)
+
+44. Trading Pause Functionality
+EA Trading Pause Requirement:
+ EAs need a pause in trading in certain moments of time  Details to be provided later
+
+45. Python Bridge Integration Requirements
+
+Python Bridge Components:
+ TrueData API Integration  Fyers API Integration
+ WebSocket Connections  JSON Data Processing
+ Option Chain Analysis  Complex Calculations
+ Market Data Normalization
+
+46. External APIs & Data Sources
+External APIs & Data Requirements:
+ TrueData NSE/BSE Feeds  Fyers Trading API
+ International Market Data  Options Chain Data
+ Real-time Price Feeds
+
+47. System Architecture & Communication Protocols
+Communication Protocols:
+ REST APIs/WebSockets
+
+MT5 CORE (MQL5) Components:
+ Strategy Logic (CT/PB Paths)  Indicator Calculations
+ Trade Execution
+ Position Management  Risk Controls
+Inter-System Communication:
+ JSON/Named Pipes/DLL Communication
+
+48. Continuous Operation & Intelligent Pause System
+System Operation Requirements:
+  Never stops mid-trading - Continuous operation guaranteed
+  Intelligent pause system - Exactly 2 minutes after trade exit (configurable)
+  Automatic resume - No manual intervention needed
+  Professional session management - Start/end times, trading days
+ Error recovery - Handles all issues gracefully
+
+49. EA Execution Phases - Sequential Processing Framework
+EA Sequential Processing Phases:
+  Phase 1: Session Management (ensures continuous running)
+ Phase 2: New bar detection
+  Phase 3: Risk management validation
+ Phase 4: Market-specific validation
+ Phase 5: News/volatility filters
+ Phase 6: Trend analysis
+  Phase 7: Market condition assessment
+ Phase 8: Trading execution
+ Phase 9: Dynamic chart updates
+ Phase 10: Health monitoring
+ Phase 11: Heartbeat status
+  Additional phases: As required for system completeness
+
+50. System Reliability & Never-Stop Guarantees
+Never Stops Because:
+  ? Comprehensive error handling - E	t and handled
+ ? Session validation - Knows when t  ? Health monitoring - Checks its ow  ? Graceful pause system - Pauses in
+ ? Automatic recovery - Handles bro	ms, etc.
+
+51. Intelligent Pause System - Detailed Timing Rules
+Intelligent Pause System:
+  ? After profitable trade: 2-minute cool-down period
+  ? After loss trade: 3-minute reassessment period
+  ? After high volatility: 10-minute safety pause
+  ? After news events: 30-minute news filter pause
+  ? Daily limit reached: Pause until next trading day
+
+52. MT5 Expert Advisor - GlobalFlow Pro Core Features
+MT5 Expert Advisor: GlobalFlow Pro:
+  Multi-broker orchestration - Coordinates IC Markets + Fyers seamlessly
+ Native Python integration - Uses MT5's built-in Python capabilities  Multi-market support - Forex, Commodities, Indian F&O in one EA  Unified risk management - Risk contr
+  Real-time synchronization - All data s
+
+53. Python Analytics Engine - C
+Python Analytics Engine:
+ MT5 Native Integration - No complex	eeded
+ Fyers API Connector - Direct Indian F&  TrueData Handler - Real-time NSE fee  Live Trading Dashboard - Professiona
+  Advanced Analytics - Sophisticated m	cs
+
+54. Bulletproof Reliability Feat	ed
+Bulletproof Reliability Features:
+  Automatic failover mechanisms - Swi	instantly
+  Connection redundancy - Multiple pa
+
+Memory leak prevention - Automatic memory management and cleanup
+Broker disconnection handling - Seamless reconnection protocols
+Data integrity validation - Real-time data quality checks
+Position protection - Emergency position closure on system errors
+Heartbeat monitoring - Continuous system health verification
+Auto-restart capabilities - Self-recovery from unexpected shutdowns Transaction logging - Complete audit trail for all operations Emergency stop protocols - Instant system halt when required
+
+55. Master Configuration System (globalflow_master.yaml)
+Master Configuration (globalflow_master.yaml):
+ Complete broker settings - IC Markets + Fyers + TrueData
+  Strategy parameters - All indicator settings optimized
+  Risk management rules - Professional-grade risk controls
+  Session management - Multi-market trading hours
+ Security settings - API key management and encryption
+
+56. Deployment Guide - Complete Setup Framework
+Deployment Guide:
+  Step-by-step setup - Complete installation instructions
+ Configuration management - How to set up all credentials
+ Testing procedures - Verification and validation steps
+  Troubleshooting guide - Solutions for common issues
+  Go-live checklist - Professional deployment procedures
+
+?? Quick Reference Summary
+Total Rules Documented: 56 (Original 21 + New 35)
+  Rules 1-21: Base foundation (from previous sessions)
+  Rules 22-56: New comprehensive additions (this session)
+
+Key Areas Covered:
+ Visual chart differentiation system
+ Complete trading hours configuration
+ Order type specifications for all markets  Stop loss and exit criteria
+ Entry conditions framework
+ Alert and notification systems  Python bridge integration
+ System reliability features  Deployment procedures
+
+This document contains all rules 22-56 provided for EA GlobalFlow Pro v6.4 development. Reference file number: 56 in future chat sessions for continuation of EA development and enhancements.

@@ -1,0 +1,372 @@
+EA GlobalFlow Pro v4.0 - Complete Rules & Specifications Reference
+ Document Information
+• Version: EA GlobalFlow Pro v4.0 ULTIMATE
+• Strategy: Ichimoku-TDI-PA-BBsqueeze-Kumocross
+• Markets: Indian F&O (Fyers+TrueData), Forex/Commodities (IC Markets)
+• Architecture: Dual Background Scanner System with Dynamic Chart Management
+• Last Updated: Current Session
+• Total Rules: 500+ (consolidated from all sources)
+
+ Core Strategy Framework
+Strategy  Description:  Ichimoku-TDI-PA-BBsqueeze-Kumocross
+• Objective: Multi-market trading system for trending markets
+• Path 1: Continuation (CT) - trade with trend
+• Path 2: Pull-back (PB) - trade market reversals
+• Exit Strategy: STR-EXIT trend change on 1-hour timeframe
+• Enhancement: Elliott Wave pattern recognition for improved win rate
+
+Markets Supported
+1. Indian F&0 (Fyers + TrueData) - Dynamic chart management
+2. Forex & Commodities (IC Markets MT5) - Single chart operation
+
+ System Architecture - CORRECTED v4.0
+F&O System Architecture (NO Primary Charts)
+
+
+Non-F&O System Architecture (Dynamic Chart Opening)
+
+
+
+ Technical Indicators (6 Core Indicators)
+1. Ichimoku Kinko Hyo
+• Tenkan Sen (TS): 9 periods
+• Kijun Sen (KS): 26 periods
+• Senkou Span A (SSA): 52 periods
+• Senkou Span B (SSB): 52 periods
+• Chikou Span (CSpan): 26 periods displaced
+
+2. Ichi-Trader Dynamic Index (TDI)
+• RSI Period: 13
+• Volatility Band: 34
+• Price Line: 2
+• Signal Line: 7
+• Components: rsig, MB, TSL, VB High, VB Low
+
+3. SMMA 50
+• Period: 50
+• Method: Smoothed Moving Average
+• Application: Trend filtering
+
+4. Bollinger Bands
+• Period: 20
+• Deviation: 2.0
+• Components: Upper boil, Lower boil, Middle
+• Feature: Squeeze detection
+
+5. STR-ENTRY (SuperTrend Entry)
+• ATR Multiplier: 1.0
+• ATR Period: 20
+• Max Bars: 10,000
+• Purpose: Entry confirmation
+
+6. STR-EXIT (SuperTrend Exit)
+• ATR Multiplier: 1.5
+• ATR Period: 20
+• Max Bars: 10,000
+• Purpose: Exit signals
+
+
+ Entry Conditions Framework (34 Total)
+Continuation Trend (CT} Path
+• A1-A3: CT-Sell (Daily/H4 - 30min/1H -• 5min/15min) - 13 sell orders (S1-S13)
+• B1-B3: CT-Buy (Daily/H4 - 30min/1H - 5min/15min) - 13 buy orders (B1-B13)
+
+Pull Back (PB) Path
+• C: PB-Sell (Daily/H4	1H/30min	30min/5min) - 4 sell orders (S14-S17)
+• D: PB-Buy (Daily/H4	1 H/30min - 30min/5min) - 4 buy orders (B14-B17)
+Total: 17 Buy + 17 Sell = 34 Entry Conditions
+
+zN Indian F&O Dynamic Chart Management
+ATM Strike Selection Process
+1. Get Spot Price from base symbol (NIFTY, BANKNIFTY, etc.)
+2. Find ATM Strike: Nearest to spot price AND nearest to bar-close spot price
+3. OI Analysis: >30O/odirectional bias requirement
+4. Chart Creation: Open Call and Put charts at determined strikes
+
+Hybrid OI Logic Flow
+Step 1: Trend Path Qualification
+
+• Scan for Continuation Path (CT) OR Pullback Path (PB)
+• When either CT or PB is true at bar close	Proceed to ATM analysis
+
+Step 2: ATM Strike Identification
+ • ATM Strike = Nearest to current spot price AND nearest to bar-close spot price Step 3: Hybrid OI Bias Evaluation
+• PATH 1 - Directional Bias:
+• Bullish: ATM >30% Call OI + +1-OTM Call OI >30% more than Put OI
+• Bearish: ATM >30% Put OI + -1-OTM Put OI >30% more than Call OI
+• PATH 2 - Independent Bias:
+• +1-OTM: >30% relative difference (any direction)
+• -1-OTM: >30% relative difference (any direction)
+
+Strike Price Intervals
+• NIFTY INDEX: 50 point intervals
+• ALL OTHER INDICES/STOCKS: 100 point intervals
+• Stock Options: Varying intervals (auto-detected)
+
+ Non-F&0 Market Management
+Market Scanner Process
+1. Market Detection: Automatically identify Forex/Commodities/CFDs
+2. Multi-Timeframe Analysis: Major (Daily/4H)	Middle (1H/30M)	Entry (5M/15M)
+3. Path Analysis: Both Continuation (CT) and Pull-back (PB) paths
+4. Enhancement Scoring: Based on confluence of all indicators
+5. Asset Prioritization: Best setups get priority for chart opening
+
+Supported Markets
+• Forex: Major pairs (EURUSD, GBPUSD, etc.), Minor pairs, Exotic pairs
+• Commodities: Gold, Silver, Oil, Energy products
+• CFDs: Stock indices, other instruments
+• Exclusions: Indian commodities (handled separately)
+
+ Multi-Timeframe Analysis
+Timeframe Hierarchy
+• Major Timeframes: Daily (D1) OR 4-Hour (H4)
+• Middle Timeframes: 1-Hour (H1) OR 30-Minute (M30)
+
+• Entry Timeframes: 15-Minute (M15) OR 5-Minute (M5)
+• Exit Timeframe: 1-Hour (H1) for STR-EXIT
+
+"Either/Or" Logic
+• Major: Daily OR 4-Hour (either valid	proceed)
+• Middle: 1-Hour OR 30-Minute (either valid	proceed)
+• Entry: 5-Minute OR 15-Minute (either valid -• execute)
+
+ Risk Management Framework
+Position Sizing
+• Risk Per Trade: 5% equity per trade
+• Maximum Daily Risk: 7%
+• Maximum Weekly Risk: 10%
+• Maximum Monthly Risk: 15%
+• Maximum Drawdown: <10% target
+
+Stop Loss Strategy (Universal)
+• Buy Trades: Stop loss 0.250/obelow STR-EXIT level (H1 timeframe)
+• Sell Trades: Stop loss 0.25% above STR-EXIT level (H1 timeframe)
+• Dynamic Trailing: Stop loss moves parallel to STR-EXIT
+• Exit Trigger: Trade closes when stop loss is hit
+
+Take Profit Strategy (Universal)
+• Timeframe: 1-hour only
+• Buy Trade Exit: If STR-EXIT > Candle close(1)
+• Sell Trade Exit: If STR-EXIT < Candle close(1)
+• Logic: Exit when trend direction changes
+
+ Platform Integration
+Brokers & Data Sources
+• IC Markets MT5: Forex, Commodities, Indian F&0 (via TrueData)
+• Fyers India: Indian F&0 trading with API v3 integration
+• TrueData: Real-time NSE/BSE feeds for options chain
+
+Order Types
+• Indian F&0:
+• Regular Days: Margin SL-L ORDER (Buy/Sell)
+• Expiry Day: Market orders only
+• Forex/Commodities: Buy Stop, Sell Stop orders
+
+API Integration
+• Fyers API: TOTP-based 2FA automation, token management
+• TrueData API: Real-time option chain data, OI analysis
+• IC Markets: Standard MT5 connectivity
+
+ Trading Hours Configuration
+Forex Market
+• Trading Start: 01:00 hours
+• Trading End: 23:00 hours
+• Timing Base: Server time
+• Trading Days: Monday to Friday
+
+Indian F&0 Markets
+• Trading Start: 9:30 AM IST
+• Trading End: 3:29 PM IST
+• Timing Base: Indian Standard Time (IST)
+• Trading Days: Monday to Friday
+
+Expiry Day Configuration (Updated for v4.0)
+• Default Change: Thursday	Tuesday (effective September 1, 2025)
+• Transition: Existing contracts through August 31, 2025 remain Thursday
+• Universal: All Indian derivatives (NIFTY, BANKNIFTY, FINNIFTY, etc.)
+• Customizable: Dropdown selection for all expiry types
+
+ NSE Expiry Day Updates (Rules 401-406)
+Rule 401: NSE Expiry Day Revision Implementation
+• Default Change: Thursday	Tuesday (effective September 1, 2025)
+• Transition: Existing contracts through August 31, 2025 remain Thursday
+
+• Universal: All Indian derivatives
+
+Rule 402: Customizable Expiry Day Input Parameters
+• Weekly Expiry: Dropdown (Mon-Fri) - Default: Tuesday
+• Monthly Expiry: Dropdown (Mon-Fri) - Default: Tuesday
+• Quarterly Expiry: Dropdown (Mon-Fri) - Default: Tuesday
+• Futures Expiry: Dropdown (Mon-Fri) - Default: Tuesday
+
+Rule 403: Auto-Detection of Expiry Day Transition
+• Contract Logic: Auto-detect pre/post September 1, 2025 contracts
+• Pre-Sept 2025: Thursday expiry logic
+• Post-Sept 2025: Tuesday expiry logic
+
+
+ Order Management
+Margin SL-L ORDER Specifications
+Buy Orders (Bullish)
+
+• Application: Buy Call on call side AND Sell Put on put side
+• Market Expectation: Price expected to move upwards
+• Trigger Price: 0.75% above LTP (Last Traded Price)
+• Limit Price: 1.25% above trigger price level
+• Order Type: Overnight order
+
+Sell Orders (Bearish)
+• Application: Buy Put on Put side AND Sell Call on Call side
+• Market Expectation: Price expected to move downwards
+• Trigger Price: 0.75% below LTP
+• Limit Price: 1.25% below trigger price level
+• Order Type: Overnight order
+
+Forex/Commodities Orders
+• Buy Stop: Placed above Ask price (customizable pips)
+• Sell Stop: Placed below Bid price (customizable pips)
+
+ Dynamic Chart Management
+
+F&0	Secondary Charts
+• Call Side Charts: Forest Green (	#006400 ) background
+• Put Side Charts: Dark Red (	#8B0000 ) background
+• Strike Price Display: Large bold text showing strike price
+• Auto-Close Conditions:
+• Stop loss hit
+• Take profit reached
+• 3:29 PM on expiry day
+• Trade completion
+
+Non-F&0 Dynamic Charts
+• Maximum Charts: 15-20 (customizable)
+• Selection Criteria: Enhancement score ranking
+• Chart Lifecycle: Open -• Trade -• Auto-close when conditions met
+• Visual Consistency: Same colors, lines, arrows across all charts
+
+ Machine Learning Enhancement
+ML System Components
+• Signal Validation Layer: Validates existing 34 entry conditions
+• Market Regime Classification: Adapts to current market conditions
+• Risk Optimization Layer: Dynamic stop loss and position sizing
+• Pattern Recognition: Advanced candlestick and chart patterns
+• Win Rate Target: 90%+ (up from 65-75% base system)
+
+ML Models
+• Random Forest: Primary signal validation (high accuracy)
+• LSTM Neural Network: Time series pattern recognition
+• XGBoost: Market regime detection
+• Ensemble Method: Combines all models for robust decisions
+
+ Alerts & Notifications
+Alert Types
+• Sound Alerts: Configurable on/off
+
+• Email Alerts: pajitmenonai@gmail.com
+• Phone Alerts: 00971507423656
+• Trade Alerts: Entry/exit notifications
+• Risk Alerts: Risk limit warnings
+• System Alerts: Connection status updates
+
+Alert Triggers
+• Trade Entry/Exit: Immediate notification
+• Risk Limits: When approaching limits
+• System Events: Connection issues, errors
+• Daily Reports: Performance summary
+• Weekly Reports: Comprehensive analysis
+
+ Dashboard System
+Dual Dashboard Architecture
+• F&O Dashboard: Indian markets monitoring
+• Non-F&O Dashboard: International markets monitoring
+• Economic Calendar: Real-time news impact analysis
+• Performance Attribution: Skill vs luck analysis
+• Risk Metrics: Real-time risk monitoring
+
+Dashboard Features
+• Real-time Updates: Every 10 seconds
+• Color Coding: TradingView Green/Red scheme
+• Visual Elements: Progress bars, meters, status indicators
+• Professional Styling: Dark theme, high contrast
+
+
+ System Configuration
+Input Parameters (Organized Groups)
+1. System Control: Enable/disable features
+2. Market Detection: Auto-detect vs manual selection
+3. F&0 Settings: TrueData/Fyers configuration
+4. International Markets: Scanner and ranking settings
+
+5. Timeframes: Multi-timeframe configuration
+6. Risk Management: Position sizing and limits
+7. Trading Hours: Market-specific hours
+8. ML Enhancement: Machine learning settings
+9. Alerts: Notification preferences
+10. Dashboard: Display configuration
+
+Error Handling
+• MT5 Error Codes: Full error code implementation
+• Logging: Comprehensive transaction logging
+• Recovery: Automatic error recovery
+• Monitoring: Continuous system health checks
+
+ System Reliability Features
+Never-Stop Guarantees
+• Comprehensive Error Handling: Every possible error caught and handled
+• Session Validation: Knows when to trade and when to wait
+• Health Monitoring: Self-checks every 30 minutes
+• Graceful Pause System: Intelligent pauses, never crashes
+• Automatic Recovery: Handles broker issues, data feed problems
+
+Intelligent Pause System
+• After Profitable Trade: 2-minute cool-down period
+• After Loss Trade: 3-minute reassessment period
+• After High Volatility: 10-minute safety pause
+• After News Events: 30-minute news filter pause
+• Daily Limit Reached: Pause until next trading day
+
+ Performance Tracking
+Key Metrics
+• Win Rate Target: >65% per entry criteria (>90% with ML)
+• Risk-Reward: >1:2 ratio
+• Maximum Drawdown: <10%
+
+• Daily P&L: Real-time tracking
+• Trade Attribution: Skill vs news analysis
+
+Reporting
+• Daily Reports: Performance summary
+• Weekly Reports: Detailed analysis
+• Monthly Reports: Comprehensive review
+• Real-time Dashboard: Live performance metrics
+
+ Implementation Status
+Ready for Implementation
+ Complete Strategy Framework (500+ rules)
+ All Technical Indicators (MQL5 ready)
+ Multi-Market Support (F&0 + International)
+ Dynamic Chart Management  API Integration Specifications  Risk Management Framework  ML Enhancement Architecture
+Next Steps
+1. Phase 1: Core EA structure with market detection
+2. Phase 2: F&O scanning and dynamic chart management
+3. Phase 3: Complete entry/exit conditions (34 criteria)
+4. Phase 4: API integration and testing framework
+5. Phase 5: ML enhancement and optimization
+
+ Development Notes
+Architecture Corrections Applied
+• F&0 System: No primary charts - only background scanning with direct secondary chart creation
+• Non-F&O System: Multiple dynamic charts (15-20) based on ranking
+• Universal: All chart operations are dynamic, no static parent/primary charts
+• Dashboard: Service-based monitoring, not chart-based
+• Expiry Days: Updated to Tuesday default (September 2025 transition)
+
+Key Principles
+
+1. Set & Forget Operation: Configure once, runs for days/weeks
+2. Professional Risk Management: Multi-level protection
+3. Complete Transparency: Detailed logging and monitoring
+4. Market Intelligence: News integration and attribution analysis
+5. Scalable Architecture: Easy expansion to additional markets
+
+EA GlobalFlow Pro v4.0 ULTINiATE - Complete Rules & Specifications Reference Total Pules: 500+ | Last Updated: Current Session

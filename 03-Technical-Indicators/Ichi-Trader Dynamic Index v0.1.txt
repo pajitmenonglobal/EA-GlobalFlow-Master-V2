@@ -1,0 +1,533 @@
+//+---------------------------------------------------------------------------+
+//|                              Ichi-Trader Dynamic Index v0.1.mq5  |
+//|                                 Copyright 2025, EA GlobalFlow       |
+//|                                              https://www.mql5.com        |
+//+---------------------------------------------------------------------------+
+#property version       "0.1"
+#property copyright     "EA GlobalFlow Pro v0.1"
+#property description   "Ichi-Trader Dynamic Index - Enhanced with EA v0.1 Integration"
+#property indicator_separate_window
+#property indicator_buffers 8
+#property indicator_plots   6
+
+// Plot 1: RSI Buffer (hidden for calculations)
+#property indicator_label1  ""
+#property indicator_type1   DRAW_NONE
+
+// Plot 2: Upper Volatility Band
+#property indicator_label2  "VB High"
+#property indicator_type2   DRAW_LINE
+#property indicator_color2  clrCornflowerBlue
+#property indicator_style2  STYLE_SOLID
+#property indicator_width2  1
+
+// Plot 3: Market Base Line
+#property indicator_label3  "Market Base Line"
+#property indicator_type3   DRAW_LINE
+#property indicator_color3  clrYellow
+#property indicator_style3  STYLE_SOLID
+#property indicator_width3  2
+
+// Plot 4: Lower Volatility Band
+#property indicator_label4  "VB Low"
+#property indicator_type4   DRAW_LINE
+#property indicator_color4  clrCornflowerBlue
+#property indicator_style4  STYLE_SOLID
+#property indicator_width4  1
+
+// Plot 5: RSI Price Line
+#property indicator_label5  "RSI Price Line"
+#property indicator_type5   DRAW_LINE
+#property indicator_color5  clrLime
+#property indicator_style5  STYLE_SOLID
+#property indicator_width5  2
+
+// Plot 6: Trade Signal Line
+#property indicator_label6  "Trade Signal Line"
+#property indicator_type6   DRAW_LINE
+#property indicator_color6  clrRed
+#property indicator_style6  STYLE_SOLID
+#property indicator_width6  1
+
+//--- Input parameters
+input int RSI_Period = 13;                      // RSI Period
+input int Volatility_Band = 34;                 // Volatility Band Period
+input int RSI_Price_Line = 2;                   // RSI Price Line Period
+input int Trade_Signal_Line = 7;                // Trade Signal Line Period
+input ENUM_MA_METHOD RSI_Price_Type = MODE_SMA; // RSI Price Line MA Method
+input ENUM_MA_METHOD Trade_Signal_Type = MODE_SMA; // Trade Signal Line MA Method
+input double OverBought = 68.0;                 // Overbought Level
+input double OverSold = 32.0;                   // Oversold Level
+input bool EnableAlerts = false;                // Enable Signal Alerts
+input bool EnableDashboard = true;              // Enable Status Dashboard
+input bool ShowLevels = true;                   // Show OB/OS Levels
+
+//--- Indicator buffers with EA v4.0 standardized names
+double RSI_BUFFER[];        // ✅ STANDARDIZED NAME - RSI values (internal calculation)
+double VB_HIGH[];           // ✅ STANDARDIZED NAME - Upper Volatility Band
+double MB[];                // ✅ STANDARDIZED NAME - Market Base Line (50 level)
+double VB_LOW[];            // ✅ STANDARDIZED NAME - Lower Volatility Band
+double RSI_PRICE_LINE[];    // ✅ STANDARDIZED NAME - RSI Price Line (smoothed RSI)
+double TRADE_SIGNAL_LINE[]; // ✅ STANDARDIZED NAME - Trade Signal Line
+double TDI_MOMENTUM[];      // ✅ STANDARDIZED NAME - TDI Momentum indicator
+double TDI_SIGNAL[];        // ✅ STANDARDIZED NAME - Overall TDI signal
+
+//--- Global variables
+int g_RSI_Handle = INVALID_HANDLE;
+datetime g_LastAlert = 0;
+int g_LastSignal = 0; // 1=Bullish, -1=Bearish, 0=Neutral
+
+//--- Level lines
+double g_OverBoughtLevel = 68.0;
+double g_OverSoldLevel = 32.0;
+double g_MiddleLevel = 50.0;
+
+//+------------------------------------------------------------------+
+//| Custom indicator initialization function                         |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    Print("🔧 Ichi-Trader Dynamic Index v4.0 - Starting initialization...");
+    
+    // Input validation
+    if(RSI_Period <= 0 || Volatility_Band <= 0 || RSI_Price_Line <= 0 || Trade_Signal_Line <= 0)
+    {
+        Print("❌ INITIALIZATION FAILED: All periods must be greater than 0");
+        return(INIT_PARAMETERS_INCORRECT);
+    }
+    
+    if(OverBought <= OverSold)
+    {
+        Print("❌ INITIALIZATION FAILED: OverBought level must be greater than OverSold level");
+        return(INIT_PARAMETERS_INCORRECT);
+    }
+
+    // Create RSI handle
+    g_RSI_Handle = iRSI(NULL, 0, RSI_Period, PRICE_CLOSE);
+    if(g_RSI_Handle == INVALID_HANDLE)
+    {
+        Print("❌ INITIALIZATION FAILED: Failed to create RSI handle. Error: ", GetLastError());
+        return(INIT_FAILED);
+    }
+
+    // Set indicator short name
+    IndicatorSetString(INDICATOR_SHORTNAME, "TDI v4.0 (" + 
+                      IntegerToString(RSI_Period) + "," + 
+                      IntegerToString(Volatility_Band) + "," + 
+                      IntegerToString(RSI_Price_Line) + "," + 
+                      IntegerToString(Trade_Signal_Line) + ")");
+
+    // ✅ CRITICAL: Set indicator buffers with standardized names for EA v4.0
+    SetIndexBuffer(0, RSI_BUFFER, INDICATOR_CALCULATIONS);     // Buffer 0 - RSI (hidden)
+    SetIndexBuffer(1, VB_HIGH, INDICATOR_DATA);               // Buffer 1 - Upper VB
+    SetIndexBuffer(2, MB, INDICATOR_DATA);                    // Buffer 2 - Market Base Line
+    SetIndexBuffer(3, VB_LOW, INDICATOR_DATA);                // Buffer 3 - Lower VB
+    SetIndexBuffer(4, RSI_PRICE_LINE, INDICATOR_DATA);        // Buffer 4 - RSI Price Line
+    SetIndexBuffer(5, TRADE_SIGNAL_LINE, INDICATOR_DATA);     // Buffer 5 - Trade Signal Line
+    SetIndexBuffer(6, TDI_MOMENTUM, INDICATOR_CALCULATIONS);  // Buffer 6 - TDI Momentum
+    SetIndexBuffer(7, TDI_SIGNAL, INDICATOR_CALCULATIONS);    // Buffer 7 - TDI Signal
+
+    // Set empty values
+    PlotIndexSetDouble(0, PLOT_EMPTY_VALUE, EMPTY_VALUE);
+    PlotIndexSetDouble(1, PLOT_EMPTY_VALUE, EMPTY_VALUE);
+    PlotIndexSetDouble(2, PLOT_EMPTY_VALUE, EMPTY_VALUE);
+    PlotIndexSetDouble(3, PLOT_EMPTY_VALUE, EMPTY_VALUE);
+    PlotIndexSetDouble(4, PLOT_EMPTY_VALUE, EMPTY_VALUE);
+    PlotIndexSetDouble(5, PLOT_EMPTY_VALUE, EMPTY_VALUE);
+
+    // Set array indexing as series (MQL4 style - newest data at index 0)
+    ArraySetAsSeries(RSI_BUFFER, true);
+    ArraySetAsSeries(VB_HIGH, true);
+    ArraySetAsSeries(MB, true);
+    ArraySetAsSeries(VB_LOW, true);
+    ArraySetAsSeries(RSI_PRICE_LINE, true);
+    ArraySetAsSeries(TRADE_SIGNAL_LINE, true);
+    ArraySetAsSeries(TDI_MOMENTUM, true);
+    ArraySetAsSeries(TDI_SIGNAL, true);
+
+    // Set indicator levels
+    IndicatorSetInteger(INDICATOR_LEVELS, 3);
+    IndicatorSetDouble(INDICATOR_LEVELVALUE, 0, OverBought);
+    IndicatorSetDouble(INDICATOR_LEVELVALUE, 1, 50.0);
+    IndicatorSetDouble(INDICATOR_LEVELVALUE, 2, OverSold);
+    
+    // Set level colors
+    IndicatorSetInteger(INDICATOR_LEVELCOLOR, 0, clrRed);
+    IndicatorSetInteger(INDICATOR_LEVELCOLOR, 1, clrYellow);
+    IndicatorSetInteger(INDICATOR_LEVELCOLOR, 2, clrRed);
+    
+    // Set level styles
+    IndicatorSetInteger(INDICATOR_LEVELSTYLE, 0, STYLE_DOT);
+    IndicatorSetInteger(INDICATOR_LEVELSTYLE, 1, STYLE_SOLID);
+    IndicatorSetInteger(INDICATOR_LEVELSTYLE, 2, STYLE_DOT);
+
+    // Set indicator window properties
+    IndicatorSetInteger(INDICATOR_DIGITS, 2);
+    IndicatorSetDouble(INDICATOR_MINIMUM, 0);
+    IndicatorSetDouble(INDICATOR_MAXIMUM, 100);
+    
+    // Store level values
+    g_OverBoughtLevel = OverBought;
+    g_OverSoldLevel = OverSold;
+    g_MiddleLevel = 50.0;
+    
+    Print("✅ TDI v4.0 - Initialization successful!");
+    Print("📊 Settings: RSI:", RSI_Period, " VB:", Volatility_Band, " Price:", RSI_Price_Line, " Signal:", Trade_Signal_Line);
+    
+    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Custom indicator iteration function                              |
+//+------------------------------------------------------------------+
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime &time[],
+                const double &open[],
+                const double &high[],
+                const double &low[],
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
+{
+    // Check for minimum bars
+    if(rates_total < RSI_Period + Volatility_Band + Trade_Signal_Line)
+    {
+        Print("⚠️ Insufficient bars for TDI calculation");
+        return(0);
+    }
+
+    // Set arrays as series
+    ArraySetAsSeries(time, true);
+    ArraySetAsSeries(close, true);
+
+    // Get RSI values
+    if(CopyBuffer(g_RSI_Handle, 0, 0, rates_total, RSI_BUFFER) <= 0)
+    {
+        Print("❌ Failed to copy RSI data. Error: ", GetLastError());
+        return(0);
+    }
+
+    // Determine calculation start
+    int start = prev_calculated;
+    if(prev_calculated == 0)
+        start = RSI_Period + Volatility_Band + Trade_Signal_Line;
+
+    // Main calculation loop
+    for(int i = start; i < rates_total; i++)
+    {
+        int pos = rates_total - 1 - i;
+        
+        // Calculate Volatility Bands
+        CalculateVolatilityBands(pos, rates_total);
+        
+        // Calculate Market Base Line (always 50)
+        MB[pos] = 50.0;
+        
+        // Calculate RSI Price Line (smoothed RSI)
+        RSI_PRICE_LINE[pos] = CalculateSMA(RSI_BUFFER, pos, RSI_Price_Line, rates_total);
+        
+        // Calculate Trade Signal Line (smoothed RSI Price Line)
+        TRADE_SIGNAL_LINE[pos] = CalculateSMA(RSI_PRICE_LINE, pos, Trade_Signal_Line, rates_total);
+        
+        // Calculate TDI Momentum
+        CalculateTDIMomentum(pos);
+        
+        // Calculate TDI Signal
+        CalculateTDISignal(pos);
+    }
+
+    // Check for alerts
+    if(EnableAlerts)
+    {
+        CheckTDIAlerts(rates_total - 1);
+    }
+    
+    // Update dashboard
+    if(EnableDashboard)
+    {
+        UpdateTDIDashboard(rates_total - 1);
+    }
+
+    return(rates_total);
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Volatility Bands                                      |
+//+------------------------------------------------------------------+
+void CalculateVolatilityBands(int pos, int rates_total)
+{
+    if(pos + Volatility_Band >= rates_total) return;
+    
+    // Calculate RSI High and Low over Volatility Band period
+    double rsiHigh = RSI_BUFFER[pos];
+    double rsiLow = RSI_BUFFER[pos];
+    
+    for(int j = pos; j < pos + Volatility_Band && j < rates_total; j++)
+    {
+        if(RSI_BUFFER[j] > rsiHigh) rsiHigh = RSI_BUFFER[j];
+        if(RSI_BUFFER[j] < rsiLow) rsiLow = RSI_BUFFER[j];
+    }
+    
+    VB_HIGH[pos] = rsiHigh;
+    VB_LOW[pos] = rsiLow;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Simple Moving Average                                 |
+//+------------------------------------------------------------------+
+double CalculateSMA(const double &buffer[], int pos, int period, int rates_total)
+{
+    if(pos + period >= rates_total) return(EMPTY_VALUE);
+    
+    double sum = 0.0;
+    int count = 0;
+    
+    for(int j = pos; j < pos + period && j < rates_total; j++)
+    {
+        if(buffer[j] != EMPTY_VALUE)
+        {
+            sum += buffer[j];
+            count++;
+        }
+    }
+    
+    if(count == 0) return(EMPTY_VALUE);
+    
+    return(sum / count);
+}
+
+//+------------------------------------------------------------------+
+//| Calculate TDI Momentum                                          |
+//+------------------------------------------------------------------+
+void CalculateTDIMomentum(int pos)
+{
+    if(pos < 1 || RSI_PRICE_LINE[pos] == EMPTY_VALUE || RSI_PRICE_LINE[pos + 1] == EMPTY_VALUE)
+    {
+        TDI_MOMENTUM[pos] = 0.0;
+        return;
+    }
+    
+    // Calculate momentum as difference between current and previous RSI Price Line
+    TDI_MOMENTUM[pos] = RSI_PRICE_LINE[pos] - RSI_PRICE_LINE[pos + 1];
+}
+
+//+------------------------------------------------------------------+
+//| Calculate TDI Signal                                            |
+//+------------------------------------------------------------------+
+void CalculateTDISignal(int pos)
+{
+    if(RSI_PRICE_LINE[pos] == EMPTY_VALUE || TRADE_SIGNAL_LINE[pos] == EMPTY_VALUE)
+    {
+        TDI_SIGNAL[pos] = 0; // Neutral
+        return;
+    }
+    
+    double rsiPrice = RSI_PRICE_LINE[pos];
+    double tradeSignal = TRADE_SIGNAL_LINE[pos];
+    
+    // Determine signal based on multiple criteria
+    int signal = 0;
+    
+    // Strong bullish: RSI Price above Trade Signal and above 50
+    if(rsiPrice > tradeSignal && rsiPrice > 50.0 && tradeSignal > 50.0)
+    {
+        signal = 2; // Strong bullish
+    }
+    // Bullish: RSI Price above Trade Signal
+    else if(rsiPrice > tradeSignal)
+    {
+        signal = 1; // Bullish
+    }
+    // Strong bearish: RSI Price below Trade Signal and below 50
+    else if(rsiPrice < tradeSignal && rsiPrice < 50.0 && tradeSignal < 50.0)
+    {
+        signal = -2; // Strong bearish
+    }
+    // Bearish: RSI Price below Trade Signal
+    else if(rsiPrice < tradeSignal)
+    {
+        signal = -1; // Bearish
+    }
+    
+    TDI_SIGNAL[pos] = signal;
+}
+
+//+------------------------------------------------------------------+
+//| Check for TDI alerts                                           |
+//+------------------------------------------------------------------+
+void CheckTDIAlerts(int pos)
+{
+    if(pos < 0) return;
+    
+    int currentSignal = (int)TDI_SIGNAL[pos];
+    double rsiPrice = RSI_PRICE_LINE[pos];
+    
+    bool sendAlert = false;
+    string alertMessage = "";
+    
+    // Signal change alerts
+    if(currentSignal != g_LastSignal && TimeCurrent() - g_LastAlert > 300) // 5 min interval
+    {
+        switch(currentSignal)
+        {
+            case 2:
+                alertMessage = "TDI: STRONG BULLISH signal on " + Symbol();
+                sendAlert = true;
+                break;
+            case 1:
+                alertMessage = "TDI: Bullish signal on " + Symbol();
+                sendAlert = true;
+                break;
+            case -1:
+                alertMessage = "TDI: Bearish signal on " + Symbol();
+                sendAlert = true;
+                break;
+            case -2:
+                alertMessage = "TDI: STRONG BEARISH signal on " + Symbol();
+                sendAlert = true;
+                break;
+        }
+        
+        g_LastSignal = currentSignal;
+    }
+    
+    // Overbought/Oversold alerts
+    if(rsiPrice >= g_OverBoughtLevel && TimeCurrent() - g_LastAlert > 600) // 10 min interval
+    {
+        alertMessage = "TDI: OVERBOUGHT level reached on " + Symbol();
+        sendAlert = true;
+    }
+    else if(rsiPrice <= g_OverSoldLevel && TimeCurrent() - g_LastAlert > 600) // 10 min interval
+    {
+        alertMessage = "TDI: OVERSOLD level reached on " + Symbol();
+        sendAlert = true;
+    }
+    
+    if(sendAlert && alertMessage != "")
+    {
+        Alert(alertMessage);
+        Print("📢 ", alertMessage);
+        g_LastAlert = TimeCurrent();
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Update TDI dashboard display                                    |
+//+------------------------------------------------------------------+
+void UpdateTDIDashboard(int pos)
+{
+    if(pos < 0) return;
+    
+    string signalStatus = "";
+    color signalColor = clrWhite;
+    
+    int signal = (int)TDI_SIGNAL[pos];
+    switch(signal)
+    {
+        case 2:
+            signalStatus = "STRONG BULLISH";
+            signalColor = clrLime;
+            break;
+        case 1:
+            signalStatus = "BULLISH";
+            signalColor = clrGreen;
+            break;
+        case -1:
+            signalStatus = "BEARISH";
+            signalColor = clrOrange;
+            break;
+        case -2:
+            signalStatus = "STRONG BEARISH";
+            signalColor = clrRed;
+            break;
+        default:
+            signalStatus = "NEUTRAL";
+            signalColor = clrYellow;
+            break;
+    }
+    
+    string levelStatus = "";
+    if(RSI_PRICE_LINE[pos] >= g_OverBoughtLevel)
+        levelStatus = "OVERBOUGHT";
+    else if(RSI_PRICE_LINE[pos] <= g_OverSoldLevel)
+        levelStatus = "OVERSOLD";
+    else
+        levelStatus = "NORMAL";
+    
+    // Create dashboard text
+    string dashboardText = StringFormat(
+        "📊 TDI v4.0 STATUS\n" +
+        "═══════════════════\n" +
+        "Signal: %s\n" +
+        "RSI Price: %.2f\n" +
+        "Trade Signal: %.2f\n" +
+        "Level Status: %s\n" +
+        "VB High: %.2f\n" +
+        "VB Low: %.2f\n" +
+        "Momentum: %.2f\n" +
+        "Crossover: %s",
+        signalStatus,
+        RSI_PRICE_LINE[pos],
+        TRADE_SIGNAL_LINE[pos],
+        levelStatus,
+        VB_HIGH[pos],
+        VB_LOW[pos],
+        TDI_MOMENTUM[pos],
+        (RSI_PRICE_LINE[pos] > TRADE_SIGNAL_LINE[pos]) ? "BULLISH" : "BEARISH"
+    );
+    
+    // Display dashboard
+    Comment(dashboardText);
+}
+
+//+------------------------------------------------------------------+
+//| Get TDI signal for EA integration                              |
+//+------------------------------------------------------------------+
+int GetTDISignal(int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(TDI_SIGNAL))
+        return((int)TDI_SIGNAL[pos]);
+    return(0);
+}
+
+//+------------------------------------------------------------------+
+//| Check if TDI is overbought                                     |
+//+------------------------------------------------------------------+
+bool IsTDIOverbought(int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(RSI_PRICE_LINE))
+        return(RSI_PRICE_LINE[pos] >= g_OverBoughtLevel);
+    return(false);
+}
+
+//+------------------------------------------------------------------+
+//| Check if TDI is oversold                                       |
+//+------------------------------------------------------------------+
+bool IsTDIOversold(int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(RSI_PRICE_LINE))
+        return(RSI_PRICE_LINE[pos] <= g_OverSoldLevel);
+    return(false);
+}
+
+//+------------------------------------------------------------------+
+//| Get TDI momentum value                                         |
+//+------------------------------------------------------------------+
+double GetTDIMomentum(int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(TDI_MOMENTUM))
+        return(TDI_MOMENTUM[pos]);
+    return(0.0);
+}
+
+//+------------------------------------------------------------------+
+//| Check if RSI Price Line is above Trade Signal Line            |
+//+------------------------------------------------------------------+
+bool IsTDIBullishCrossover(int pos = 0)
+{
+    if(pos >= 0 && pos < ArraySize(RSI_PRICE_LINE) && pos < ArraySize(TRADE_SIGNAL_LINE))
+        return(RSI_PRICE_LINE[pos] > TRADE_SIGNAL_LINE[pos]);
+    return(false);
+}

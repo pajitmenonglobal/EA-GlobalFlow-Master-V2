@@ -1,0 +1,312 @@
+EA GlobalFlow Pro vO.1- Session Reference & Progress Status.md 3
+1 1.22 KB	300 IinesFormatting may be inconsistent from source
+
+
+# EA GlobalFlow Pro v0.1 - Session Reference & Progress Status
+
+**Date**: August 04, 2025
+**Status**: Development Phase - Module Clarifications in Progress
+**Strategy**: Ichimoku-TDI-PA-BBsqueeze-Kumocross
+**Target Win Rate**: 90-95% through Triple Enhancement System
+
+
+
+##	PROJECT OVERVIEW
+
+**EA Name**: EA GlobalFlow Pro v0.1
+**Markets**: Indian F&0 (Fyers+TrueData) + International Markets (IC Markets)
+**Tagline**: *"Trade the World Markets with Me"*
+**Architecture**: Multi-market, dual-platform trading system
+
+
+
+##	COMPLETED MODULES
+
+### **MODULE SET 1: F&0 SECONDARY CHART LOGIC - COMPLETE**
+
+**All 11 Questions Answered & Confirmed:**
+
+1. **Chart Opening Speed**	**A) Instant (within 1-2 seconds)**
+2. **OI Analysis Timing** • **Continuous during market hours**
+3. **Multiple Signal Handling** • **Fund-balance based, maximum allowed charts with triple enhancemen t**
+4. **OI Calculation Formula** • **Hybrid logic - PATH 1 (Directional Bias) OR PATH 2 (Independent Bia
+)**
+5. **Real-time Updates** • **Option B: Stick with existing charts, allow new charts for new signals (no same ATM/OTM per day)**
+6. **ATM Strike Selection**	**Option B: Choose nearest to spot price**
+7. **Expiry Day Override**	**Option A: From market open (9:30 AM)**
+8. **Auto-Close Priority**	**First occurrence wins (Stop Loss/Take Profit/3:29 PM/Position Limits)*
+
+9. **Fund-Balance Limits**	**Entry rules based + Same-day ATM/OTM restriction + Trade direction cus tomization**
+10. **Maximum Chart Limits**	**YES - Absolute maximum to prevent system overload**
+11. **Visual Updates**	**Option A - Every tick (real-time strike price, OI bias %, P&L display)**
+
+### **F&0 TRADE DIRECTION CUSTOMIZATION - COMPLETE**
+
+'mql5
+// F&0 Trade Direction Selection (External Properties Dialog) input group "=== F&0 TRADE DIRECTION SELECTION ==="
+input bool EnableCallBuy = true;	// Call Buy (Default: ON) input bool EnableCallSell = false;	// Call Sell (Default: OFF) input bool EnablePutBuy = false;	// Put Buy (Default: OFF) input bool EnablePutSell = true;	// Put Sell (Default: ON)
+
+
+**Default Strategy**: Bullish Bias (Call Buy + Put Sell enabled)
+
+### **COMPREHENSIVE DOCUMENTATION REVIEW - COMPLETE**
+
+**Salient Points Extracted from All Project Files:**
+
+**Core Strategy Framework**: Ichimoku-TDI-PA-BBsqueeze-Kumocross
+**6 Technical Indicators**: Standardized with exact parameters
+
+**34 Entry Conditions**: 17 Buy (B1-B17) + 17 Sell (S1-S17)
+**Dual Path System**: Continuation (CT) + Pullback (PB)
+**Multi-Timeframe Cascade**: Daily/4H	1H/30M	15M/5M
+**Hybrid OI Logic**: >30% minimum bias requirement
+**Risk Management**: 0.25% STR-EXIT trailing buffer
+**Trading Hours**: Indian F&0 (9:30-15:29 IST), Forex (01:00-23:00)
+**Visual Differentiation**: Color-coded chart themes
+**API Integration**: Fyers + TrueData + IC Markets
+**Compliance Requirements**: NRI restrictions, NSE regulations
+
+
+
+##	PENDING MODULES (On Hold)
+
+### **MODULE SET 2: TRIPLE ENHANCEMENT TIMING**
+**Status**: Questions prepared, awaiting clarification after trade entry condition update
+
+**Prepared Questions (Q12-Q21)**:
+- ML confidence fallback protocols
+- Enhancement failure handling
+- VIX >30 protocol adjustments
+- Bar-close timing alignment
+- Real-time processing optimization
+
+### **MODULE SET 3: 34 ENTRY CONDITIONS EXECUTION**
+**Status**: Pending clarification
+
+**Key Areas**:
+- Minimum trigger requirements (10 out of 34?)
+- Condition conflict resolution
+- Sequential vs parallel execution
+- Failed condition retry logic
+
+### **MODULE SET 4: RISK MANAGEMENT INTEGRATION**
+**Status**: Pending clarificat ion
+
+**Key Areas**:
+- Daily loss limit scope (portfolio vs per-market)
+- Position sizing priority conflicts
+- Correlation limit scope
+- Emergency stop activation levels
+
+
+
+##	CURRENT PRIORITY: TRADE ENTRY CONDITION UPDATE
+
+**Status**: **DISCOVERY PHASE** - New trade entry condition puzzle identified
+**Impact**: Affects both EA code integration and indicator standardization
+**Action Required**: Integration of new discovery into existing 34 entry conditions framework
+
+**Dependencies**:
+1. EA Code Integration - Core trade entry logic update
+2. Indicator Standardization - Variable naming alignment
+3. Compatibility Check - With existing F&0 logic and Triple Enhancement System
+
+
+
+PQ	TECHNICAL SPECIFICATIONS CONFIRMED
+
+### **Core Indicators (6 Requi red) **
+1. **Ichimoku Kinko Hyo** (9,26,52) - Buffers: TS, KS, SSA, SSB, CSpan
+2. **TDI (Ichi-Trader Dynamic Index)** - Buffers: rsig, MB, TSL, VB_High, VB_Low
+- RSI Period: 13, Volatility Band: 34, Price Line: 2, Signal Line: 7
+- Levels: 68 (overbought), 32 (oversold)
+3. **SMMA50** - Buffer: SMMA50
+
+4. **Bollinger Bands** (20,2.0) - Buffers: UpperBoll, LowerBoll, MiddleBoll
+5. **STR-ENTRY** (ATR:20, Mult:1.0) - Buffer: STR_ENTRY
+6. **STR-EXIT** (ATR:20, Mult:1.5) - Buffer: STR_EXIT
+
+### **Multi-Timeframe Cascade**
+- **Major Trend**: Daily OR 4H timeframe analysis
+- **Middle Trend**: lH OR 30M timeframe analysis
+- **Entry Execution**: 15M OR 5M timeframes only
+
+### **Hybrid OI Logic (F&0 Only)**
+
+**ATM Strike Identification**:
+- ATM Strike = Nearest to current spot price AND nearest to bar-close spot price
+- Study 5 levels above and below ATM price
+
+**Dual Path OI Analysis**:
+
+**PATH 1: Directional Bias Pattern**
+- **Bullish**: ATM >30% Call OI bias + +1-OTM Call OI >30% more than Put OI
+- **Action**: Open Call chart @ +1-OTM + Put chart @ -1-OTM
+- **Bearish**: ATM >30% Put OI bias + -1-OTM Put OI >30% more than Call OI
+- **Action**: Open Put chart @ -1-OTM + Call chart @ +1-OTM
+
+**PATH 2: Independent Bias Pattern**
+- **+1-OTM**: ›30% relative difference (any direction)
+- **-1-OTM**: ›30% relative difference (any direction)
+- **Action**: Open Call chart @ +1-OTM + Put chart @ -I-OTM
+
+**Special Rules**:
+- **Expiry Day**: Both charts open at ATM level (overrides OTM logic)
+- **Chart Limits**: Only 1 Call + 1 Put chart per ATM strike
+- **Minimum Bias**: 30% threshold is NEVER compromised
+- **Auto-Close**: 3:29 PM on expiry day mandatory
+
+
+
+##	RISK MANAGEMENT FRAMEWORK
+
+### **Fixed Requirements (Never Compromise)**
+1. **OI Bias**: Minimum 30% (customizable but never below)
+2. **STR-EXIT Logic**: 0.25% trailing buffer (sacred protocol)
+3. **Same-Day Restriction**: No re-entry at same ATM/OTM for same asset
+4. **Entry Conditions**: All 34 conditions preserved exactly
+5. **Exit Rules**: STR-EXIT based system mandatory
+
+### **Exit Conditions (13 Auto-Close Triggers)**
+1. **STR-EXIT Signal** (Primary exit)
+2. **Stop Loss Hit** (Risk management)
+3. **Take Profit** (Profit booking)
+4. **Time-based Exit** (End of session)
+5. **Opposite Signal** (Trend reversal)
+6. **Correlation Breach** (Risk limit)
+7. **Daily Loss Limit** (Account protection)
+8. **VIX Spike** (Market volatility)
+9. **News Event** (Economic calendar)
+10. **Volume Anomaly** (Market irregularity)
+11. **Gap Opening** (Market gap)
+12. **Expiry Approach** (F&0 specific)
+13. **Emergency Stop** (Manual override)
+
+
+
+##	OPERATIONAL REQUIREMENTS
+
+### **Trading Hours Configuration**
+
+mql5
+// Indian Markets
+input int InpIndianStartHour = 9; input int InpIndianStartMinute = 30; input int InpIndianEndHour = 15; input int InpIndianEndMinute = 29;
+
+// International Markets
+input int InpIntlStartHour = 1; input int InpIntlEndHour = 23; input bool InpMondayTrading = true;
+input bool InpTuesdayTrading = true; input bool InpWednesdayTrading = true; input bool InpThursdayTrading = true; input bool InpFridayTrading = true;
+
+
+
+// Indian Start Hour (IST)
+// Indian Start Minute
+// Indian End Hour (IST)
+// Indian End Minute
+
+
+// International Start Hour
+// International End Hour
+// Monday Trading
+// Tuesday Trading
+// Wednesday Trading
+// Thursday Trading
+// Friday Trading
+
+
+
+### **Visual Identification System**
+**Primary Chart Markers**:
+- **Badge**:	MASTER CONTROL (top-left corner)
+- **Background**: Deep Blue (#003366) with gold border
+- **Status**:	PRIMARY CHART with crown icon
+
+**Secondary Chart Markers (F&0 Only)**:
+- **Call Side**:	CALL CHART with Forest Green (#006400) background
+- **Put Side**:	PUT CHART with Dark Red (#8B0000) background
+- **Strike Display**: Large bold text showing strike price
+- **Parent Link**:	Linked to MASTER with arrow pointing to parent
+
+### **Alerts & Notifications** mql5
+input bool InpSoundAlert = false;	// Sound Alerts
+input bool InpEmailAlert = true;	// Email Alerts
+input bool InpPhoneAlert = true;	// Phone Alerts
+input string InpEmailAddress = "pajitmenonai@gmail.com"; // Email Address input string InpPhoneNumber = "00971507423656"; // Phone Number
+input bool InpTradeComments = true;	// Trade Comments
+
+
+
+
+##	CRITICAL EXCLUSIONS (Permanently Locked)
+
+- **NO Elliott Wave Analysis** - Completely removed from all logic
+- **NO Fibonacci Confluence** - All Fibonacci components excluded
+- **ONLY Triple Enhancement System** - 34 Conditions + ML + Candlestick/Volume
+
+
+
+##	TRIPLE ENHANCEMENT SYSTEM
+
+### **Target Win Rate Architecture**
+**Layer 1**: 34 Entry Conditions (Base: 65-70%)
+**Layer 2**: ML Enhancement (Enhanced: 80-85%)
+**Layer 3**: Candlestick + Volume (Final: 90-95%)
+
+### **Enhancement Requirements**
+- **ML Confidence**: ?75% for trade approval
+- **Candlestick Pattern**: Strong directional pattern required
+- **Volume Confirmation**: Must be present at bar-close
+- **Fallback Mode**: When ML unavailable or VIX >30
+
+
+
+##	NEXT SESSION CONTINUATION INSTRUCTIONS
+
+**For Next Chat Session**, use this reference:
+
+**"Continue EA GlobalFlow Pro v0.1 development. F&0 Secondary Chart Logic is complete with all 11 spe cifications confirmed. Ready to implement trade entry condition update and indicator standardization. Reference this session progress document and all project knowledge files for complete v0.1 implementa tion."**
+
+
+
+##	IMPLEMENTATION CHECKLIST
+
+### **	Completed**
+- [ ] F&0 Secondary Chart Logic specifications
+- [ ] Trade direction customization parameters
+- [ ] Complete project documentation review
+- [ ] Salient points extraction from all files
+- [ ] Risk management framework definition
+- [ ] Visual identification system design
+- [ ] Trading hours configuration
+- [ ] Alert and notification system
+
+### **	In Progress**
+- [ ] Trade entry condition puzzle resolution
+- [ ] Indicator standardization alignment
+- [ ] EA code integration planning
+
+### **	Pending**
+- [ ] Triple Enhancement Timing clarifications (Q12-Q21)
+- [ ] 34 Entry Conditions execution logic (MODULE SET 3)
+- [ ] Risk Management integration details (MODULE SET 4)
+- [ ] Complete EA v0.1 MQL5 code generation
+- [ ] Testing and validation protocol
+- [ ] VPS deployment preparation
+
+
+
+##	CONTACT & SUPPORT
+
+**Email**: pajitmenonai@gmail.com
+**Phone**: 00971507423656
+**System**: EA GlobalFlow Pro v0.1
+**Strategy**: Ichimoku-TDI-PA-BBsqueeze-Kumocross
+
+
+
+**Document Status**: Active Development Session Reference
+**Last Updated**: August 04, 2025
+**Next Update**: After trade entry condition resolution
+
+
+
+*Save this document as reference for continuing EA GlobalFlow Pro v0.1 development in future session s.*

@@ -1,0 +1,296 @@
+
+
+Architectural Deep Dive: Direct API Integration vs. Signal-Based Trading for Expert Advisors on the Fyers Platform
+
+
+
+Executive Summary
+
+
+This report provides a definitive analysis for developers of fully automated trading systems, or Expert Advisors (EAs), on the Fyers platform. It directly addresses the query regarding the necessity of incorporating LE (Long Entry), LX (Long Exit), SE (Short Entry), and SX (Short Exit) trade functions within the architecture of a custom, autonomous EA.
+The central finding of this analysis is that the user's assumption is correct: these LE/LX/SE/SX parameters are entirely unnecessary for an EA that interacts directly with the core Fyers Trading API. These parameters are exclusive to a separate, intermediary software product known as the Fyers API Bridge. The Bridge is designed to simplify trading automation for users of third-party charting and analysis platforms like TradingView or Amibroker by translating high-level "signals" into API commands.
+A fully autonomous EA, by its nature, bypasses this intermediary layer. It is architecturally designed to manage its own state, logic, and risk, communicating directly with the Fyers Trading API v3. This direct communication relies on fundamental order primitives, primarily the place_order function, which uses a side parameter (1 for Buy, -1 for Sell) to specify the transaction type. The strategic interpretation of a "Buy" order as a "Long Entry" or a "Short Exit" is a responsibility that resides solely within the EA's own logic engine.
+Therefore, this report concludes that any attempt to implement LE/LX/SE/SX functionality within a custom EA using the direct Fyers Trading API would be architecturally incorrect and non-functional. The report provides a comprehensive architectural breakdown of both integration pathways, detailed technical specifications for the direct API, and a set of best practices to guide developers in
+
+building robust, efficient, and correctly architected trading systems on the Fyers platform.
+
+
+
+Part 1: Foundational Concepts of Expert Advisor Integration
+
+
+To properly address the distinction between Fyers' integration methods, it is essential to first establish a clear understanding of the architectural components of a modern Expert Advisor and the fundamental paradigms through which such systems connect to a brokerage. This context is crucial for understanding why the Fyers ecosystem offers two distinct pathways and for validating the correct architectural choice for a fully autonomous trading system.
+
+
+1.1 Deconstructing the Expert Advisor {EA) Architecture
+
+
+An Expert Advisor (EA) is a software program that automates trading decisions and executes orders in financial markets based on a predefined set of rules and algorithms.1 While the term "EA" originated within the MetaTrader ecosystem and its MQL programming language, it is now widely used in the industry to describe any automated trading script, robot, or application, including those developed in versatile languages like Python.3 A sophisticated, fully autonomous EA is not a monolithic script but a system composed of several distinct, interacting modules.
+Core Architectural Components:
+• Data Ingestion Module: This is the EA's sensory organ, responsible for receiving market data. For live trading, this is typically accomplished through a real-time WebSocket connection that streams tick-by-tick data, order book updates, and other market events.4 For strategy development and validation, this module is designed to read historical data from local files (such as CSVs) or a database, a process known as backtesting.2
+• Strategy Logic Engine: This component constitutes the "brain" of the EA. It is here that the core algorithm resides. The engine processes the incoming data from the ingestion module, performs calculations (such as computing technical indicators like Exponential Moving Averages or Central Pivot Ranges), analyzes
+
+market patterns, and ultimately generates a discrete trading decision: buy, sell, hold, or exit.4
+• State Management Module: This is arguably the most critical component for a truly autonomous system. The state management module acts as the EA's memory. It maintains a persistent, real-time understanding of its own context within the market. This includes tracking currently open positions, pending orders, available trading capital, realized and unrealized profit/loss, and any other internal variables relevant to the strategy. This module is what enables the EA to differentiate between initiating a new trade and scaling into an existing one, or between closing a profitable position and reversing from long to short. Without robust state management, an EA cannot operate autonomously.
+• Order Execution Module: This is the EA's effector, responsible for translating the abstract decisions from the strategy engine into concrete, syntactically correct order requests that the broker's system can understand. This module constructs the order payload with all necessary parameters (e.g., symbol, quantity, order type, price) and sends it to the brokerage via its Application Programming Interface (APl).9 It also handles the responses from the broker, confirming order placement, modification, or cancellation.
+
+Most modern EAs are built upon an event-driven model.12 Rather than running in a continuous loop, the system lies dormant until an external event occurs. This event could be the arrival of a new market price tick (
+onTick), the closing of a time-based candle, or a notification from the broker's API about a filled order.10 This event-driven architecture is highly efficient and is the standard for real-time trading applications.
+
+
+1.2 Paradigms of Broker Integration for EAs
+
+
+An EA, once developed, must connect to a broker to execute trades. There are two primary paradigms for achieving this integration, each tailored to a different type of user and technical proficiency.
+• Direct API Integration: This is the path for developers, programmers, and quantitative traders who require maximum control, performance, and flexibility. In this model, the EA's order execution module communicates directly with the broker's core trading API endpoints.11 The EA is responsible for managing the
+
+entire interaction lifecycle, which includes:
+o Handling the complete authentication flow to establish a secure session.
+o Constructing detailed, low-level order payloads with precise parameters for side, type, quantity, and price.
+o Actively managing its own state by programmatically querying the API for current positions, order statuses, and account balances.15
+o Implementing its own risk management and error handling logic.
+This approach offers unparalleled power but places the full burden of system complexity on the developer. It is the intended model for those building custom, self-contained trading platforms from the ground up.16
+• Intermediary/Bridge-Based Integration: This model introduces an intermediary software application, often called a "Bridge," that sits between a
+signal-generating platform and the broker's core APl.17 This paradigm is designed to lower the barrier to entry for automation. The workflow is fundamentally different:
+o The user's strategy, often developed on a third-party platform like TradingView, Amibroker, or MT4, does not generate a full order request.
+Instead, it sends a simplified, high-level "signal".17
+o The Bridge application, running on the user's computer, receives this signal.
+o The Bridge then consults its own graphical user interface (GUI), where the user has pre-configured rules for order quantity, risk management, and other parameters.
+o The Bridge interprets the simple signal, combines it with the pre-configured settings, and handles the complex task of authenticating with the broker and constructing the final, syntactically correct order payload. It then sends this payload to the broker's direct API on the user's behalf.
+This model is intended for traders and strategists who want to automate signals from their preferred charting software without needing to engage in low-level, ground-up programming.17
+The existence of these two distinct integration paradigms within the Fyers ecosystem is not accidental. It reflects a deliberate product strategy to cater to two different user personas: the "developer," who requires the raw power and control of the direct API, and the "platform strategist," who values the simplicity and ease of use provided by the API Bridge. The confusion at the heart of the user's query stems from inadvertently encountering documentation for the API Bridge while developing a system intended for direct API integration.
+When a developer chooses the path of direct API integration, they are implicitly
+
+accepting all the architectural responsibilities that the API Bridge would otherwise handle. This includes the crucial task of translating a high-level strategy decision (e.g., "go long") into a low-level, syntactically correct API call. The user's question, therefore, is not merely about syntax but about understanding which component in their chosen architecture is responsible for this translation. In the case of a fully autonomous EA, that component is the EA itself.
+
+
+
+Part 2: The Fyers Trading API (v3): Direct Programmatic Execution
+
+
+For a developer building a fully autonomous Expert Advisor, the Fyers Trading API is the correct and only tool for the job. This direct interface provides the necessary functions for programmatic order execution and state management. A detailed analysis of this API reveals that it operates on fundamental order primitives-Buy and Sell-and has no native concept of the abstracted LE, LX, SE, or SX signals.
+
+
+2.1 Overview of the Fyers Trading API v3
+
+
+The Fyers API v3 is a comprehensive suite of REST APls and WebSocket connections engineered specifically for developers and serious traders looking to build their own automated trading systems.4 It is promoted as a robust, scalable, and
+enterprise-grade solution that is offered free of charge, with no subscription or API fees.7
+The release of version 3 introduced significant enhancements designed to improve performance and provide more granular real-time data. Key upgrades include faster order execution (under 50 milliseconds), dedicated WebSockets for order and position updates, and real-time streaming of trade confirmations.6 To facilitate development, Fyers provides official Software Development Kits (SDKs) for multiple programming languages, including Python, Node.js, and C#, with the Python SOK (
+
+fyers-apiv3) being particularly well-supported and relevant for most custom EA development.16
+
+
+
+
+2.2 Authentication and Session Management
+
+
+Before any trading operations can be performed, the EA must complete a mandatory, multi-step authentication process to establish a secure and authorized session. This workflow is a standard security practice in financial APls to ensure user consent and protect account integrity.
+1. Application Creation: The first step takes place on the Fyers API Dashboard. The developer must create a new "app," which serves as a unique identity for their EA. Upon creation, Fyers provides a client_id (also known as the App ID) and a secret_key. These credentials are confidential and are used to identify the application to the Fyers servers.4
+2. Authcode Generation: The EA initiates the login flow by using its client_id and a pre-configured redirect_uri to programmatically generate a unique login URL. This URL must be opened in a web browser. This step requires manual intervention, where the end-user (the trader) logs in with their Fyers trading credentials and explicitly grants the application permission to access their account and place trades.4 Upon successful login, the browser is redirected to the
+redirect_uri, and a temporary auth_code is appended to the URL as a query parameter.
+3. Access Token Generation: The EA captures this auth_code from the redirect URL. It then makes a final authentication request to the Fyers API, sending its client_id, secret_key, and the just-received auth_code. In return, the API provides a short-lived access token.4 This
+access_token is the final key that must be included in the authorization header of all subsequent API requests for data or trading.
+
+
+2.3 Core Order Placement and Management Functions
+
+
+The heart of the Fyers Trading API for an EA is its set of functions for placing and managing orders. These functions operate on explicit, low-level parameters.
+• The place_order Function: This is the primary endpoint for executing a single trade. It accepts a data payload, typically a Python dictionary or a JSON object, containing the precise specifications for the order. Analysis of the official SOK
+
+documentation and numerous developer community discussions reveals a set of crucial parameters that must be correctly formatted.21
+The entire concept of LE/LX/SE/SX is an abstraction built upon the most fundamental parameter in this payload: side. The core API only understands two atomic actions: a Buy, represented by the integer 1, and a Sell, represented by the integer -1.15 The strategic meaning of that action-whether it is an entry, an exit, a scale-in, or a reversal-is context that the API endpoint is completely unaware of. That context must be managed entirely by the client application, which is the developer's EA. The intelligence of the EA lies in its ability to decide
+when to send a side: 1 or side: -1 call based on its own internal logic and state awareness.
+While the direct API is powerful, it can be unforgiving. A recurring issue reported by developers in community forums is the receipt of a generic and unhelpful error message: {'code': -50, 'message': 'Invalid input', 's': 'error'}.23 Further investigation consistently reveals that these errors are caused by incorrect data typing in the order payload. The Fyers API backend performs strict validation and expects numeric values to be explicitly cast as integers or floats, and boolean values to be passed as true booleans (
+False), not as strings ("False").22 This is a critical, practical implementation detail that developers must be aware of to avoid frustrating and difficult-to-debug errors. An expert-level EA must incorporate rigorous client-side data type validation before dispatching any order payload.
+• Other Order Functions: The API also provides convenience functions such as multi_order for placing a basket of up to 10 orders simultaneously, and exit_positions to square off all or specific open positions.15 For managing pending orders, functions like
+cancel_order are available, which require the unique orderld of the specific order to be cancelled.25
+The following table provides a definitive reference for the parameters of the single place_order function, consolidating information from official documentation and community-driven troubleshooting.
+
+Table 2.1: Fyers API v3 place_order Parameters
+
+Parameter NameData TypeDescriptionExampleRequirementsymbolStringThe unique"NSE:SBIN-EQ"Mandatory
+
+trading symbol for the instrument.qtyIntegerThe quantity of the instrument to trade. Must be a whole number.10MandatorytypeIntegerThe type of order. 1=Limit, 2=Market, 3=Stop (SL-M),
+4=Stop-Limit (SL-L).2MandatorysideIntegerThe direction of the trade. 1 for Buy, -1 for Sell.MandatoryproductTypeStringThe product category. e.g., "INTRADAY", "CNC", "MARGIN", "CO", "BO"."INTRADAY"MandatorylimitPriceFloatThe price for a Limit or
+Stop-Limit order. Set to 0 for Market orders.550.25OptionalstopPriceFloatThe trigger price for a Stop or Stop-Limit
+order. Set to 0 for other types.545.00OptionalvalidityStringThe order validity. "DAY" for day order,"DAY"Mandatory
+
+"IOC" for Immediate or Cancel.disclosedOtyIntegerThe disclosed quantity for iceberg orders. Set to O for regular orders.0MandatoryoffiineOrderBooleanSet to True to place an After Market Order (AMO). Must be False for live trading.FalseMandatorystoplossFloatThe stop-loss value for Cover Orders (CO) and Bracket Orders (BO).5.0OptionaltakeProfitFloatThe take-profit value for Bracket Orders (BO).10.0Optional
+
+
+2.4 State and Position Management via the API
+
+
+Since the place_order function is stateless-it simply executes a Buy or Sell command without any memory of past trades-the responsibility for maintaining state falls squarely on the EA. A well-architected EA must continuously be aware of its own market exposure to make intelligent decisions.
+This is achieved by programmatically querying the API for state information. The EA must make regular calls to functions like fyers.positions() to get a list of all current open and closed positions, and fyers.get_orders() to retrieve the status of all pending
+
+and executed orders for the day.15
+
+A typical logic flow within an autonomous EA would be as follows:
+1. The EA's strategy engine analyzes market data and generates an internal "BUY" signal for the symbol "SBIN-EQ".
+2. Before acting, the EA's state management module calls fyers.positions().
+3. It parses the JSON response from the API to determine if there is an existing position in "SBIN-EQ".
+4. Scenario A (No Position): If no position exists, the EA's logic interprets this "BUY" signal as a "Long Entry". It then constructs a payload with side: 1 and calls the place_order function.
+5. Scenario B (Existing Position): If a long position already exists, the EA's logic might decide to scale into the position (by placing another side: 1 order), or it might ignore the signal to avoid over-exposure.
+6. Later, the strategy engine generates a "SELL" signal. The EA again queries its state, sees the open long position, and interprets this signal as a "Long Exit". It then calls place_order with side: -1 to close the position.
+This continuous loop of "check state, then act" is the fundamental operating principle of an autonomous trading system built on a direct API.
+
+
+
+Part 3: The Fyers API Bridge: An Intermediary for Signal-Based Trading
+
+
+To fully resolve the user's query, it is imperative to demystify the Fyers API Bridge and the LE/LX/SE/SX parameters associated with it. This analysis will demonstrate that the Bridge is a distinct product designed for a different user base and purpose, and that its signal-based methodology is fundamentally different from the direct API integration required for a custom EA.
+
+
+3.1 Defining the Fyers API Bridge
+
+
+The Fyers API Bridge is not a code library or a set of functions to be integrated into a
+
+custom application. It is a standalone desktop software application that functions as a connector or an intermediary.17 Its primary role is to link signal-generating
+platforms-most notably TradingView, Amibroker, MT4, and NinjaTrader-to the core Fyers Trading APl.17
+The entire operational model of the Bridge is built around the concept of receiving and processing high-level "Signals".17 These signals are not complex, structured API requests but simple, text-based instructions that tell the Bridge
+what to do in strategic terms, not how to do it in technical terms.
+
+
+3.2 The LE/LX/SE/SX Signal Types
+
+
+The LE, LX, SE, and SX parameters are the four primary signal types that the Fyers API Bridge is programmed to understand. Their definitions are explicit and consistent across all documentation pertaining to the Bridge.
+
+Table 3.1: Fyers API Bridge Signal Type Definitions
+
+SignalFull NameDescriptionCorresponding Direct API side ParameterLELong EntryA signal indicating a fresh Buy to create a new long position.LXLong ExitA signal indicating a Sell to reduce or square-off an existing long position.-1SEShort EntryA signal indicating a fresh Sell to create a new short position.-1sxShort ExitA signal indicating a Buy to reduce or square-off an existing short
+
+position.
+These signals are typically used within the "message" body of an alert created on a platform like TradingView. For instance, a user would configure an alert in TradingView to fire when a certain condition is met, and the message payload for that alert would contain lines of text like SYMBOL: SBIN and TYPE: LE.29 This simple text-based format is what makes the Bridge accessible to non-programmers.
+
+
+3.3 The Signal Processing Workflow
+
+
+The power of the API Bridge lies in its ability to abstract away the complexities of direct API interaction. The workflow is a clear, multi-step process that shifts the technical burden from the user to the Bridge application itself.
+1. Signal Generation: A user defines a strategy or alert condition in a third-party application like TradingView. When the condition is met, the platform sends an alert (typically via a webhook) containing the simple text-based signal, e.g., TYPE: LE, SYMBOL: NIFTY50, PRICE: 18500.30
+2. Signal Reception: The Fyers API Bridge application, which must be running on the user's local machine or a server, listens for and receives this incoming signal.
+3. Configuration Lookup: Upon receiving the signal, the Bridge does not immediately act. Instead, it looks up the symbol ("NIFTY50") in its internal "Symbol Settings" panel. This is a graphical interface where the user has
+pre-configured all the detailed order parameters, such as the Quantity to trade, the Entry Order Type (e.g., Market or Limit) to be used for all LE and SE signals, the Exit Order Type for LX and SX signals, the Product Type, and various risk management rules.28
+4. Order Construction: This is the core function of the Bridge. It merges the information from the simple signal (the "what") with the detailed parameters from its Symbol Settings (the "how"). For example, if it receives a TYPE: LE signal, and the settings for that symbol specify a quantity of 100 and a market order, the Bridge will construct a complete, syntactically valid JSON payload for the direct Fyers Trading AP/. In this case, it would create a payload containing side: 1, qty: 100, type: 2, etc.
+5. Execution and State Management: The Bridge sends this fully formed order request to the Fyers API for execution.17 Furthermore, the Bridge maintains its
+
+own state. It has built-in rules, which can be enabled by the user, such as "LX/SX Send Quantity<= NetPos".32 This rule prevents the Bridge from sending a sell order to exit a long position if its internal state shows that no long position exists, thereby preventing accidental short entries.
+This abstraction is a powerful feature for its target audience. It allows a strategist to think in high-level terms ("enter long," "exit short") and offload the tedious and error-prone tasks of API authentication, order object construction, and state management to the Bridge application. This dramatically simplifies the code or alert conditions required on the signal-generating platform.
+
+The user's initial confusion is common and understandable. They likely encountered support articles or community posts related to the AP/ Bridge 17 while searching for general information about the
+Fyers AP/. It is critical to recognize that Fyers maintains distinct documentation and support channels for these two separate products. The LE/LX/SE/SX terminology exists exclusively within the context of the Bridge and is not part of the direct APl's vocabulary.
+
+
+
+Part 4: Synthesis and Definitive Recommendation for Your EA Architecture
+
+
+This final section synthesizes the preceding analysis to provide a clear, unambiguous, and actionable conclusion. By directly comparing the two integration architectures and reiterating the core principles of autonomous system design, this section will definitively confirm the user's initial assumption and provide a set of architectural best practices for the successful development of their Expert Advisor.
+
+
+4.1 Comparative Analysis: Direct API vs. API Bridge
+
+
+The fundamental differences between the two Fyers integration pathways can be summarized in a direct, head-to-head comparison. This highlights why the direct API
+
+is the only appropriate choice for a custom-built, fully autonomous EA.
+
+Table 4.1: Architectural Comparison - Direct API vs. API Bridge
+
+Architectural DimensionDirect Fyers Trading APIFyers API BridgeLocus of LogicContained entirely within your custom EA code.Split between the signal source (e.g., TradingView script) and the Bridge's GUI settings.Control GranularityAbsolute, per-order control. Every parameter can be dynamically set by your EA's logic.Signal-triggered execution based on pre-configured rules in the Bridge. Less dynamic control.State ManagementThe explicit responsibility of your EA. It must query the API to know its state.Primarily handled by the Bridge application, which tracks positions based on signals received.Primary CommunicationDirect, programmatic API calls with detailed, structured JSON payloads.Simplified, text-based "Signals" (e.g., TYPE: LE) sent from a third-party platform.Intended UserProgrammers, developers, and quantitative traders
+building systems from scratch.Strategists and traders using third-party charting platforms who want to automate alerts.Key PrimitivesThe place_order function, using side: 1 for Buy and side:
+-1 for Sell.The LE, LX, SE, and SX signal types, which are interpreted by the Bridge.
+
+4.2 Final Verdict: Your Assumption is Correct
+
+
+Based on the comprehensive analysis of both the Fyers Trading API and the Fyers API Bridge, the conclusion is unequivocal:
+For a fully automated Expert Advisor built from the ground up (e.g., in Python)
+
+that contains its own complete trading logic and state management, the LE, LX, SE, and SX signal types are entirely unnecessary, irrelevant, and non-functional.
+
+These signals are a feature of the Fyers API Bridge's abstraction layer, a system that a custom EA architecture is designed to bypass completely. The direct Fyers Trading API endpoints, which the EA must communicate with, do not recognize or process these signal types. Attempting to build an EA that generates these signals would be an architectural error, as there would be no corresponding component to interpret them. The EA must instead communicate using the APl's native language of structured order payloads.
+
+
+4.3 Architectural Best Practices for Your EA
+
+
+To proceed with confidence, developers should adhere to the following architectural principles when building a fully autonomous EA on the Fyers platform.
+• Embrace Stateful Design: The core of an autonomous system's intelligence is its awareness of its own state. The EA must be architected to maintain a real-time understanding of its current positions, pending orders, and capital. This is not a shortcoming but the very foundation of its decision-making capability. A
+well-architected EA is, in essence, its own bespoke, highly specialized version of the API Bridge-it ingests its own internal signals (from its strategy logic), consults its own internal settings (its risk and strategy parameters), and constructs the final, valid API call. Recognizing this parallel clarifies the true scope of the development task.
+• Utilize the side Parameter as the Atomic Action: All order execution logic within the EA should ultimately resolve to a call to the place_order function with the side parameter correctly set.
+o A Long Entry (LE) is programmatically achieved when the EA's logic verifies that no relevant position exists and then dispatches a place_order call with side: 1.
+o A Long Exit (LX) is achieved when the EA's logic verifies that a long position exists and then dispatches a place_order call with side: -1.
+o The logic for Short Entry (SE) and Short Exit (SX) follows the same pattern, mapping to side: -1 and side: 1 respectively, based on the EA's current state.
+• Implement Robust Error Handling and Data Typing: Given the strictness of the Fyers API and the generic nature of its error messages, client-side diligence is
+
+paramount. Before sending any order payload, the EA should rigorously validate that all data types are correct-quantities are integers, prices are floats, and booleans are true booleans.22 All API calls should be wrapped in
+try-except blocks to gracefully handle potential API errors, network timeouts, or malformed responses, preventing the entire application from crashing on a single failed order.
+• Decouple Strategy from Execution for Testability: A hallmark of professional EA development is the separation of concerns. The strategy logic (the "when" and "why" to trade) should be developed as a distinct module from the order execution module (the "how" to trade). This decoupling allows the strategy logic to be rigorously backtested against years of historical data without requiring a live API connection, which is essential for validating and optimizing a strategy before risking real capital.2
+Works cited
+
+1. EA Trading - How Do You Trade With An Expert Advisor (EA)? - ForexVPS, accessed July 26, 2025, https://www.forexvps.net/resources/ea-trading/
+2. Top 5 Reasons Why and Why Not to Use Expert Advisors - SpeedBot, accessed July 26, 2025,
+https://speedbot.tech/blog/expert-advisors-15/top-5-reasons-why-and-why-not­ to-use-expert-advisors-146
+3. Introduction to Expert Advisors (EAs) - Bybit, accessed July 26, 2025, https://www.bybit.com/en/help-center/article/lntroduction-to-Expert-Advisors-E As
+4. fyers-api integration with python I by Anoob Paul - Medium, accessed July 26,
+2025,
+https://medium.com/@anoobpaul/fyers-api-integration-with-python-257d7fcf 48 ab
+5. Mastering Python with Fyers: A Comprehensive Guide to Placing Various Order Types, accessed July 26, 2025, https://www.youtube.com/watch?v=HUqhxUo3l1k
+6. What are the differences between API V2 and V3 documentation in FYERS?, accessed July 26, 2025,
+https://support.fyers.in/portal/en/kb/articles/what-are-the-differences-between-a pi-v2-and-v3-documentation-in-fyers
+7. Introducing FYERS API Version 3 (V3.0.0): A Major Update for Improved Algo Trading, accessed July 26, 2025,
+https://fyers.in/community/blogs-gdppin8d/post/unveiling-fyers-api-version-3-v3
+-0-0-a-comprehensive-update-to-enhance-NUuYJmm6gt9toPm
+8. abiodunaremu/openea: FxChartAI Al-Agent Trading EA is an open-source MQL5 Expert Advisor for MetaTrader 5 that trades using signals from FxChartAI. It employs trend confirmation, candle tail/trendline analysis, and dynamic order management. Free for personal & commercial use. Contributions welcome. -
+
+GitHub, accessed July 26, 2025, https://github.com/abiodunaremu/openea
+9. How to Use Trading APls to Help You Beat the Market - Troy Elevator Inc-, accessed July 26, 2025,
+https://troyelevatorinc.com/news/story/33589832/how-to-use-trading-apis-to-he Ip-you-beat-the-market
+1O. Expert Advisor Tutorial - EA Studio Forex - Fintechee, accessed July 26, 2025, https://www.fintechee.com/tutorial-for-forex-trading/expert-advisor/
+
+11. API Trading for FX Markets - FOREX.com US, accessed July 26, 2025, https://www.forex.com/en-us/premium-trader-tools/api-trading/
+12. Solace: Event-driven integration for the agentic age, accessed July 26, 2025, https://solace.com/
+13. Building Your Trading Strategy from Scratch with Phoenix - Alpaca, accessed July 26, 2025,
+https://alpaca.markets/learn/building-your-trading-strategy-from-scratch-with-p hoenix
+14. Build Your Fintech App with Broker API for Stock, Options, Crypto - Alpaca, accessed July 26, 2025, https://alpaca.markets/broker
+15. how to get open positions details - FYERS, accessed July 26, 2025, https://fyers.in/community/fyers-api-rha0riqv/post/how-to-get-open-positions-d etails-RPnZSOHzSIEXSjR
+16. API - FYERS, accessed July 26, 2025, https://myapi.fyers.in/
+17. How to integrate FYERS API Bridge with front-end platforms?, accessed July 26, 2025,
+https://support.fyers.in/portal/en/kb/articles/how-to-integrate-fyers-api-bridge-w ith-front-end-platforms
+18. AlgoJi APIBridge Documentation, accessed July 26, 2025, https://algoji.com/apibridge-documentation/
+19. API Trading I API for Algo Trading I FYERS API Bridge, accessed July 26, 2025,
+https://fyers.in/products/api-bridge/
+20. Fyers - GitHub, accessed July 26, 2025, https://github.com/FyersDev
+21. fyers-apiv3 - PyPI, accessed July 26, 2025, https://pypi.org/project/fyers-apiv3/
+22. Getting error for placing order with API V3 - Invalid Input - FYERS, accessed July 26, 2025,
+https://fyers.in/community/fyers-api-rha0riqv/post/getting-error-for-placing-orde  r-with-api-v3---error-invalid-input-cacCK5DRLe9sUw8
+23. Not able to place orders with API v3 getting error - FYERS, accessed July 26, 2025,
+https://fyers.in/community/fyers-api-rha0riqv/post/not-able-to-place-orders-with
+-api-v3-getting-error-5CcFOSpa3oCBkTN
+24. Wanted help in orderPlace for V3 python API - FYERS, accessed July 26, 2025, https://fyers.in/community/fyers-api-rha0riqv/post/wanted-help-in-orderplace-fo  r-v3-python-api-9XB0xSd5OCn49ib
+25. 4. Order placement guide I FYERS API - Java - YouTube, accessed July 26, 2025,
+https://www.youtube.com/watch?v=Q64uoAMAdcU
+26. Platforms & Tools I Order API Knowledge Base - FYERS - Support Portal, accessed
+
+July 26, 2025,
+https://support.fyers.in/portal/en/kb/platforms-tools/fyers-api/api-v3/order-api
+27. What is the function of the "data" parameter in the get_orders API? - FYERS - Support Portal, accessed July 26, 2025, https://support.fyers.in/portal/en/kb/articles/what-is-the-function-of-the-data-pa rameter-in-the-get-orders-api-20-11-2023
+28. How to change/modify Symbol Settings in FYERS API Bridge? - FYERS - Support Portal, accessed July 26, 2025,
+https://support.fyers.in/portal/en/kb/articles/how-to-change-modify-symbol-setti ngs-in-fyers-api-bridge
+29. How to place orders through Stock Screener of trading view? - FYERS, accessed July 26, 2025,
+https://fyers.in/community/fyers-api-bridge-enhan7vy/post/how-to-place-orders
+-through-stock-screener-of-trading-view-MLD5CYQMv1jgW9C
+
+30. How to integrate FYERS API Bridge with TradingView? - FYERS - Support Portal, accessed July 26, 2025,
+https://support.fyers.in/portal/en/kb/articles/how-to-integrate-fyers-api-bridge-w ith-tradingview
+31. What are Symbol Settings? - MyCoder, accessed July 26, 2025, https://kb.mycoder.pro/apibridge/what-are-symbol-settings/
+32. How to change/modify Application Settings in FYERS API Bridge?, accessed July 26, 2025,
+https://support.fyers.in/portal/en/kb/articles/how-to-change-modify-application­ settings-in-fyers-api-bridge

@@ -1,0 +1,677 @@
+﻿core idea ML Integration Architecture with Market Limitations Fallback Systems 
+ 
+
+# Complete Framework Including ML Failures, Market Conditions & Enhanced Safety Protocols {#complete-framework-including-ml-failures-market-conditions-enhanced-safety-protocols .unnumbered}
+
+📋 **Table of Contents**
+
+1.  [Executive Summar]{.underline}y
+
+2.  [When ML Does NOT Perform Well]{.underline}
+
+3.  [ML Failure Detection & Fallback S]{.underline}y[stem]{.underline}
+
+4.  [Expir]{.underline}y [Da]{.underline}y [Trading
+    Protocol]{.underline}
+
+5.  [Market-Specific ML Limitations]{.underline}
+
+6.  [Enhanced Safet]{.underline}y [Mechanisms]{.underline}
+
+7.  [Implementation Guidelines]{.underline}
+
+# 🎯 Executive Summary {#executive-summary .unnumbered}
+
+This document extends the ML Integration Architecture to
+
+> ![](media/image1.png){width="6.25e-2in" height="6.25e-2in"} **ML
+> Failure Scenarios**: When and why ML under
+>
+> ![](media/image1.png){width="6.25e-2in" height="6.25e-2in"} **Enhanced
+> Fallback System**: Mandatory dual
+>
+> ![](media/image1.png){width="6.25e-2in" height="6.25e-2in"} **Expiry
+> Day Protocols**: Specific rules for las
+>
+> ![](media/image1.png){width="6.25e-2in" height="6.25e-2in"}
+> **Market-Specific Limitations**: Where ML kets
+>
+> ![](media/image1.png){width="6.25e-2in" height="6.25e-2in"}
+> **Continuous Trading**: No restriction on eriods
+
+## Key Principle {#key-principle .unnumbered}
+
+When ML fails or underperforms, the EA do ules - it enforces
+**STRICTER**
+
+candlestick pattern and volume profile requ win rates.
+
+# 🚨 When ML Does NOT Perform {#when-ml-does-not-perform .unnumbered}
+
+1.  Black Swan Events **(Completely U**
+
+#### Examples: {#examples .unnumbered}
+
+![](media/image1.png){width="6.25e-2in" height="6.25e-2in"} COVID-19
+Market Crash (March 2020)
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Swiss Franc
+Unpeg (2015) ![](media/image2.png){width="6.25e-2in" height="6.25e-2in"}
+Flash Crashes
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Sudden
+Government Policy Changes
+
+#### ML Behavior: {#ml-behavior .unnumbered}
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Confidence
+drops to 20-30%
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Historical
+patterns become irrelevant ![](media/image2.png){width="6.25e-2in"
+height="6.25e-2in"} Models show high disagreement
+
+#### EA Response: {#ea-response .unnumbered}
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"}
+Automatically switches to fallback mode
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Requires
+strict dual enhancement
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Wider stop
+losses applied
+
+### Indian F&O Expiry Day Volatility
+
+#### Specific Issues: {#specific-issues .unnumbered}
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Last 2 hours
+(1:30-3:30 PM) extreme movements ![](media/image2.png){width="6.25e-2in"
+height="6.25e-2in"} Gamma squeezes on monthly expiry
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"}
+Institutional \"max pain\" manipulation
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Sudden
+200-300 point NIFTY moves
+
+#### ML Challenges: {#ml-challenges .unnumbered}
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Patterns
+break down completely ![](media/image2.png){width="6.25e-2in"
+height="6.25e-2in"} Historical data less relevant
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Rapid
+sentiment changes
+
+#### EA Adaptations: {#ea-adaptations .unnumbered}
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Fixed stop
+losses (0.25% from STR-EXIT) ![](media/image2.png){width="6.25e-2in"
+height="6.25e-2in"} Mandatory dual enhancement
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Continue
+trading with strict filters
+
+### Major Economic News Releases
+
+#### High-Impact Events: {#high-impact-events .unnumbered}
+
+####  {#section .unnumbered}
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} FOMC Rate
+Decisions ![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} US
+Non-Farm Payrolls ![](media/image2.png){width="6.25e-2in"
+height="6.25e-2in"} Indian Budget Day
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} RBI Policy
+Announcements
+
+#### Problems: {#problems .unnumbered}
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} 50-100 pip
+spikes in seconds ![](media/image2.png){width="6.25e-2in"
+height="6.25e-2in"} ML can\'t react fast enough
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Spreads
+widen dramatically
+
+#### Protection: {#protection .unnumbered}
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} 5-minute
+pre-news trading block
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Reduced ML
+confidence weighting ![](media/image2.png){width="6.25e-2in"
+height="6.25e-2in"} Stricter entry requirements
+
+### Thin Liquidity Periods
+
+#### Dangerous Times: {#dangerous-times .unnumbered}
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Indian
+Markets: Pre-market (9:00-9:15 AM)
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Forex:
+Sunday open, holiday sessions
+
+![](media/image3.png){width="6.25e-2in" height="6.25e-2in"} Commodities:
+Rollover periods ![](media/image2.png){width="6.25e-2in"
+height="6.25e-2in"} F&O: Far OTM strikes
+
+#### ML Failures: {#ml-failures .unnumbered}
+
+![](media/image3.png){width="6.25e-2in" height="6.25e-2in"} Price gaps
+make patterns meaningless ![](media/image2.png){width="6.25e-2in"
+height="6.25e-2in"} Volume data unreliable
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Wider
+bid-ask spreads
+
+#### Solutions: {#solutions .unnumbered}
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Avoid far
+OTM strikes
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Increase
+minimum volume requirements ![](media/image3.png){width="6.25e-2in"
+height="6.25e-2in"} Use limit orders only
+
+### Market Regime Changes
+
+#### Transition Periods: {#transition-periods .unnumbered}
+
+####  {#section-1 .unnumbered}
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Bull to Bear
+market shift
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Low to High
+volatility regime ![](media/image2.png){width="6.25e-2in"
+height="6.25e-2in"} Policy/regulation changes
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Trending to
+Ranging markets
+
+#### ML Adaptation Time: {#ml-adaptation-time .unnumbered}
+
+![](media/image3.png){width="6.25e-2in" height="6.25e-2in"} 2-4 weeks
+for full retraining ![](media/image2.png){width="6.25e-2in"
+height="6.25e-2in"} Gradual confidence recovery
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Feature
+importance shifts
+
+#### Interim Protection: {#interim-protection .unnumbered}
+
+![](media/image2.png){width="6.25e-2in" height="6.25e-2in"} Reduced
+position sizes
+
+![](media/image3.png){width="6.25e-2in" height="6.25e-2in"} Higher
+confidence thresholds ![](media/image2.png){width="6.25e-2in"
+height="6.25e-2in"} More weight on recent data
+
+# 🛡 ML Failure Detection & Fallback System {#ml-failure-detection-fallback-system .unnumbered}
+
+## Detection Triggers {#detection-triggers .unnumbered}
+
+> python
+>
+> ML_FAILURE_CONDITIONS = {
+>
+> \"low_confidence\": ml_confidence \< 0.75, \"model_disagreement\":
+> model_variance \> 0.20, \"extreme_vix\": india_vix \> 30,
+> \"technical_failure\": ml_connection_lost, \"time_based\":
+> is_high_impact_news_time,
+>
+> \"performance_degradation\": recent_win_rate \< expected - 0.10
+>
+> }
+
+## Enhanced Fallback Logic {#enhanced-fallback-logic .unnumbered}
+
+**CRITICAL UPDATE**: When ML fails, don\'t just use 34 conditions - add
+MANDATORY dual enhancement
+
+> ML FAILURE DETECTED:
+>
+> ├── Step 1: Verify 34 Entry Conditions (min 10 met) ✓
+>
+> ├── Step 2: Skip ML Validation ❌
+>
+> └── Step 3: MANDATORY Dual Enhancement ✓✓
+>
+> ├── STRICT Candlestick Pattern Required
+>
+> │ └── Only strongest patterns accepted
+>
+> └── HIGH Volume Profile Required
+>
+> └── 150%+ average volume minimum
+>
+> └── BOTH must pass = Execute Trade
+
+## Fallback Mode Requirements {#fallback-mode-requirements .unnumbered}
+
+#### Stricter Candlestick Patterns (Fallback Mode Only) Bullish Patterns Accepted: {#stricter-candlestick-patterns-fallback-mode-only-bullish-patterns-accepted .unnumbered}
+
+![](media/image4.png){width="6.25e-2in" height="6.25e-2in"} Three Line
+Strike (strongest) ![](media/image4.png){width="6.25e-2in"
+height="6.25e-2in"} Three White Soldiers
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} Morning Star
+(with volume)
+
+#### Bearish Patterns Accepted: {#bearish-patterns-accepted .unnumbered}
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} Three Black
+Crows (strongest) ![](media/image4.png){width="6.25e-2in"
+height="6.25e-2in"} Evening Star
+
+![](media/image4.png){width="6.25e-2in" height="6.25e-2in"} Abandoned
+Baby
+
+*Note: Weaker patterns like Hammer, Doji, etc. are REJECTED in fallback
+mode*
+
+**Enhanced Volume Requirements**
+
++-----------------------+---------------------------+------------------+
+| > **Mode**            | > **Volume Requirement**  | > **Spread       |
+|                       |                           | > Check**        |
++=======================+===========================+==================+
+| > Normal (ML Active)  | > \> 100% average         | > Normal         |
++-----------------------+---------------------------+------------------+
+| > Fallback (ML        | > \> 150% average         | > Strict (\<2    |
+| > Failed)             |                           | > pips)          |
++-----------------------+---------------------------+------------------+
+|                       |                           |                  |
++-----------------------+---------------------------+------------------+
+
+**Expected Win Rates by Mode**
+
++-----------------------------------------------+----------------------+
+| > Full System (All Components):               | > 90-95%             |
++===============================================+======================+
+| > Fallback Mode (No ML):                      | > 80-85%             |
++-----------------------------------------------+----------------------+
+| > Basic Only (34 Conditions):                 | > 65-70%             |
++-----------------------------------------------+----------------------+
+| > Emergency (News/Crash):                     | > Skip Trading       |
++-----------------------------------------------+----------------------+
+
+# 📅 Expiry Day Trading Protocol {#expiry-day-trading-protocol .unnumbered}
+
+## CRITICAL: Continue Trading in Last 2 Hours {#critical-continue-trading-in-last-2-hours .unnumbered}
+
+**Previous guidance (INCORRECT)**: Avoid new trades in last 2 hours
+
+**Updated guidance (CORRECT)**: **CONTINUE TRADING** with enhanced
+filters
+
+## Last 2 Hours Rules (1:30 PM - 3:30 PM IST) {#last-2-hours-rules-130-pm---330-pm-ist .unnumbered}
+
+> Expiry Day Last 2 Hours:
+>
+> ├── Continue Scanning ✓ (NO RESTRICTIONS)
+>
+> ├── Apply All 34 Entry Conditions ✓
+>
+> ├── Use ML if Available ✓
+>
+> ├── MANDATORY Dual Enhancement ✓✓
+>
+> ├── FIXED Stop Loss Protocol ✓
+>
+> │ ├── Buy: 0.25% below STR-EXIT (1H)
+>
+> │ └── Sell: 0.25% above STR-EXIT (1H)
+>
+> ├── Normal Position Sizing ✓
+>
+> └── Auto-Close at 3:29 PM ✓
+
+## Stop Loss Configuration {#stop-loss-configuration .unnumbered}
+
+#### Fixed Stop Loss (Last 2 Hours Only) {#fixed-stop-loss-last-2-hours-only .unnumbered}
+
+> python
+>
+> def get_expiry_stop_loss(position_type, str_exit_1h): \"\"\"Fixed stop
+> loss for expiry day last 2 hours\"\"\"
+>
+> if position_type == \"BUY\":
+>
+> return str_exit_1h \* 0.9975 *\# 0.25% below*
+>
+> elif position_type == \"SELL\":
+>
+> return str_exit_1h \* 1.0025 *\# 0.25% above*
+
+#### Key Points: {#key-points .unnumbered}
+
+![](media/image4.png){width="6.25e-2in" height="6.25e-2in"} NO
+volatility adjustment
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} Based on
+1-hour timeframe only ![](media/image4.png){width="6.25e-2in"
+height="6.25e-2in"} Remains fixed (no trailing)
+
+![](media/image4.png){width="6.25e-2in" height="6.25e-2in"} Overrides
+normal stop loss logic
+
+## Why Continue Trading? {#why-continue-trading .unnumbered}
+
+#### High Volatility = Opportunities: Best
+
+####  {#section-2 .unnumbered}
+
+1.  **Enhanced Protection**: Dual enhancement filters weak trades
+
+2.  **Fixed Stops**: Protection against gamma squeezes
+
+3.  **Proven System**: Your rules work in volatile conditions
+
+# 📊 Market-Specific ML Limitations {#market-specific-ml-limitations .unnumbered}
+
+## Indian F&O Markets {#indian-fo-markets .unnumbered}
+
+#### Where ML Excels: {#where-ml-excels .unnumbered}
+
+![](media/image6.png){width="6.25e-2in" height="6.25e-2in"}
+NIFTY/BANKNIFTY ATM ± 2 strikes
+
+![](media/image6.png){width="6.25e-2in" height="6.25e-2in"} Normal
+trading hours (9:30 AM - 1:30 PM)
+![](media/image6.png){width="6.25e-2in" height="6.25e-2in"} Non-expiry
+days
+
+![](media/image6.png){width="6.25e-2in" height="6.25e-2in"} Trending
+markets
+
+#### Where ML Struggles: {#where-ml-struggles .unnumbered}
+
+![](media/image6.png){width="6.25e-2in" height="6.25e-2in"} Far OTM
+strikes (low liquidity) ![](media/image7.png){width="6.25e-2in"
+height="6.25e-2in"} Expiry day last hour
+
+![](media/image6.png){width="6.25e-2in" height="6.25e-2in"} Pre-market
+session ![](media/image6.png){width="6.25e-2in" height="6.25e-2in"}
+Circuit filter days
+
+#### Red Flags: {#red-flags .unnumbered}
+
+> IF india_vix \> 25: Reduce ML weight to 50% IF india_vix \> 30:
+> Consider ML off
+>
+> IF india_vix \> 35: Definitely ML off
+
+## Forex Markets {#forex-markets .unnumbered}
+
+#### Strong Performance: {#strong-performance .unnumbered}
+
+![](media/image7.png){width="6.25e-2in" height="6.25e-2in"} Major pairs
+(EURUSD, GBPUSD, USDJPY
+
+![](media/image6.png){width="6.25e-2in" height="6.25e-2in"} London/NY
+overlap ![](media/image7.png){width="6.25e-2in" height="6.25e-2in"}
+Post-news trending ![](media/image7.png){width="6.25e-2in"
+height="6.25e-2in"} Normal volatility
+
+#### Weak Performance: {#weak-performance .unnumbered}
+
+![](media/image7.png){width="6.25e-2in" height="6.25e-2in"} Sunday open
+
+![](media/image4.png){width="6.25e-2in" height="6.25e-2in"} Holiday
+sessions
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} News release
+moments ![](media/image5.png){width="6.25e-2in" height="6.25e-2in"}
+Year-end thin liquidity
+
+## Commodities {#commodities .unnumbered}
+
+#### Best Conditions: {#best-conditions .unnumbered}
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} Crude during
+US session
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} Gold during
+risk-off moves ![](media/image5.png){width="6.25e-2in"
+height="6.25e-2in"} Clear trending periods
+
+![](media/image4.png){width="6.25e-2in" height="6.25e-2in"} Normal
+volatility
+
+#### Avoid ML: {#avoid-ml .unnumbered}
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} Inventory
+releases ![](media/image5.png){width="6.25e-2in" height="6.25e-2in"}
+OPEC meetings
+
+![](media/image4.png){width="6.25e-2in" height="6.25e-2in"} Rollover
+periods ![](media/image5.png){width="6.25e-2in" height="6.25e-2in"}
+Extreme volatility
+
+# 🔧 Enhanced Safety Mechanisms {#enhanced-safety-mechanisms .unnumbered}
+
+## Multi-Layer Protection System {#multi-layer-protection-system .unnumbered}
+
+> Layer 1: Entry Conditions (34 rules) Layer 2: ML Validation (when
+> available)
+>
+> Layer 3: Dual Enhancement (mandatory in fallback) Layer 4: Risk
+> Management (stops, sizing)
+>
+> Layer 5: Time-Based Filters (news, expiry)
+
+## Automatic Mode Switching {#automatic-mode-switching .unnumbered}
+
+##  {#section-3 .unnumbered}
+
+> python
+>
+> def determine_trading_mode(): if is_black_swan_event():
+>
+> return \"EMERGENCY_STOP\" elif ml_failure_detected():
+>
+> return \"FALLBACK_ENHANCED\"
+>
+> elif is_high_volatility(): return \"CAUTIOUS_ML\"
+>
+> else:
+>
+> return \"FULL_SYSTEM\"
+
+## Position Size Adjustments {#position-size-adjustments .unnumbered}
+
++----------------------------+-----------------+-----------------------+
+| > **Market Condition**     | > **ML Status** | > **Position Size**   |
++============================+=================+=======================+
+| > Normal                   | > Active        | > 1.0% risk           |
++----------------------------+-----------------+-----------------------+
+| > High VIX                 | > Active        | > 0.7% risk           |
++----------------------------+-----------------+-----------------------+
+| > Extreme VIX              | > Failed        | > 0.5% risk           |
++----------------------------+-----------------+-----------------------+
+| > Black Swan               | > Off           | > 0% (no trading)     |
++----------------------------+-----------------+-----------------------+
+|                            |                 |                       |
++----------------------------+-----------------+-----------------------+
+
+**Dashboard Indicators**
+
+#### Visual Alerts: {#visual-alerts .unnumbered}
+
+![](media/image6.png){width="6.25e-2in" height="6.25e-2in"} Green: Full
+system operational
+
+![](media/image6.png){width="6.25e-2in" height="6.25e-2in"} Yellow: ML
+degraded, fallback active ![](media/image6.png){width="6.25e-2in"
+height="6.25e-2in"} Orange: High volatility, reduced risk
+![](media/image6.png){width="6.25e-2in" height="6.25e-2in"} Red:
+Emergency, no new trades
+
+# 📋 Implementation Guidelines {#implementation-guidelines .unnumbered}
+
+## Daily Pre-Market Checklist {#daily-pre-market-checklist .unnumbered}
+
+> Morning Routine:
+
+-   Check India VIX level
+
+-   Review economic calendar
+
+-   Note expiry/rollover dates
+
+-   Verify ML confidence levels
+
+-   Test system connections
+
+-   Review overnight gaps
+
+## Intraday Monitoring {#intraday-monitoring .unnumbered}
+
+> During Trading:
+
+-   ML confidence trends
+
+-   Model disagreement levels
+
+-   Win rate vs expected
+
+-   Volume profile changes
+
+-   News event timings
+
+-   VIX movements
+
+## Mode-Specific Actions {#mode-specific-actions .unnumbered}
+
+#### Full System Mode {#full-system-mode .unnumbered}
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} All
+components active ![](media/image5.png){width="6.25e-2in"
+height="6.25e-2in"} Normal risk parameters
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} Standard
+dual enhancement
+
+#### Fallback Mode {#fallback-mode .unnumbered}
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} ML
+offline/failed
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} STRICT dual
+enhancement ![](media/image5.png){width="6.25e-2in" height="6.25e-2in"}
+Only strongest patterns
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} Higher
+volume requirements
+
+#### Expiry Mode (Last 2 Hours) {#expiry-mode-last-2-hours .unnumbered}
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} Continue
+trading ![](media/image5.png){width="6.25e-2in" height="6.25e-2in"}
+Fixed stop losses
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} Mandatory
+dual enhancement ![](media/image5.png){width="6.25e-2in"
+height="6.25e-2in"} 3:29 PM auto-close
+
+#### Emergency Mode {#emergency-mode .unnumbered}
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} No new
+positions
+
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} Manage
+existing only ![](media/image5.png){width="6.25e-2in"
+height="6.25e-2in"} Widen stops if needed
+![](media/image5.png){width="6.25e-2in" height="6.25e-2in"} Prepare for
+gaps
+
+## Performance Tracking {#performance-tracking .unnumbered}
+
+##  {#section-4 .unnumbered}
+
+> python
+>
+> TRACK_METRICS = {
+>
+> \"ml_confidence_distribution\": histogram,
+> \"fallback_mode_frequency\": daily_count, \"pattern_success_rate\":
+> by_pattern_type, \"expiry_day_performance\": separate_tracking,
+> \"mode_switching_log\": timestamp_based
+>
+> }
+
+# 🎯 Key Takeaways {#key-takeaways .unnumbered}
+
+1.  **ML is not infallible** - It fails in unprecedented situations
+
+2.  **Fallback doesn\'t mean basic** - Enhanced requirements maintain
+    quality
+
+3.  **Continue trading expiry days** - With proper protections
+
+4.  **Market-specific adjustments** - Each market has unique ML
+    challenges
+
+5.  **Safety first** - Multiple layers of protection always active
+
+## The Golden Rule {#the-golden-rule .unnumbered}
+
+> \"When in doubt, require more confirmation, not less.\"
+
+This means when ML fails or markets are uncertain, we don\'t lower our
+standards - we RAISE them through mandatory dual enhancement.
+
+# 📊 Quick Reference Card {#quick-reference-card .unnumbered}
+
+**ML Confidence Actions** ![](media/image8.png){width="6.25e-2in"
+height="6.25e-2in"} **\>85%**: Full position size
+![](media/image8.png){width="6.25e-2in" height="6.25e-2in"} **75-85%**:
+Normal trading
+
+> ![](media/image8.png){width="6.25e-2in" height="6.25e-2in"}
+> **60-75%**: Increased scrutiny
+
+![](media/image8.png){width="6.25e-2in" height="6.25e-2in"} **\<60%**:
+Switch to fallback
+
+## VIX-Based Adjustments {#vix-based-adjustments .unnumbered}
+
+![](media/image8.png){width="6.25e-2in" height="6.25e-2in"} **\<20**:
+Normal operations
+
+> ![](media/image8.png){width="6.25e-2in" height="6.25e-2in"} **20-25**:
+> Heightened awareness
+>
+> ![](media/image8.png){width="6.25e-2in" height="6.25e-2in"} **25-30**:
+> Reduce ML weight
+>
+> ![](media/image8.png){width="6.25e-2in" height="6.25e-2in"} **30-35**:
+> Consider ML off
+
+![](media/image8.png){width="6.25e-2in" height="6.25e-2in"} **\>35**:
+Definitely ML off
+
+## Expiry Day Timeline {#expiry-day-timeline .unnumbered}
+
+> ![](media/image8.png){width="6.25e-2in" height="6.25e-2in"} **9:15
+> AM - 1:30 PM**: Normal trading
+>
+> ![](media/image8.png){width="6.25e-2in" height="6.25e-2in"} **1:30
+> PM - 3:29 PM**: Fixed stops, mandatory enhancement
+>
+> ![](media/image8.png){width="6.25e-2in" height="6.25e-2in"} **3:29
+> PM**: Auto-close all positions
+>
+> ![](media/image8.png){width="6.25e-2in" height="6.25e-2in"} **3:30
+> PM**: Market close
+
+*Document Version: 2.0*
+
+*Last Updated: \[Current Date\]*
+
+*For: EA GlobalFlow Pro v7.0 ULTIMATE Development*
+
+*Supersedes: Version 1.0 - Adds ML limitations, fallback systems, and
+expiry protocols*

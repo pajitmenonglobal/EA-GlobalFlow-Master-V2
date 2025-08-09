@@ -1,0 +1,329 @@
+EA GlobalFlow Pro v0.1 - Session Reference & Progress Status
+Date: August 04, 2025
+Status: Development Phase - Module Clarifications in Progress Strategy: lchimoku-TDI-PA-BBsqueeze-Kumocross
+Target Win Rate: 90-95% through Triple Enhancement System
+
+
+ PROJECT OVERVIEW
+EA Name: EA GlobalFlow Pro v0.1
+Markets: Indian F&O (Fyers+ TrueData) + International Markets (IC Markets) Tagline: "Trade the World Markets with fvle"
+Architecture: Multi-market, dual-platform trading system
+
+
+ COMPLETED MODULES
+
+MODULE SET 1: F&O SECONDARY CHART LOGIC - COMPLETE
+All 11 Questions Answered & Confirmed:
+
+1. Chart Opening Speed _, A) Instant (within 1-2 seconds)
+2. 01 Analysis Timing _, Continuous during market hours
+3. Multiple Signal Handling _, Fund-balance based, maximum allowed charts with triple enhancement
+4. 01 Calculation Formula _, Hybrid logic - PATH 1 (Directional Bias) OR PATH 2 (Independent Bias)
+5. Real-time Updates _, Option B: Stick with existing charts, allow new charts for new signals (no same ATM/OTM per day)
+6. ATM Strike Selection _, Option B: Choose nearest to spot price
+7. Expiry Day Override _, Option A: From market open (9:30 AM)
+8. Auto-Close Priority _, First occurrence wins (Stop Loss/Take Profit/3:29 PM/Position Limits)
+9. Fund-Balance Limits_, Entry rules based+ Same-day ATM/OTM restriction+ Trade direction customization
+10. Maximum Chart Limits _, YES - Absolute maximum to prevent system overload
+11. Visual Updates _, Option A - Every tick (real-time strike price, 01 bias %, P&L display)
+
+F&O TRADE DIRECTION CUSTOMIZATION - COMPLETE
+
+
+
+// F&O Trade Direction Selection (External Properties Dialog) input group"=== F&O TRADE DIRECTION SELECTION==="
+
+input bool EnableCallBuy = true; input bool EnableCallSell = false; input bool EnablePutBuy = false; input bool EnablePutSell = true;
+
+// Call Buy (Default: ON)
+// Call Sell (Default: OFF)
+// Put Buy (Default: OFF)
+// Put Sell (Default: ON)
+
+
+Default Strategy: Bullish Bias (Call Buy + Put Sell enabled)
+
+COMPREHENSIVE DOCUMENTATION REVIEW- COMPLETE
+Salient Points Extracted from All Project Files:
+
+ Core Strategy Framework: lchimoku-TDI-PA-BBsqueeze-Kumocross
+ 6 Technical Indicators: Standardized with exact parameters
+ 34 Entry Conditions: 17 Buy (B1-B17) + 17 Sell (S1-S17)
+ Dual Path System: Continuation (CT) + Pullback (PB)
+ Multi-Timeframe Cascade: Daily/4H _, 1H/30M _, 15M/5M
+ Hybrid 01 Logic: >30% minimum bias requirement
+ Risk Management: 0.25% STR-EXIT trailing buffer
+ Trading Hours: Indian F&O (9:30-15:29 1ST), Forex (01:00-23:00)
+ Visual Differentiation: Color-coded chart themes
+ API Integration: Fyers + TrueData + IC Markets
+ Compliance Requirements: NRI restrictions, NSE regulations
+
+
+ PENDING MODULES (On Hold)
+
+MODULE SET 2: TRIPLE ENHANCEMENT TIMING 
+Status: Questions prepared, awaiting clarification after trade entry condition update
+
+Prepared Questions (Q12-Q21):
+
+• ML confidence fallback protocols
+
+• Enhancement failure handling
+
+• VIX > 30 protocol adjustments
+
+• Bar-close timing alignment
+
+• Real-time processing optimization
+
+MODULE SET 3: 34 ENTRY CONDITIONS EXECUTION 
+Status: Pending clarification
+
+Key Areas:
+
+• Minimum trigger requirements (10 out of 34?)
+
+• Condition conflict resolution
+
+• Sequential vs parallel execution
+
+• Failed condition retry logic
+
+MODULE SET 4: RISK MANAGEMENT INTEGRATION 
+Status: Pending clarification
+
+Key Areas:
+
+• Daily loss limit scope (portfolio vs per-market)
+
+• Position sizing priority conflicts
+
+• Correlation limit scope
+
+• Emergency stop activation levels
+
+
+ CURRENT PRIORITY: TRADE ENTRY CONDITION UPDATE
+
+Status: DISCOVERY PHASE - New trade entry condition puzzle identified
+Impact: Affects both EA code integration and indicator standardization
+Action Required: Integration of new discovery into existing 34 entry conditions framework
+
+Dependencies:
+
+1. EA Code Integration - Core trade entry logic update
+
+2. Indicator Standardization - Variable naming alignment
+
+3. Compatibility Check - With existing F&O logic and Triple Enhancement System
+
+
+ TECHNICAL SPECIFICATIONS CONFIRMED
+
+Core Indicators (6 Required)
+1. lchimoku Kinko Hyo (9,26,52) - Buffers: TS, KS, SSA, SSB, CSpan
+
+2. TDI (lchi-Trader Dynamic Index) - Buffers: rsig, MB, TSL, VB_High, VB_Low
+• RSI Period: 13, Volatility Band: 34, Price Line: 2, Signal Line: 7
+
+• Levels: 68 (overbought), 32 (oversold)
+
+3. SMMAS0 - Buffer: SMMA50
+
+4. Bollinger Bands (20,2.0) - Buffers: UpperBoll, LowerBoll, MiddleBoll
+
+5. STR-ENTRY (ATR:20, Mult:1.0) - Buffer: STR_ENTRY
+
+6. STR-EXIT (ATR:20, Mult:1.5) - Buffer: STR_EXIT
+
+Multi-Timeframe Cascade
+
+• Major Trend: Daily OR 4H timeframe analysis
+
+• Middle Trend: 1H OR 30M timeframe analysis
+
+• Entry Execution: 1SM OR SM timeframes only
+
+Hybrid 01 Logic (F&O Only)
+
+ATM Strike Identification:
+
+• ATM Strike = Nearest to current spot price AND nearest to bar-close spot price
+
+• Study 5 levels above and below ATM price
+
+Dual Path 01 Analysis:
+
+PATH 1: Directional Bias Pattern
+
+• Bullish: ATM >30% Call 01 bias + +1-OTM Call 01 >30% more than Put 01
+• Action: Open Call chart @ + 1-OTM + Put chart @ -1-OTM
+
+• Bearish: ATM >30% Put 01 bias + -1-OTM Put 01 >30% more than Call 01
+• Action: Open Put chart @ -1-OTM + Call chart @ + 1-OTM
+
+PATH 2: Independent Bias Pattern
+
+•	+1-0TM: >30% relative difference (any direction)
+
+• -1-0TM: >30% relative difference (any direction)
+
+• Action: Open Call chart @ +1-OTM + Put chart @ -1-OTM
+
+Special Rules:
+
+• Expiry Day: Both charts open at ATM level (overrides OTM logic)
+
+• Chart Limits: Only 1 Call + 1 Put chart per ATM strike
+
+• Minimum Bias: 30% threshold is NEVER compromised
+
+• Auto-Close: 3:29 PM on expiry day mandatory
+
+
+ RISK MANAGEMENT FRAMEWORK
+
+Fixed Requirements (Never Compromise)
+1. 01 Bias: Minimum 30% (customizable but never below)
+
+2. STR-EXIT Logic: 0.25% trailing buffer (sacred protocol)
+
+3. Same-Day Restriction: No re-entry at same ATM/OTM for same asset
+
+4. Entry Conditions: All 34 conditions preserved exactly
+
+5. Exit Rules: STR-EXIT based system mandatory
+
+Exit Conditions (13 Auto-Close Triggers)
+1. STR-EXIT Signal (Primary exit)
+
+2. Stop Loss Hit (Risk management)
+
+3. Take Profit (Profit booking)
+
+4. Time-based Exit (End of session)
+
+5. Opposite Signal (Trend reversal)
+
+6. Correlation Breach (Risk limit)
+
+7. Daily Loss Limit (Account protection)
+
+8. VIX Spike (Market volatility)
+
+9. News Event (Economic calendar)
+
+10. Volume Anomaly (Market irregularity)
+
+11. Gap Opening (Market gap)
+
+12. Expiry Approach (F&O specific)
+
+13. Emergency Stop (Manual override)
+
+
+ OPERATIONAL REQUIREMENTS
+Trading Hours Configuration
+
+
+Visual Identification System
+Primary Chart Markers:
+
+• Badge:  MASTER CONTROL (top-left corner)
+• Background: Deep Blue (0 #003366 ) with gold border
+
+• Status:   RIMARY CHART with crown icon
+
+Secondary Chart Markers (F&O Only):
+
+
+• Call Side: 
+• Put Side:
+  
+ALL CHART with Forest Green Q	#006400] background P T CHART with Dark Red Q¦ 8B0000] background
+
+• Strike Display: Large bold text showing strike price
+
+• Parent Link:  Li ked to MASTER with arrow pointing to parent
+
+Alerts & Notifications
+
+
+mq5
+
+input bool lnpSoundAlert = false; input bool lnpEmailAlert = true; input bool lnpPhoneAlert = true;
+
+
+II Sound Alerts
+II Email Alerts
+II Phone Alerts
+
+input string lnpEmailAddress = "pajitmenonai@gmail.com"; II Email Address
+input string lnpPhoneNumber = "00971507423656"; II Phone Number input bool lnpTradeComments = true;	II Trade Comments
+
+
+
+C	TICAL EXCLUSIONS (Permanently Locked)
+
+•  NO	lliott Wave Analysis - Completely removed from all logic
+•  NO ibonacci Confluence - All Fibonacci components excluded
+• ON Y Triple Enhancement System - 34 Conditions + ML+ Candlestick/Volume
+
+
+T	PLE ENHANCEMENT SYSTEM
+
+Target Win Rate Architecture
+Layer 1: 34 Entry Conditions (Base: 65-70%)
+Layer 2: ML Enhancement (Enhanced: 80-85%)
+Layer 3: Candlestick + Volume (Final: 90-95%)
+
+Enhancement Requirements
+
+• ML Confidence:	75% for trade approval
+
+• Candlestick Pattern: Strong directional pattern required
+
+• Volume Confirmation: Must be present at bar-close
+
+• Fallback Mode: When ML unavailable or VIX >30
+
+
+
+NEXT SESSION CONTINUATION INSTRUCTIONS
+
+For Next Chat Session, use this reference:
+
+"Continue EA GlobalFlow Pro v0.1 development. F&O Secondary Chart Logic is complete with all 11 specifications confirmed. Ready to implement trade entry condition update and indicator standardization. Reference this session progress document and all project knowledge files for complete v0.1 implementation."
+
+
+ IMPLEMENTATION CHECKLIST
+
+ Completed
+ F&O Secondary Chart Logic specifications  Trade direction customization parameters  Complete project documentation review  Salient points extraction from all files
+ Risk management framework definition  Visual identification system design
+ Trading hours configuration  Alert and notification system
+
+ In Progress
+ Trade entry condition puzzle resolution  Indicator standardization alignment
+ EA code integration planning
+
+ Pending
+ Triple Enhancement Timing clarifications (Q12-Q21)  34 Entry Conditions execution logic (MODULE SET 3)
+ Risk Management integration details (MODULE SET 4)  Complete EA v0.1 MQLS code generation
+ Testing and validation protocol
+ VPS deployment preparation
+
+
+ CONTACT & SUPPORT
+Email: pajitmenonai@gmail.com Phone:00971507423656
+System: EA GlobalFlow Pro v0.1
+Strategy: lchimoku-TDI-PA-BBsqueeze-Kumocross
+
+
+
+Document Status: Active Development Session Reference
+Last Updated: August 04, 2025
+Next Update: After trade entry condition resolution
+
+
+Save this document as reference for continuing EA Globa!Flow Pro vO. 7 development in future sessions.

@@ -1,0 +1,267 @@
+EA GlobalFlow Pro v8.0 - Complete Reference Documentation
+Table of Contents
+1. Overview
+2. System Architecture
+3. Setup Requirements
+4. Trading Strategy
+5. Market Coverage
+6. NRI Trading Restrictions
+7. Installation Guide
+8. Configuration Parameters
+9. Risk Management
+10. Compliance Features
+11. Troubleshooting
+
+Overview
+EA Name: EA GlobalFlow Pro v8.0
+Strategy: Ichimoku-TDI-PA-BBsqueeze-Kumocross Target Win Rate: 65-75% (90-95% with enhancements) Markets: Forex, Commodities, Indian F&O
+Platforms: IC Markets MT5 + Fyers (via Python Bridge)
+
+Key Features
+ ? Fully automated trading across mul  ? Dynamic chart management for F&  ? NRI compliance built-in
+ ? 24/7 operation capability
+ ? Real-time risk management
+
+System Architecture
+
++-------------------------------------------------+
+¦	YOUR FOREX VPS	¦
++-------------------------------------------------¦
+¦	¦
+¦ +-----------------+	+------------------+ ¦
+¦ ¦ IC Markets MT5 ¦?---¦ Python Bridge ¦ ¦
+¦ ¦	¦	¦	¦ ¦
+¦ ¦ - EA Running ¦	¦ - Fyers API	¦ ¦
+¦ ¦ - Forex/Comm ¦	¦ - TrueData Feed ¦ ¦
+¦ ¦ - F&O Trading ¦	¦ - Token Manager ¦ ¦
+¦ +-----------------+	+------------------+ ¦
+¦	?	?	¦
+¦	¦	¦	¦
+¦	+----------------------+	¦
+¦	¦	¦
+¦	Named Pipe/Socket	¦
++-------------------------------------------------+
+
+
+Setup Requirements
+1. VPS Requirements
+ Recommended: ForexVPS.net Standard Plan
+ RAM: Minimum 4GB
+ Storage: 60GB SSD
+ Location: New York or London
+ OS: Windows Server 2019/2022
+
+2. Software Requirements
+ IC Markets MT5 Platform  Python 3.9+
+ Visual C++ Redistributables  .NET Framework 4.8
+3. API Credentials
+ Fyers:
+ Client ID
+ Secret Key
+
+ App ID
+ Refresh Token
+TrueData:
+ API Key
+ Real-time subscription (?2,599/month)
+
+Trading Strategy
+Core Components
+1. Ichimoku Kinko Hyo - Primary trend identification
+2. Trader Dynamic Index (TDI) - Momentum confirmation
+3. Price Action (PA) - Entry signals
+4. Bollinger Band Squeeze - Volatility breakout
+5. Kumo Cross - Cloud breakovers
+6. SMMA 50 - Trend filter
+7. Supertrend ENTRY/EXIT - Dynamic support/resistance
+
+Trading Paths
+
+1. Continuation Path (CT) - Priority
++-- Major Trend ? Middle Trend ? Entry Signal
+
+2. Pullback Path (PB) - Secondary
++-- Major Trend ? Retracement ? Entry Signal
+
+Entry Conditions
+ 17 Buy Conditions
+ 17 Sell Conditions
+ Multi-timeframe confluence required  Execution at bar close only
+
+Market Coverage
+1. IC Markets MT5 Platform
+Forex Pairs:
+
+ All major pairs (EURUSD, GBPUSD, etc.)  All minor pairs
+ All exotic pairs
+  No NRI restrictions Commodities:
+ Gold (XAUUSD)
+ Silver (XAGUSD)  Oil (WTI/Brent)  Natural Gas
+  No NRI restrictions CFDs:
+ Indices (US30, NAS100, etc.)  Cryptocurrencies
+ No NRI restrictions
+
+2. Fyers Platform (Indian F&O)
+Index Options:
+ NIFTY (Monthly, Weekly)
+ BANKNIFTY (Monthly, Weekly)  FINNIFTY
+ MIDCPNIFTY
+  Subject to NRI restrictions Stock Options:
+ NSE F&O stocks only
+  NRI: Buy only, no selling Currency Derivatives:
+  NRI: Only USD-INR, GBP-INR, JPY-INR, EUR-INR
+ Residents: All pairs
+
+NRI Trading Restrictions
+Platform-Specific Rules
+
+MarketIC Markets (International)Fyers (Indian)Forex? All pairs allowed? Not availableCommodities? All allowed? Prohibited for NRIStock OptionsN/A? Buy only, no sellingIndex OptionsN/A? Allowed (delivery basis)CurrencyN/A? Only 4 pairs for NRIIntraday? Allowed? Delivery onlyShort Selling? Allowed? ProhibitedProhibited Sectors for NRI
+ Lottery businesses
+ Gambling and betting  Nidhi companies
+ Real estate/Farm houses  Tobacco manufacturing  Atomic energy
+ Railway operations
+
+Installation Guide
+Step 1: VPS Setup
+
+bash
+1. Order ForexVPS.net Standard Plan
+2. Connect via Remote Desktop
+3. Install IC Markets MT5
+4. Create folder structure: C:\MT5_IC_Markets\ C:\EA_GlobalFlow_Bridge\ C:\EA_GlobalFlow_Data\
+
+Step 2: Python Bridge Installation
+
+bash
+1. Install Python 3.9+
+2. Extract EA_GlobalFlow_Python_Portable.zip
+3. Run: pip install -r requirements.txt
+4. Configure config.json with API keys
+
+Step 3: EA Installation
+
+bash
+1. Copy EA files to: MT5\MQL5\Experts\
+2. Copy indicators to: MT5\MQL5\Indicators\
+3. Restart MT5
+4. Attach EA to any chart
+5. Load provided .set file
+
+Step 4: Configuration
+1. Set account type (NRI/Resident)
+2. Configure risk parameters
+3. Set trading hours
+4. Enable desired markets
+5. Start trading
+
+Configuration Parameters
+Account Settings
+
+mql5
+input ACCOUNT_TYPE AccountType = ACCOUNT_NRI;	// Account Type input string FyersClientID = "";	// Fyers Client ID
+input string FyersAppID = "";	// Fyers App ID
+input string TrueDataKey = "";	// TrueData API Key
+
+Risk Management
+
+mql5
+
+input double RiskPerTrade = 1.0;	// Risk % per trade input double MaxDailyRisk = 2.0;		// Max daily risk % input double MaxWeeklyRisk = 5.0;			// Max weekly risk %
+input double MaxMonthlyRisk = 15.0;	// Max monthly risk %
+input int MaxTradesPerChart = 3;	// Max simultaneous trades
+
+Trading Hours
+
+mql5
+// Indian Markets
+input string IndianStartTime = "09:15";	// Market open input string IndianEndTime = "15:29";		// Market close
+input ENUM_DAY_OF_WEEK ExpiryDay = TUESDAY;	// Options expiry day
+
+// Forex Markets
+input string ForexStartTime = "01:00";	// Trading start input string ForexEndTime = "23:00";		// Trading end
+
+NSE Compliance
+
+mql5
+input int MaxOrdersPerSecond = 8;		// OPS limit (NSE: 10) input bool EnableOPSThrottle = true;		 // Enable throttling input string StaticIP = "";	// Your static IP
+
+Risk Management
+Position Sizing
+ Base Risk: 1% per trade (customizable)
+VIX Adjustments:
+VIX < 20: Normal sizing (1.0x) VIX 20-30: Reduced (0.8x) VIX 30-40: Minimum (0.6x) VIX > 40: Paper mode only
+Stop Loss Rules
+  STR-EXIT based dynamic stops
+
+ ATR multiplier: 1.5
+ Expiry day: Fixed 0.25% stops
+
+Portfolio Limits
+ F&O Greeks Limits:
+ Total Delta: ±50
+ Total Gamma: <500  Daily Theta: <?2000  Total Vega: <10
+
+Compliance Features
+NSE Algo Trading
+ Automatic OPS throttling  Algo ID tagging
+ Static IP validation  5-year audit trail
+NRI Compliance
+ Automatic symbol filtering  Prohibited sector blocking  Delivery-only enforcement  Short selling prevention
+Risk Veto System
+ News blackout periods
+ Extreme volatility detection  Liquidity checks
+ Correlation limits
+
+Troubleshooting
+Common Issues
+1. Python Bridge Not Connecting
+
+Solution:
+- Check Windows Firewall
+- Verify API credentials
+- Restart Python bridge
+- Check named pipe permissions
+
+2. TrueData Feed Issues
+
+Solution:
+- Verify subscription active
+- Check internet connection
+- Restart feed service
+- Clear cache folder
+
+3. Order Rejection
+
+Solution:
+- Check NRI restrictions
+- Verify margin available
+- Check OPS limit
+- Review error logs
+
+Error Codes
+
+CodeDescriptionSolutionE001API connection failedCheck credentialsE002Insufficient marginAdd fundsE003Symbol restrictedCheck NRI rulesE004OPS limit exceededWait for next secondE005Invalid strike priceRefresh option chain
+Support & Maintenance
+Daily Checklist
+ Check VPS connectivity  Verify API tokens valid
+ Review overnight positions  Check margin utilization
+
+ Monitor error logs
+
+Weekly Tasks
+ Review performance metrics  Update restricted lists
+ Check for software updates
+ Backup configuration  Clean log files
+Contact Information
+ Email Alerts: pajitmenon@gmail.com
+ Phone Alerts: +971507423656  Trading Hours: As configured  Emergency Stop: Press 'S' key
+Version History
+v8.0 (Current)
+ Added NRI compliance module  Enhanced OPS throttling
+ Improved F&O option chain logic  Added audit trail system
+v7.0
+ Multi-market support
+ Python bridge integration
+ Dynamic chart management  Risk veto system
+
+Document Last Updated: January 2025

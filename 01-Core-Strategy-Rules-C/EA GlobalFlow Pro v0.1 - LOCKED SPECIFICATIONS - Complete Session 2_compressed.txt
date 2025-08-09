@@ -1,0 +1,309 @@
+EA GlobalFlow Pro vO.1- LOCKED SPECIFICATIONS - Complete Session
+Reference.md 1
+1 2.31 KB	332 IinesFormatting may be inconsistent from source
+
+
+# EA GlobalFlow Pro v0.1 - LOCKED SPECIFICATIONS
+## Complete Session Reference & Critical Decisions
+
+**Document Status**: PERMANENTLY LOCKED
+**Date**: August 04, 2025
+**Session**: Critical Module Clarifications & Implementation Decisions
+**Version**: EA GlobalFlow Pro v0.1 - Final Locked Framework
+
+
+
+##	LOCKED MODULE DECISIONS
+
+### **MODULE SET 2: TRIPLE ENHANCEMENT TIMING - LOCKED	**
+
+#### **Q12: ML Confidence Fallback Protocols**
+**	LOCKED DECISION**:
+- **No fallback system needed** - EA has built-in action choices from project files
+- **Primary Action**: Use stricter traditional conditions (B)
+- **Context**: Project files contain detailed EA decision tree for <75% confidence scenarios
+
+#### **Q13: Enhancement Failure Handling**
+**	LOCKED DECISION**:
+- **ML service failure/disconnect protocol**: Use mandatory candlestick+volume WITH 34 conditions
+- **Context**: Combined validation approach maintains safety when ML unavailable
+
+#### **Q14: VIX >30 Protocol Adjustments**
+**	LOCKED DECISION**: High volatility (India VIX >30) modifications
+- **ML Threshold**: Keep at 75% (no change)
+- **Candlestick Requirement**: Require STRONGER patterns
+- **Position Sizing**: Dynamic scaling = Normal size x (30/VIX)
+
+#### **Q15: Bar-Close Timing Alignment**
+** PENDING**: Timing sequence clarification still needed
+
+
+
+##	LOCKED WIN RATE ARCHITECTURE: 90-95%
+
+### **	CORRECTED TRIPLE ENHANCEMENT SYSTEM:**
+
+#### ** 0• Normal Mode (ML Active - 90-95% Target):**
+- **Layer 1**: 34 Entry Conditions (Base: 70-75%)
+- **Layer 2**: ML Enhancement (Enhanced: 85-90%)
+- **Layer 3**: Candlestick + Volume (Final: **90-95%**)
+
+#### ** 0• Fallback Mode (ML Failed - 85-90% Target):**
+- **Layer 1**: 34 Entry Conditions (Base: 70-75%)
+- **Layer 2**: Skip ML Validation
+- **Layer 3**: **MANDATORY STRICT** Candlestick + Volume (Final: **85-90%**)
+
+### **	ADJUSTED EA PARAMETERS FOR 90-95% WIN RATE:**
+
+#### **	Enhanced Minimum Requirements:**
+
+**Normal Mode (ML Active):**
+- **Minimum Conditions**: 12 out of 34 (increased from 10)
+- **ML Confidence**: ?80% (increased from 75%)
+- **Candlestick Pattern**: Strong directional required
+
+- **Volume Profile**: Z150% average volume
+
+**Fallback Mode (ML Failed):**
+- **Minimum Conditions**: 15 out of 34 (highest threshold)
+- **Candlestick Pattern**: **PREMIUM GRADE** patterns only
+- **Volume Profile**: Z250% average volume (strictest)
+- **Indicator Confluence**: 5 indicators aligned (vs 4)
+
+#### **	VIX-Based Adjustments (90-95% TARGET):**
+
+**India VIX :20 (Normal Volatility):**
+- Standard requirements: 12 conditions + 80% ML + strong patterns
+
+**India VIX 20-30 (Elevated Volatility) :**
+- Enhanced requirements: 14 conditions + 85% ML + premium patterns
+- Position sizing: Normal x (25/VIX)
+
+**India VIX >30 (High Volatility):**
+- Maximum requirements: 15 conditions + 90% ML + **ULTRA-PREMIUM** patterns
+- Position sizing: Normal x (20/VIX)
+- Additional filter: Must have 3+ confirming timeframes
+
+
+
+##	LOCKED EA LOGIC UNDERSTANDING
+
+### **	CORRECTED 34 CONDITIONS EXECUTION:**
+
+**	CONFIRMED UNDERSTANDING:**
+- **Each of the 34 conditions is INDEPENDENT**
+- **Each condition = Complete trade setup by itself**
+- **NOT "X out of Y" - each stands alone**
+- **NO "10 out of 17" logic** - that was completely wrong
+
+### **	TRADE SELECTION LOGIC:**
+
+**Sequential Process:**
+
+CT-Sell (S1-S13)	CT-Buy (B1-B13)	PB-Sell (S14-S17)	PB-Buy (Bl4-B17) " LOOP BACK
+
+
+**Individual Condition Evaluation:**
+1. **Condition Check**: Multiple conditions may trigger
+2. **Enhancement Scoring**: Each gets ML + Candlestick + Volume score
+3. **Execution Decision**: **Highest scorer wins** per asset per strike
+4. **One-Time Use**: Same condition blocked for same strike same day
+
+**Example:**
+- B7 triggers (91% score) • **EXECUTED**
+- B3 triggers (89% score) • **DISCARDED**
+- B12 triggers (83% score) a **DISCARDED**
+
+
+
+##	LOCKED F&0 TRADE ALLOCATION FRAMEWORK ### **		PERMANENTLY LOCKED RULES:**
+#### *"	STRATEGIC OPTIMIZATION ( LOCKED	): *"
+- **1 trade maximum per same ATM/0TM per asset per day**	LOCKED
+- **4 trades maximum per Call chart per day (DEFAULT)**	LOCKED
+- **4 trades maximum per Put chart per day (DEFAULT)**	LOCKED
+- **Total**: Up to 8 trades per F&0 asset per day (4 Call + 4 Put)	LOCKED #### **	CUSTOMIZABLE LIMITS (LOCKED	):**
+
+mql5
+input group "=== F&0 TRADE ALLOCATION LIMITS ==="
+input int InpMaxCallTrades = 4;	// Max Call Trades Per Chart (Default: 4) input int InpMaxPutTrades = 4;	// Max Put Trades Per Chart (Default: 4) input int InpMinCallTrades = 1;	// Min Call Trades Per Chart (Default: 1) input int InpMinPutTrades = 1;	// Min Put Trades Per Chart (Default: 1)
+
+
+**Validation Logic:**
+- **Range**: 1-10 trades per side (user configurable)
+- **Default**: 4+4 optimal for NIFTY's 200-point daily range
+- **Auto-validation**: Prevents unreasonable limits
+
+#Q# **	STRATEGIC ADVANTAGES (LOCKED):**
+1. **Better Strike Distribution** - Covers more of NIFTY's range
+2. **Reduced Concentration Risk** - Not betting heavily on single level
+3. **Higher Trade Frequency** - More opportunities across strikes
+4. **Dynamic Following** - Adapts to intraday price movement
+5. **Optimal Chart Utilization** - Maximizes capacity
+
+
+
+##	LOCKED GRADE-A CANDLESTICK PATTERNS
+### **	GRADE-A BULLISH PATTERNS (LOCKED	):** #### **		STRONG PATTERNS (Weight: 1.0):**
+1. **Three White Soldiers** - 3 rising tall green candles, partial overlap, close near high
+2. **Morning Star** - Red • Small gap • Green above midpoint (downtrend reversal)
+3. **Deliberation** - 2 tall green + 1 small green near previous close (uptrend continuation)
+
+#### **	RELIABLE PATTERNS (Weight: 0.8):**
+4. **Three Line Strike** - 3 falling red + 1 green engulfing all
+5. **Morning Doji Star** - Red • Doji gap	Green above midpoint
+6. **Three Outside Up** - Engulfing green + higher close
+7. **Engulfing** - Red followed by taller green body
+8. **Belt Hold** - Tall green, gaps down, no lower shadow
+9. **Abandoned Baby** - Red	lower Doji gap " long green above
+
+### **	GRADE-A BEARISH PATTERNS (LOCKED	):**
+
+#### **	STRONG PATTERNS (Weight: 1.0):**
+1. **Three Black Crows** - 3 falling tall red candles, partial overlap, close near low
+2. **Identical Three Crows** - 3 identical falling red, no overlap, close near low
+3. **Evening Star** - Green • Small gap • Red below midpoint (uptrend reversal)
+4. **Concealing Baby Swallow** - 2 red gap • red with upper shadow • engulfing red
+5. **Three Line Strike (Bear)** - 3 rising green + 1 red engulfing all
+
+#### **	RELIABLE PATTERNS (Weight: 0.8):**
+6. **Falling Three Methods** - Red	3 small bullish	Red closing below first
+7. **Separating Lines** - Green in downtrend • Red opening near first low
+8. **Doji Star** - Bearish continuation in downtrend
+
+### **	PATTERN IMPLEMENTATION (LOCKED):**
+
+**Normal Mode (ML Active):**
+- Must be one of the 17 GRADE-A patterns above
+- Pattern strength x 1.0 scoring multiplier
+
+**Fallback Mode (ML Failed):**
+- **ONLY** the 8 strongest patterns accepted:
+- **Bullish**: Three White Soldiers, Morning Star, Deliberation
+- **Bearish**: Three Black Crows, Evening Star, Three Line Strike Bear
+- Pattern strength x 1.2 scoring multiplier (extra strict)
+
+##	LOCKED ML FALLBACK ACTION CHOICES
+
+### **	EA'S BUILT-IN ML FAILURE DETECTION TRIGGERS:**
+1. **Low Confidence**: ML confidence ‹ 75%
+2. **Model Disagreement**: Models differ by › 20%
+3. **Extreme Market Conditions**: India VIX > 30
+4. **Technical Failures**: Python connection lost, model errors
+5. **Time-Based**: During high-impact news, expiry last 2 hours
+
+### **	ENHANCED FALLBACK LOGIC (LOCKED):**
+
+
+When ML FAILS or DISABLED:
+Step 1: Check 34 Entry Conditions (minimum 10 met) 7 Step 2: Skip ML Validation
+step 3: MANDATORY Dual Enhancement 77 Strong Candlestick Pattern REQUIRED Volume Profile Confirmation REQUIRED
+BOTH must pass = Trade Execution
+
+
+### **	PRACTICAL IMPACT (LOCKED) :**
+
+**	Normal Mode (ML Active):**
+- 100 signals • 45 pass enhanced conditions • 35 pass strict ML " 30 pass ultra-premium candlestick/v olume
+- **Result**: 30 trades at **90-95% win rate**
+
+**• Fallback Mode (ML Failed):**
+- 100 signals • 35 pass maximum conditions	20 pass ultra-strict candlestick/volume
+- **Result**: 20 trades at **85-90% win rate**
+
+
+
+##	LOCKED RISK MANAGEMENT PARAMETERS
+
+### **	F&0 SPECIFIC ADJUSTMENTS (90-95% TARGET):**
+
+**OI Bias Requirements (LOCKED) :**
+- **Normal**: >30% bias (maintained)
+- **Enhanced**: >40% bias for premium trades
+- **Expiry Day**: >50% bias (highest threshold)
+
+**Secondary Chart Logic (LOCKED):**
+- **Maximum 4 trades per chart** (customizable 1-10 range)
+- **Quality Score**: Z90% required (increased from 85%)
+- **Strike Selection**: Only highest liquidity strikes
+
+### **	NON-F&0 ADJUSTMENTS (90-95% TARGET):**
+
+**Chart Opening Criteria (LOCKED):**
+- **Top 15 charts only** (reduced from 20)
+- **Minimum Score**: 90% required
+- **Correlation Filter**: ‹0.7 between open positions
+- **Session Alignment**: Must trade during optimal sessions
+
+### **	EXECUTION REFINEMENTS (LOCKED):**
+
+**Bar-Close Validation:**
+- **ALL 3 layers** must align at same bar-close
+- **No partial entries** - all conditions or none
+- **Confirmation Period**: 2-bar confirmation for premium patterns
+
+**Trade Management:**
+- **STR-EXIT**: 0.20% trailing buffer (tighter than 0.25%)
+- **Stop Loss**: Dynamic based on ATR + pattern strength
+- **Take Profit**: Minimum 2:1 risk/reward ratio
+
+
+
+##	LOCKED SAFETY ENHANCEMENTS
+
+### **	QUALITY ASSURANCE (LOCKED):**
+- **Pre-trade Validation**: 5-point checklist
+- **Real-time Monitoring**: Win rate tracking per session
+- **Auto-adjustment**: If win rate drops below 88%, increase thresholds
+- **Emergency Protocol**: If win rate <85%, halt new entries
+
+### **	POSITION SIZING (LOCKED) :**
+- **Conservative approach** for 90-95% consistency
+- **Correlation Limits**: Stricter to maintain independence
+- **Daily Targets**: Quality over quantity approach
+
+
+
+##	REMAINING PENDING QUESTIONS
+
+### **MODULE SET 3: 34 ENTRY CONDITIONS EXECUTION**
+- **Q16**: Minimum trigger requirements clarification
+- **Q17**: Condition conflict resolution protocols
+- **Q18**: Sequential vs parallel execution methodology
+- **Q19**: Failed condition retry logic specifications
+
+### **MODULE SET 4: RISK MANAGEMENT INTEGRATION**
+- **Q20**: Daily loss limit scope (per market vs portfolio-wide)
+- **Q21**: Position sizing priority conflicts (VIX vs correlation limits)
+- **Q22**: Correlation limit scope (within markets vs cross-market)
+- **Q23**: Emergency stop activation levels (loss threshold)
+
+### **MODULE SET 2: REMAINING**
+- **Q15**: Bar-close timing alignment (simultaneous vs sequential)
+
+
+
+##	IMPLEMENTATION STATUS
+
+### **	PERMANENTLY LOCKED COMPONENTS:**
+1. **90-95% Win Rate Architecture**	LOCKED
+2. **1-Trade-Per-Strike + 4-Trades-Per-Chart Framework**	LOCKED
+3. **GRADE-A Candlestick Pattern List**	LOCKED
+4. **ML Fallback Action Choices**	LOCKED
+5. **VIX-Based Position Sizing Formula**	LOCKED
+6. **Customizable F&0 Trade Limits**	LOCKED
+7. **Enhanced Minimum Requirements**	LOCKED
+8. **Trade Selection Logic Understanding**	LOCKED
+
+### **	READY FOR EA IMPLEMENTATION:**
+All locked specifications above are **permanently integrated** into EA GlobalFlow Pro v0.1 architectu re and **CANNOT BE CHANGED** without explicit user instruction.
+
+#/f# **	NEXT STEPS : "
+1. **Complete remaining Q15-Q23 clarifications**
+2. **Begin EA v0.1 implementation** with all locked specifications
+3. **Component-by-component validation** using locked parameters
+
+
+
+##	CONTACT & REFERENCE
+
+

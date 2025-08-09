@@ -1,0 +1,141 @@
+EA GlobalFlow Pro v8.0 - TOTP Time Sync Fix Guide
+ Problem Summary
+• VPS Time: July 17, 2025 (6 months in the future)
+• Real Time: January 17, 2025
+• Issue: TOTP codes don't match because of time difference
+
+
+ Current Status
+• All credentials encrypted successfully
+• TOTP Secret:
+• Google Authenticator Account:
+• VPS Infrastructure: 100% Complete
+
+ Quick Solution Scripts
+1. Create Universal TOTP Finder
+Create file:
+
+
+
+
+
+(valid)
+
+
+
+
+import pyotp import time
+from datetime import datetime, timedelta from config loader import ConfigLoader
+
+
+loader = ConfigLoader()
+credentials = loader.Ioad_encrypted_credentiaI	Tja@ 16101964 fyers = loader.get_fyers_config()
+totp = pyotp.TOTP(fyers otp_secr
+
+
+user_code = inp		Enter current Google Auth code: current_time = i	time.time())
+
+pri	Searching for: (user_code)
+
+
+for days in ranp	36	36 for hours in rang	 2
+for mins in rang	6	3
+offset = (days 8640	+ (hours * 360	+ (mins * 6 test time = current time + offset
+
+
+code = totp.at(test_time) if code == user_code:
+pri	FOUND!
+pri	Time: (datetime.fromtimestamp(test_time)) pri	 Offset:	offset) seconds
+
+with open	otp_offset.txt",	as f: f.writ		offset))
+    exit() excep
+pass
+
+pri	Not found - code may have changed
+
+
+2. Create Production TOTP Generator
+Once offset is found, create file:
+
+
+
+3. Create Automated Fyers Login
+Create file:
+
+
+from fyers_apiv3 import fyersModel
+from fyers_apiv3.FyersWebsocket import data_ws import pyotp
+import time
+from config_Ioader import ConfigLoader
+
+class FyersAutoLogin:
+def	initI§:
+
+loader = ConfigLoader()
+self.creds = loader.Ioad_encrypted_credentiaITia@16101964  self.fyers = loader.get_fyers_config()
+
+
+with open otp_offset.txt", " as f: self.offset = iread().strip())
+  self.client = None def generate_tot If):
+'"Generate TOTP with time offset'"
+totp = pyotp.TOTP(self.fyers['totp seer real time = itime.times) + self.offset return totp.at(real time)
+
+def login(sew:
+'"Automated lopin process'"'
+
+totp_code = self.generate_totp()
+priGenerated TOTP: (totp_code) 
+
+
+session = fyersModeI.SessionModeI( cIient_id=seIf.fyersapp_id , secret=seIf.fyers secret k redirect_uri=seIf.fyers redirect url' response_type="code", prant_type="authorization_code"
+
+
+
+auth_urI = session.generate_authcodeg
+
+
+Iogin_payIoad = (
+"fyeis_id'. self.fyers  user id,
+
+
+ Step-by-Step Instructions
+Phase 1: Find Time Offset
+1. Navigate to Config folder:
+2. Create and run the universal finder:
+
+• Paste the code above
+• Save as "All Files (.)"
+• Run:
+• Enter your current Google Auth code
+3. The script will save the offset to
+
+Phase 2: Test TOTP Generation
+1. Create the TOTP generator:
+2. Test it:
+
+
+
+3. Verify the code matches Google Authenticator
+
+Phase 3: Production Setup
+1. The offset will be integrated into EA GlobalFlow Pro v8.0
+2. Autonomous TOTP regeneration will use this offset
+3. No manual intervention needed after setup
+
+Next Development Steps
+1. Complete OAuth Flow Implementation
+2. Integrate Time Offset into EA
+3. Set up Autonomous TOTP Service
+4. Begin Trading Logic Implementation
+Project Details
+• Developer: Ajit Kumar
+• Location: Shajah, UAE
+• WhatsApp: +971507423656
+• Email: pajitmenonai@gmail.com
+• VPS: 38.57.40.165:42014
+
+@	Checklist
+VPS Setup Complete Python 3.13 + All Packages API Credentials Encrypted TOTP Secret Captured Time Offset Found
+TOTP Generation Working OAuth Flow Implemented EA Development Started
+
+Status: Ready to find time offset and proceed with EA development

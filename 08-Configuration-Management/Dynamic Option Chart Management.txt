@@ -1,0 +1,14 @@
+Dynamic Option Chart Management
+
+
+reference files #: 1. Foundational Architecture and Operational Integrity.2. Market Universe and Data Management.
+3. Trade Selection and Execution Framework. 4. Dynamic Option Chart Management and Auto-Close. 
+5. Triple Enhancement Pre-Trade Filter (85% Score Threshold).
+6.. Portfolio Correlation and Concentration Limits The framework extends beyond single-trade risk to manage portfolio-level risk. 
+ Correlation Limits: NIFTY and BANKNIFTY are identified as highly correlated (>0.8). 
+A maximum of 3 combined positions across these indices is enforced.
+1  Concentration Limit: A hard limit of 10 total F&O positions is enforced across the portfolio.
+* System-Wide Emergency Protocols The EA has a "circuit breaker" system triggered by extreme VIX levels :
+ * Level 1 (Warning): VIX 30-35. The EA reduces new trade sizes and actively seeks to reduce its total open position count by 50%.
+* Level 2 (Critical): VIX > 35. This triggers a system-wide shutdown. 
+The EA will close all open positions immediately and revert to Paper Mode 

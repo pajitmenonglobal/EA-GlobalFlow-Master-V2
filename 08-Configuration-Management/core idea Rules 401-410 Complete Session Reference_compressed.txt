@@ -1,0 +1,154 @@
+EA GlobalFlow Pro v6.4 - Complete Session Reference & Rules 401-410
+?? Document Information
+  File Reference: Save as reference file for EA GlobalFlow Pro v6.4
+  Current Status: Ready for EA Development Phase - 410 Rules Complete
+  Last Updated: Current session completion
+ Next Session: Continue with "WE WILL RESUME BUILDING UP THE EA GlobalFlow Pro"
+
+?? Core Strategy: Ichimoku-TDI-PA-BBsqueeze-Kumocross
+Objective
+  Multi-market trading system for trending markets
+ Path 1: Continuation (CT) - trade with trend
+ Path 2: Pull-back (PB) - trade market reversals
+  Exit: STR-EXIT trend change on 1-hour timeframe
+  Enhancement: Elliott Wave pattern recognition for impr
+
+Markets Supported
+1. Indian F&O (Fyers + TrueData) - Dynamic cha
+2. Forex & Commodities (IC Markets MT5) -
+
+?? NEW RULES ADDED THIS SE
+?? Rules 401-406: NSE Expiry Day	25)
+Rule 401: NSE Expiry Day Revision Imple
+  Default Change: Thursday ? Tuesday	5)
+ Transition: Existing contracts through A	rsday
+ Universal: All Indian derivatives (NIFTY,	DCPNIFTY, NIFTYNXT50, Stock Options)
+Rule 402: Customizable Expiry Day Inpu  Weekly Expiry: Dropdown (Mon-Fri) -
+
+ Monthly Expiry: Dropdown (Mon-Fri) - Default: Tuesday  Quarterly Expiry: Dropdown (Mon-Fri) - Default: Tuesday  Futures Expiry: Dropdown (Mon-Fri) - Default: Tuesday
+  Manual Override: Custom date entry option
+
+Rule 403: Auto-Detection of Expiry Day Transition
+  Contract Logic: Auto-detect pre/post September 1, 2025 contracts
+  Pre-Sept 2025: Thursday expiry logic
+ Post-Sept 2025: Tuesday expiry logic
+  Long-dated Options: Realignment from July 31, 2025 EOD
+
+Rule 404: Updated Futures Rollover Configuration
+  Default: 7 days before last Tuesday (changed from Thursday)
+ Customizable: 1-15 days dropdown - Default: 7 days  Base: Uses selected monthly expiry day from Rule 402
+Rule 405: Dynamic Chart Auto-Close Timing Update
+  Close Time: 3:29 PM on Tuesday expiry days
+  Flexible: Auto-adjusts based on selected expiry day
+  Override: Custom time setting available
+
+Rule 406: Backward Compatibility Maintenance
+  Legacy Support: Thursday expiry for existing August 2025 contracts
+  Transition Detection: Monitor NSE implementation dates
+  Failsafe: Manual toggle between old/new expiry systems
+?? Rules 407-410: Elliott Wave & Backtesting Enhancement
+Rule 407: Comprehensive Backtesting Priority Framework  Phase 1: Test each of 34 entry conditions separately
+  Phase 2: Market-specific optimization (F&O, Forex, Commodities)
+ Phase 3: Win rate (>65%) & risk-reward (>1:2) validation
+
+Rule 408: Individual Entry Criteria Backtesting Requirements
+
+  Historical Range: Minimum 2-year backtest per criteria
+  Walk-Forward: 6-month optimization, 3-month validation cycles
+  Monte Carlo: 1000+ scenarios per entry condition
+  Market Conditions: Bull, Bear, Sideways validation
+Rule 409: Market-Specific Parameter Optimization Protocol  Symbol-Specific: Individual optimization per major symbol
+ Strike Optimization: ATM/OTM selection refinement for F&O
+  Spread Analysis: Entry criteria based on bid-ask spreads
+ Volatility Adaptation: Dynamic parameter adjustment
+
+Rule 410: Performance Validation Standards
+ Minimum Thresholds: Each criteria must exceed baseline  Statistical Significance: 95% confidence level requirement  Out-of-Sample: 25% data reserved for final validation
+  Multi-Market Correlation: Strategy stability across conditions
+
+?? Technical Indicators (MQL5 Ready)
+Core Indicators ?
+1. Ichimoku Kinko Hyo - Trend analysis,
+2. Ichi-Trader Dynamic Index (TDI) - Mo
+3. SMMA50 - Trend filtering, slope analys
+4. Bollinger Bands - Squeeze detection, e
+5. STR-ENTRY - Entry confirmation (ATR 1
+6. STR-EXIT - Exit signals (ATR 1.5, Period
+New Enhancement ??
+7. Elliott Wave Analysis - Pattern recogn	ent
+
+?? Strategy Framework (Comp
+Entry Logic
+ 17 Buy Entry Conditions + Elliott Wav
+
+ 17 Sell Entry Conditions + Elliott Wave validation
+ Path Analysis: Sequential CT ? PB path execution
+  Multi-Timeframe: Daily/4H ? 1H/30M ? 15M/5M cascade
+
+F&O Dynamic Chart Management
+ Primary Chart: Market detection, trend analysis
+  Secondary Charts: Call/Put sides with ATM/OTM selection
+  OI Analysis: >30% directional bias requirement
+  Auto-Close: Stop loss/take profit/3:29 PM expiry
+
+Risk Management
+  Position Sizing: 5% equity per trade
+  Stop Loss: STR-EXIT based dynamic stops
+ Maximum Drawdown: <10% target
+  Win Rate Target: >65% per entry criteria
+
+?? Platform Integration
+Brokers & Data
+ IC Markets MT5: Forex, Commodities,  Fyers India: Indian F&O trading with A  TrueData: Real-time NSE/BSE feeds for
+Order Types
+ Indian F&O: Margin SL-L ORDER (Buy/  Forex/Commodities: Buy Stop, Sell Sto  Expiry Day Override: Market orders on
+?? Complete Rule Repository S
+Total Rules Documented: 410
+ Foundation: Rules 1-56 (from file #56)  Extended: Rules 57-251 (from ea_globa  Strategy: Rules 252-292 (from file #57)
+
+ Master Chart: Rules 293-340 (from file #58)
+ Final Implementation: Rules 342-364 (from file #57)  Indian F&O Updates: Rules 365-400 (from file #59)  Current Session: Rules 401-410 (this document)
+Key Enhancements Added:
+? NSE Expiry Day Revision (Rules 401-406) ? Elliott Wave Integration (win rate improvement) ? Comprehensive Backtesting Framework (Rules 407-410) ? Future-Proof Configuration (full customizability)
+
+?? Project Knowledge Files Reference
+Core Documentation Files:
+ Rules 1-56: 56. EA GlobalFlow Pro v6.4 - Rules 22-55 Complete Reference.md
+ Rules 57-251: ea_globalflow_rules_57_251.md
+  Rules 252-292: EA GlobalFlow Pro v6.4 - Rules 252+ Strategy Description Reference.md
+ Rules 293-340: ea_globalflow_rules_29
+ Rules 342-364: 57. EA GlobalFlow Pro  Rules 365-400: EA GlobalFlow Pro v6.4  Rules 401-410: THIS DOCUMENT (sav
+ Complete Summary: 21. EA GlobalFlo Knowledge.md
+ Strategy Source: 20. STRATEGY.docx
+
+MQL5 Indicator Files (Ready for Im
+ bollinger_bands_mql5.txt ?
+ ichi_trader_mql5.txt ?  ichimoku_mql5.txt ?  smma50_mql5.txt ?
+ str_entry_mql5.txt ?
+ str_exit_mql5.txt ?
+
+Implementation Guides:
+
+Various architecture and integration references Complete setup and deployment guides Backtesting and validation frameworks
+?? Next Session Action Plan
+Ready for Implementation:
+? Complete Strategy Framework (410 rules) ? All Technical Indicators (MQL5 ready) ? NSE Compliance (updated expiry days) ? Elliott Wave Enhancement (win rate improvement) ? Backtesting Framework (comprehensive validation) ? Multi-Market Support (F&O, Forex, Commodities)
+
+Implementation Phases:
+1. Phase 1: Core EA structure with multi-market detection
+2. Phase 2: F&O dynamic chart management system
+3. Phase 3: Complete entry/exit conditions (34 criteria)
+4. Phase 4: API integration and testing fra
+Development Status: ? Ready for implementation
+?? Session Completion Summa
+Completed This Session:
+? NSE Expiry Day Updates - Tuesday co	tion ? Elliott Wave
+Enhancement - Win rate improvement inte	ority Framework - Systematic
+testing protocol ? Performance Validatio	rance metrics
+
+Total System Capability:
+ 410 comprehensive rules covering all  Future-proof configuration for regula  Enhanced win rate through Elliott Wav  Systematic testing for optimal perform  Multi-market compatibility with dyna
+
+Status: ? EA GlobalFlow Pro v6.4 - 410 Rules Complete, Enhanced, Future-Proof, Ready for Implementation
+
+Save this document as "EA GlobalFlow Pro v6.4 - Complete Session Reference & Rules 401-410.md" in project knowledge for next session continuation. Use alongside existing project knowledge files for complete EA development implementation.
