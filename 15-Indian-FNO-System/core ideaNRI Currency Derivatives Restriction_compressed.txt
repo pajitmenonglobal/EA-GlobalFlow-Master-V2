@@ -1,0 +1,484 @@
+please add to ea: In Currency Derivatives, there are four permitted currency pairs for NRI investments viz. USD-INR, GBP-INR, JPY-INR, EUR-INR. iam a non-resident (NRI) indian...other currency derivatives can be traded by resident indians.
+? NRI Currency Derivatives Restriction - ACKNOWLEDGED & ACCEPTED!
+Perfect! I've added your NRI (Non-Resident Indian) currency derivatives trading restrictions to the EA framework.
+NRI Currency Derivatives Configuration Added:
+? Permitted Currency Pairs for NRI: USD-INR (US Dollar - Indian Rupee) GBP-INR (British Pound - Indian Rupee) JPY-INR (Japanese Yen - Indian Rupee) EUR-INR (Euro - Indian Rupee)
+? EA Implementation:
+NRI Mode Toggle: Input parameter "Enable NRI Mode" (Yes/No)
+Symbol Filtering: When NRI mode enabled, restrict currency derivatives to only the 4 permitted pairs
+Compliance Check: Automatic validation of currency symbols before trade execution
+Alert System: Warning if attempting to trade non-permitted currency derivatives
+Dual Configuration:
+NRI Mode ON: Only USD-INR, GBP-INR, JPY-INR, EUR-INR allowed
+NRI Mode OFF: All currency derivatives available (for resident Indians)
+
+Integration with Existing Framework:
+Added to Module 2: Market Detection (symbol validation)
+Integrated with Module 7: Order Management (compliance checking) Included in Module 1: Input Parameters (NRI mode toggle)
+?? Q92 Confirmation Still Needed:
+Should I proceed with the complete EA GlobalFlow Pro v6.4 implementation plan including:
+
+
+All 8 modules + NRI currency derivatives compliance Dual Enhancement System
+Complete development roadmap
+Ready to finalize the ultimate EA framework! Please confirm Q92! ??Q92 Confirmation Still Needed: please wait? Waiting for Q92 Confirmation
+Understood! I'm waiting for your confirmation on Q92 before proceeding with the complete EA GlobalFlow Pro v6.4 implementation plan.
+Current Status: ? All 8 Modules Complete (510+ rules documented)
+? Dual Enhancement System Confirmed (Candlestick + Volume Profile)
+? NRI Currency Derivatives Compliance Added
+? Ready for Complete Implementation Planning
+Waiting for your Q92 confirmation to proceed with the comprehensive EA development roadmap.
+Take your time! ??when I compile the EA in MT5 platform, then it should not open or close new trades.? MT5 Compilation Safety Rule - ACKNOWLEDGED & ACCEPTED!
+Perfect! I've added this critical safety feature to the EA framework.
+
+MT5 Compilation Safety Implementation:
+? Compilation Detection:
+Monitor MT5 compilation events using MQLInfoInteger(MQL_COMPILATION_TIME)
+Detect when EA is being recompiled or reloaded
+? Trade Restrictions During Compilation: Block NEW trade entries completely Block NEW pending orders
+Prevent opening new secondary charts
+ Halt F&O scanning operations
+? Existing Trade Protection:
+  Continue monitoring existing positions for exit conditions
+  Allow STR-EXIT based trade closures to protect open positions
+  Maintain expiry day force-close functionality (3:29 PM)
+ Keep stop-loss management active
+? Implementation Logic:
+
+? Integration Points:
+  Module 5: Entry conditions check compilation status first
+  Module 4: Secondary chart opening blocked during compilation
+  Module 2: F&O scanning paused during compilation
+  Module 7: Order management maintains exits only
+
+Safety Benefits:
+ Prevents uncontrolled trade opening during EA reload  Protects existing positions with continued monitoring  Maintains risk management integrity
+  Clear status indication for user awareness
+
+Added to the EA safety framework! Ready for Q92 confirmation when you're ready!
+??
+
+the list of restricted stocks for the NRI-PIS account can be found by visiting the following websites:
+* RBI: rbi.org.in/scripts/BS_FiiUSer.aspx
+* NSDL: fpi.nsdl.co.in/web/Reports/ForeignInvestmentLimitMonitoringListing
+* CDSL: cdslindia.com/publications/FIMonitoring
+The Reserve Bank of India (RBI) monitors the investment position of NRIs in listed Indian companies daily through designated banks. When the total holdings of NRIs reach 2% below the set upper limit, a notice (caution list) is issued to the designated banks. Any further purchase in that particular Indian company will require prior approval from RBI. The upper limit may be increased with the approval of the board and the general body of the company after passing a special resolution.
+If the holdings by NRIs reach the overall ceiling limit, RBI places the company on the ban list, after which NRIs cannot purchase the company's shares under the portfolio investment scheme. NSDL and CDSL also publishes the Red flag list, Caution list, Breach List and Foreign Investment Limits.
+? NRI-PIS Stock Restrictions & Monitoring - ACKNOWLEDGED & ACCEPTED!
+Perfect! I've added comprehensive NRI-PIS (Portfolio Investment Scheme) compliance to the EA framework.
+NRI-PIS Stock Compliance Implementation:
+? Restricted Stock Monitoring Sources: RBI: rbi.org.in/scripts/BS_FiiUSer.aspx
+NSDL: fpi.nsdl.co.in/web/Reports/ForeignInvestmentLimitMonitoringListing
+CDSL: cdslindia.com/publications/FIMonitoring
+? Stock Classification Lists:
+Ban List: Complete prohibition - NRIs cannot purchase
+Caution List: 2% below ceiling - requires RBI approval for purchase
+Red Flag List: Warning zone monitoring
+Breach List: Limit exceeded notifications
+Foreign Investment Limits: Current ceiling percentages
+? EA Implementation Framework: Input Parameters:
+
+ "Enable NRI-PIS Compliance" (Yes/No)
+ "Auto-Update Restriction Lists" (Daily/Weekly/Manual)  "NRI Compliance Mode" (Strict/Warning/Monitor) Compliance Checking:
+
+? Integration Points:
+  Module 2: Market detection includes NRI-PIS stock validation
+  Module 4: Secondary chart opening blocked for banned stocks
+  Module 6: Strike selection excludes non-compliant underlying assets
+  Module 7: Order placement includes final compliance verification
+? Alert System:
+  Ban List Alert: "Stock [SYMBOL] on RBI Ban List - Trading Blocked"
+  Caution List Alert: "Stock [SYMBOL] on Caution List - RBI Approval Required"
+  Email Notifications: Daily compliance status to p ajitmenon@gmail.com
+  WhatsApp Alerts: Critical compliance violations
+? Data Management:
+ Manual List Updates: User can input restricted symbols  Periodic Validation: Check lists against trading activity  Compliance Logging: All restriction checks recorded
+  Fallback Mode: If data unavailable, err on side of caution
+
+Safety Benefits:
+  Automatic RBI compliance for NRI investors
+ Prevents regulatory violations in stock options trading  Real-time monitoring of restriction status
+  Complete audit trail for compliance verification
+
+NRI-PIS compliance framework added to EA! Ready for Q92 confirmation! ??
+
+
+NRI Trading Restrictions
+* NRIs are not permitted to participate in short selling.
+* NRIs are prohibited from investing in certain sectors mentioned below : Lottery Businesses include the government, private lottery or online lotteries. Gambling and betting including in casinos
+Nidhi company: A type of Non Banking Financial Company (NBFC) Trading in Transferable Development Rights (TDRs).
+Real Estate Business or Construction of Farm Houses.
+Manufacturing of Cigars, cheroots, cigarillos and cigarettes, of tobacco or of tobacco substitutes. Activities or sectors are not open to private sector investment such as (i) Atomic energy and (ii) Railway operations.
+Foreign technology collaboration in any form including licensing for franchise, trademark, brand name, and management contract.
+* NRIs must trade on a delivery basis and cannot do intra-day trading.
+* NRIs are not permitted to trade in commodity derivatives.
+* NRIs are required to take RBI approval for trading in scrips that are on the caution list. (The caution list is the list of stocks issued by the RBI on which the NRI investments are close to the threshold holding limit.)
+* NRIs are not permitted to trade in stocks on the ban list. (The ban list is the list of stocks issued by the RBI where the NRI investments have reached the threshold limit.)
+? Complete NRI Trading Restrictions - ACKNOWLEDGED & ACCEPTED!
+Perfect! I've added comprehensive NRI trading compliance covering all restrictions to the EA framework.
+Complete NRI Trading Restrictions Implementation:
+? Short Selling Prohibition:
+Block ALL short selling orders when NRI mode enabled
+Stock Options: Block "Sell Call" and "Buy Put" positions (short strategies)
+Forex: Block all "Sell" positions (short currency positions)
+Alert: "NRI Short Selling Prohibited - Order Blocked"
+? Prohibited Sectors (Auto-Block):
+Lottery Businesses (government, private, online lotteries)
+
+  Gambling and Betting (casinos, betting platforms)
+ Nidhi Companies (NBFC type)
+ Transferable Development Rights (TDRs)  Real Estate/Farm House Construction
+  Tobacco Manufacturing (cigars, cigarettes, substitutes)
+ Atomic Energy sector companies
+ Railway Operations sector
+  Foreign Technology Collaboration (licensing, franchise, trademarks)
+? Trading Mode Restrictions:
+  Delivery Basis Only: Block all intraday trades (force overnight holding)
+  No Intraday Trading: Prevent same-day buy/sell on stock options
+  Commodity Derivatives: Complete prohibition for NRIs
+  Order Types: Only "Delivery" orders allowed, block "MIS/CO/BO"
+? EA Implementation Framework: Enhanced Input Parameters:
+Compliance Validation Logic:
+
+? Integration with Existing Modules: Module 2 (Market Detection):
+ Add prohibited sector filtering
+
+ Commodity derivatives complete block  Sector classification validation
+Module 4 (Chart Management):
+ Block secondary charts for prohibited stocks  Sector compliance before chart opening
+Module 6 (Strike Selection):
+ Exclude prohibited underlying assets  Ban/caution list validation
+Module 7 (Order Management):
+ Force delivery basis orders only  Block short selling strategies
+  Final compliance check before execution
+? Alert & Monitoring System:
+  Sector Violation: "Stock [SYMBOL] in prohibited sector - Trading Blocked"
+  Short Selling Alert: "Short selling prohibited for NRIs - Order Rejected"
+  Intraday Alert: "Intraday trading not permitted - Delivery only"
+  Commodity Alert: "Commodity derivatives prohibited for NRIs"
+? Compliance Dashboard:
+ Real-time restriction status display  Daily compliance summary report  Violation attempt logging
+ Regulatory compliance score
+
+Complete NRI Framework:
+1. Currency Derivatives: Only USD-INR, GBP-INR, JPY-INR, EUR-INR
+2. Stock Restrictions: RBI ban/caution lists + prohibited sectors
+3. Trading Mode: Delivery basis only, no intraday
+4. Position Types: No short selling allowed
+5. Commodity: Complete prohibition
+
+6. Compliance: Real-time monitoring and blocking
+Comprehensive NRI regulatory compliance framework integrated! Ready for Q92 confirmation! ??
+
+
+no. Forex and commodities, CFDs - i am trading in ic markets mt5 platform where i am allowed to trade. all pairs i can do in mt5 IC market platform. India market thru fyers i am not doing any forex or commodities. in all non-FnO markets i am using IC markets mt5 to trade where i am not prohibited to trade. so correct your impression formed above and rewrite.
+? NRI Trading Restrictions CORRECTED - ACKNOWLEDGED & ACCEPTED!
+You're absolutely right! I misunderstood the platform separation. Let me correct this:
+
+Corrected NRI Trading Framework:
+? Platform-Specific NRI Restrictions:
+IC Markets MT5 Platform (International):
+Forex: ALL currency pairs allowed (no NRI restrictions) Commodities: ALL commodities allowed (no NRI restrictions) CFDs: ALL CFDs allowed (no NRI restrictions)
+Trading Modes: Intraday, short selling, all strategies allowed
+No Indian Regulations Apply: IC Markets is international broker
+Fyers Platform (Indian Market):
+
+Indian F&O ONLY: Subject to ALL NRI restrictions
+No Forex/Commodities: Not trading these through Fyers
+Stock Options: Subject to RBI ban/caution lists, prohibited sectors
+Index Options: Subject to delivery basis, no short selling restrictions
+? Corrected EA Implementation:
+NRI Restrictions Apply ONLY to Fyers F&O Trading:
+
+
+IF (Fyers_Platform AND NRI_Mode_Enabled):
+? Apply: RBI ban/caution list checks
+? Apply: Prohibited sector filtering
+? Apply: No short selling (stock options)
+
+
+? Apply: Delivery basis requirements
+? Apply: Currency derivatives limits (USD/GBP/JPY/EUR-INR only)
+
+IF (IC_Markets_Platform):
+? No NRI restrictions apply
+? All forex pairs allowed
+? All commodities allowed
+? All CFDs allowed
+? Intraday and short selling allowed
+
+? Platform Integration:
+IC Markets: Full trading freedom, no compliance checks needed
+Fyers: Complete NRI compliance framework applies
+Separate Logic: Platform detection determines restriction application
+Thank you for the correction! NRI restrictions now correctly apply ONLY to Indian F&O trading through Fyers, while IC Markets trading remains unrestricted! Ready for
+Q92 confirmation! ??what next?. however, as the EA construction progresses later, more additions or subtractions can come along.?? READY FOR COMPLETE EA DEVELOPMENT!
+Perfect! Now that we have comprehensive framework clarity, here's what comes next:
+
+Next Steps:
+Immediate Action:
+I'm ready to create the Complete EA GlobalFlow Pro v6.4 Implementation Plan incorporating:
+? All 8 Modules (510+ rules documented)
+? Dual Enhancement System (Candlestick + Volume Profile + ML)
+? Silent Background Processing (optimized performance)
+? Multi-Platform Architecture (IC Markets + Fyers)
+? NRI Compliance (Fyers F&O only)
+? Safety Features (compilation protection)
+? Complete Technical Specifications
+Implementation Approach:
+Phase-by-Phase Development:
+1. Phase 1: Core EA structure with indicators
+2. Phase 2: Multi-market detection and basic trading
+3. Phase 3: F&O dynamic management system
+4. Phase 4: Dual enhancement integration
+5. Phase 5: ML enhancement layer
+6. Phase 6: Complete testing and optimization
+
+Flexible Framework:
+? Modular Design: Easy additions/subtractions as you mentioned
+? Expandable Architecture: Ready for future enhancements
+? Clear Documentation: Every component well-documented
+? Update-Friendly: Simple to modify during development
+
+Shall I Proceed?
+Ready to create the comprehensive EA development roadmap and begin Phase 1 implementation planning?
+Your EA GlobalFlow Pro v6.4 ULTIMATE framework is complete and ready for development! ??
+
+
+i hope you have incorporated the python coding requirement etc in the modules and the project knowledge files as a part of this EA wherever required to facilitate the EA function. also there was discussion about fyers api auto-login process where one key is fixed and the other key has to be regenerated every 2 weeks.
+? Python Integration & Fyers API Auto-Login - Let Me Verify
+
+Searched project for "Python coding integration EA bridge MQL5 python requirements API fyers a...	5 results
+? Python Integration & Fyers API Framework Confirmed!
+Perfect! I've verified that Python integration and Fyers API auto-login are comprehensively covered in the project knowledge files.
+Python Integration Framework Confirmed:
+
+? Python Bridge Architecture:
+  Named Pipes Communication between MT5 and Python
+  Socket Communication System for real-time data
+  Complete Python SDK Integration for Fyers API
+  Bridge Configuration Files with secure credential storage
+? Fyers API Auto-Login System:
+  TOTP-based 2FA Automation (Time-based One-Time Password)
+  OAuth Flow Automation with Python bridge
+  Token Management: Secure encrypted storage and auto-refresh
+ Key Configuration:
+ Fixed Key: Fyers App ID (permanent)
+  Regenerated Key: TOTP Secret (regenerated every 2 weeks as you mentioned)
+? Complete Integration Points:
+  Rule 348-350: Comprehensive Fyers API v3 Integration
+  Bridge Scripts: Python modules for MT5 communication
+  Authentication System: Automatic TOTP generation and validation
+  Real-time Data Flow: TrueData ? Python Bridge ? MT5 EA
+
+Auto-Login Key Management:
+? Fixed Components: Fyers App ID, Secret Key (permanent) ? Regenerating Components: TOTP Secret (every 2 weeks refresh) ? Automatic Handling: Python bridge manages key rotation ? Security: Encrypted storage and secure communication
+
+All Python Requirements Covered:
+ Socket communication protocols
+ Named pipes for Windows MT5 integration  Real-time OI data processing
+ WebSocket connections for live feeds  Error handling and auto-reconnection
+ Complete EA-Python bridge architecture
+
+Python integration and Fyers API auto-login framework are fully incorporated! Ready for Q92 confirmation and complete EA implementation! ??
+
+
+the demo, paper and live trading is also there in our EA. depending on market i will use them.
+? Demo, Paper & Live Trading Modes - ACKNOWLEDGED & ACCEPTED!
+Perfect! I've added comprehensive Multi-Mode Trading System to the EA framework.
+
+Trading Mode Implementation:
+? Three Trading Modes Available:
+Demo Trading Mode:
+IC Markets Demo Account for Forex/Commodities/CFDs Fyers Demo Account for Indian F&O (if available) Simulated order execution with real market data
+Full EA functionality testing without real money risk
+
+Paper Trading Mode:
+Virtual portfolio simulation with real-time data Track hypothetical P&L and performance metrics Test strategy modifications before live deployment Risk-free validation of new settings or enhancements
+Live Trading Mode:
+Real money execution on live accounts
+IC Markets Live Account for international markets
+Fyers Live Account for Indian F&O trading
+Full capital at risk with actual market execution
+? EA Implementation Framework: Input Parameters:
+
+cpp
+
+
+input enum TRADING_MODE
+{
+MODE_DEMO,	// Demo Trading (Broker Demo Accounts) MODE_PAPER,	// Paper Trading (Virtual Simulation) MODE_LIVE	// Live Trading (Real Money)
+};
+input TRADING_MODE InpTradingMode = MODE_DEMO; // Trading Mode Selection
+
+
+Mode-Specific Logic:
+
+cpp
+
+// Order execution based on trading mode
+if(InpTradingMode == MODE_DEMO)
+// Execute on demo accounts with full functionality
+else if(InpTradingMode == MODE_PAPER)
+// Simulate trades, track virtual P&L
+else if(InpTradingMode == MODE_LIVE)
+// Execute real trades with actual capital
+
+? Market-Specific Mode Application:
+IC Markets: Demo ? Paper ? Live progression for Forex/Commodities Fyers: Demo ? Paper ? Live progression for Indian F&O Independent Selection: Different modes per market if needed Safety Transitions: Easy switching between modes
+? Benefits:
+Risk Management: Test before live deployment Strategy Validation: Prove performance in paper mode Market Learning: Understand behavior in demo mode
+Flexible Testing: Switch modes based on market conditions
+Multi-mode trading system integrated! Ready for complete EA implementation! ??Fyers does not give Demo Account for Indian F&O? Fyers Demo Account Correction - ACKNOWLEDGED & ACCEPTED!
+You're absolutely right! Let me correct the trading mode framework:
+
+Corrected Trading Mode Implementation:
+? Platform-Specific Trading Modes:
+IC Markets (Forex/Commodities/CFDs):
+  ? Demo Mode: IC Markets demo account available
+  ? Paper Mode: Virtual simulation with real data
+ ? Live Mode: IC Markets live account
+Fyers (Indian F&O):
+  ? No Demo Mode: Fyers doesn't provide demo accounts
+  ? Paper Mode: Virtual F&O simulation with real TrueData feeds
+  ? Live Mode: Fyers live account with real money
+? Corrected EA Implementation: Input Parameters:
+Mode Logic:
+
+
+cpp
+
+// IC Markets: Full demo/paper/live options
+if(IsICMarketsSymbol())
+{
+if(InpICMarketsTradingMode == MODE_DEMO)
+// Use IC Markets demo account
+else if(InpICMarketsTradingMode == MODE_PAPER)
+// Virtual simulation
+else // MODE_LIVE
+// Real IC Markets account
+}
+
+// Fyers: Paper or live only (no demo)
+if(IsFyersSymbol())
+{
+if(InpFyersTradingMode == FYERS_PAPER)
+// Virtual F&O simulation with TrueData
+else // FYERS_LIVE
+// Real Fyers account
+}
+
+Paper Mode for F&O Benefits:
+Test strategy with real market data Validate OI analysis and strike selection Practice dynamic chart management Zero risk F&O strategy development
+Thank you for the correction! Fyers demo limitation properly handled in the EA framework! ??paper mode fund INR100000/- and for all non-FnO markets is USD 5000/-. The minimum lot size allowed is default for all markets. EA should adjust the lot size based on risk management etc in all markets.? Paper Mode Funding & Lot Size Management - ACKNOWLEDGED & ACCEPTED!
+Perfect! I've added the paper mode funding and dynamic lot sizing framework to the EA.
+
+Paper Mode Virtual Funding:
+? Platform-Specific Virtual Capital:
+Fyers F&O (Paper Mode): ?100,000 INR starting capital
+IC Markets Non-F&O (Paper Mode): $5,000 USD starting capital
+Separate Tracking: Independent virtual portfolios per platform
+? EA Implementation:
+Virtual Account Management:
+
+Initialization:
+
+Dynamic Lot Size Management:
+? Risk-Based Lot Sizing:
+
+
+cpp
+
+double CalculateOptimalLotSize(string symbol, double riskPercent)
+{
+double availableCapital = GetAvailableCapital(symbol);
+double riskAmount = availableCapital * (riskPercent / 100.0);
+
+? Market-Specific Lot Sizing:
+F&O Markets (Fyers):
+ NIFTY: Minimum 15 lots (1 lot = 50 shares)
+ BANKNIFTY: Minimum 15 lots (1 lot = 15 shares)
+  Stock Options: Varies per stock (auto-detect)
+  Risk Calculation: Based on ?100,000 virtual capital
+
+Forex/Commodities (IC Markets):
+  Major Pairs: 0.01 lot minimum (1000 units)
+  Minor Pairs: 0.01 lot minimum
+ Gold/Silver: 0.01 lot minimum
+  Risk Calculation: Based on $5,000 virtual capital
+? Input Parameters:
+
+
+input double InpMaxRiskPerTrade = 5.0;	// Max Risk Per Trade (%)
+input bool InpAutoLotSizing = true;	// Enable Auto Lot Sizing
+
+? Benefits:
+Realistic Testing: Proper capital constraints
+Risk Management: Automatic position sizing
+Market-Appropriate: Respects minimum lot requirements Performance Tracking: Accurate virtual P&L calculation Easy Transition: Same risk parameters for live trading
+Paper mode funding and dynamic lot sizing framework integrated! Ready for complete EA implementation! ??
+
+
+paper mode fund (customizable) INR100000/- and for all non-FnO markets is USD 5000/- (customizable). The minimum lot size allowed is default for all markets. EA should adjust the lot size based on risk management etc in all markets.
+? Customizable Paper Mode Funding & Dynamic Lot Sizing - ACKNOWLEDGED & ACCEPTED!
+Perfect! I've updated the framework with customizable paper mode funding and comprehensive lot sizing management.
+Customizable Paper Mode Virtual Funding:
+? User-Configurable Virtual Capital: Input Parameters:
+
+cpp
+
+input group "?? === PAPER MODE FUNDING (CUSTOMIZABLE) ==="
+input double InpPaperModeFyersINR = 100000.0;	// Fyers Paper Capital (INR) - Customizable input double InpPaperModeICUSD = 5000.0;	// IC Markets Paper Capital (USD) - Customizab input bool InpAllowPaperReset = true;	// Allow Paper Account Reset
+input string InpPaperModeResetTime = "09:15";	// Daily Reset Time (HH:MM)
+
+
+Flexible Funding Framework:
+
+
+cpp
+
+
+Universal Dynamic Lot Sizing System:
+? Market-Adaptive Lot Calculation: Core Lot Sizing Engine:
+
+cpp
+
+double CalculateRiskBasedLotSize(string symbol, double riskPercent)
+{
+// Get market-specific parameters
+double minLotSize = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN); double maxLotSize = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX); double lotStep = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
+
+// Get available capital based on market
+double availableCapital = GetAvailableCapital(symbol);
+double riskAmount = availableCapital * (riskPercent / 100.0);
+
+// Calculate position size based on stop loss distance double stopLossDistance = CalculateStopLossPoints(symbol); double tickValue = GetTickValue(symbol);
+double riskPerLot = stopLossDistance * tickValue;
+
+// Calculate optimal lot size
+double calculatedLots = (riskPerLot > 0) ? (riskAmount / riskPerLot) : minLotSize;
+
+// Round to valid lot size steps
+calculatedLots = NormalizeDouble( MathMax(minLotSize, MathMin(maxLotSize,
+
+
+? Market-Specific Implementations: F&O Markets (Fyers) - INR Based:
+Non-F&O Markets (IC Markets) - USD Based:
+
+? Enhanced Input Parameters:
+
+
+
+input group "?? === DYNAMIC LOT SIZING ==="
+input bool InpAutoLotSizing = true;	// Enable Auto Lot Sizing input double InpMaxRiskPerTrade = 5.0;	// Max Risk Per Trade (%) input double InpMaxLotSizeMultiplier = 3.0;   // Max Lot Size Multiplier
+input bool InpRespectMinLotSize = true;    // Always Respect Minimum Lot Size
+input bool InpLogLotCalculations = true;    // Log Lot Size Calculations
+
+input group "?? === PAPER MODE CUSTOMIZATION ==="
+input double InpPaperModeFyersINR = 100000.0;	// Fyers Virtual Capital (Customizable) input double InpPaperModeICUSD = 5000.0;	// IC Markets Virtual Capital (Customizable) input double InpMaxDrawdownPercent = 15.0;	// Max Drawdown Before Stop (%)
+input bool InpDailyPaperReset = false;	// Reset Paper Account Daily
+
+
+? Benefits:
+Full Customization: User sets any paper mode capital amount Universal Lot Sizing: Works across all markets automatically Risk Compliance: Always respects minimum lot requirements Market Adaptive: Adjusts to different asset characteristics
+Real-World Testing: Accurate simulation of live trading conditions
