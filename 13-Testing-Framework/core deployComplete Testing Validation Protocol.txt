@@ -1,0 +1,276 @@
+EA GlobalFlow Pro v8.0 - Complete Testing & Validation Protocol
+ TESTING ROADMAP - STARTING NOW
+Current Status: VPS Ready I EA 80% Complete I All APls Configured
+Testing Mode: Start with DEMO -. PAPER-. LIMITED LIVE -. FULL LIVE
+Timeline: 4 weeks progressive testing
+
+
+ PHASE 1: IMMEDIATE VPS DEPLOYMENT & DEMO TESTING (Week 1)
+DAY 1-2: VPS DEPLOYMENT & COMPILATION
+
+Step 1: File Transfer to VPS
+
+
+Step 2: Compilation Testing
+
+
+Step 3: Demo Mode Configuration
+
+
+
+
+DAY 3-5: FUNCTIONAL TESTING
+
+ 7-GATES SYSTEM VALIDATION
+
+GATE 1: Market Detection Testing
+
+
+GATE 2: 34 Entry Conditions Testing
+
+
+
+GATE 3: Multi-Timeframe Validation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Entry Signal:  TestingFinal Confirmation: TestingL-
+LBar-Close Analysis: Testing
+_J
+
+
+
+
+GATE 4: Enhancement System Testing
+
+
+GATE 5: F&O Secondary Chart Testing
+
+
+F&O HYBRID LOGIC VALIDATION:
+r
+ATM Strike Identification:
+Spot Price Detection: Test I Bar-Close Accuracy: Test I Nearest Strike Logic:  Test I
+L-  Expiry Day Override:  Test  I
+
+01 Bias Analysis:
+Call 01 Reading: Testing I Put 01 Reading: Testing I 30% Threshold: Testing I Hybrid Path Logic:  Testing I
+L-  Pattern Qualification:  Test I
+Secondary Chart Management: I Chart Opening: Testing I Visual Themes: Testing I Call/Put Badges: Testing I Auto-Close Logic:  Testing  I
+L-	Memory Management:	Testing
+L	_J
+
+
+Test Scenarios:
+1. Strong 01 bias (>30%)	Charts open
+2. Weak 01 bias (<30%)	No charts
+3. Expiry day	ATM charts only
+4. 3:29 PM	Auto-close all charts
+
+
+DAY 6-7: SYSTEM INTEGRATION TESTING
+
+Dashboard & Reporting Testing
+
+
+
+Email Reporting Testing
+
+
+
+PHASE 2: PAPER TRADING VALIDATION {Week 2)
+
+Paper Mode Configuration
+
+
+
+
+Virtual Trading Testing
+
+
+Strategy Validation Testing
+
+
+
+
+PHASE 3: LIMITED LIVE TESTING (Week 3)
+
+Conservative Live Configuration
+
+
+Risk Management Validation
+
+
+
+Performance Monitoring
+
+
+
+PHASE 4: FULL DEPLOYMENT (Week 4)
+
+Production Configuration
+
+
+
+Full Production Testing
+
+
+
+SPECIFIC TESTING PROTOCOLS
+
+F&O Secondary Chart Testing Protocol
+
+
+SECONDARY CHART VALIDATION:
+
+
+Test Scenario 1: Strong 01 Bias
+Setup: NIFTY with >30% Call 01 bias
+Expected: Call chart opens at +1 OTM, Put chart at -1 OTM Verify: Visual themes (Green/Red), badges visible
+Monitor: EA running on both charts
+L-	Result:	Charts open correctly
+
+
+Test Scenario 2: Weak 01 Bias
+Setup: NIFTY with <30% 01 bias Expected: No secondary charts open
+Verify: Debug log shows "01 bias not qualified" Monitor: Primary chart continues scanning
+L-	Result:	No charts opened (correct behavior)
+
+
+Test Scenario 3: Expiry Day
+Setup: Trading on expiry day
+Expected: Both charts open at ATM strike Verify: Override OTM logic, ATM strikes only Monitor: Auto-close at 3:29 PM exactly
+L-	Result:	Expiry logic working
+
+
+Test Scenario 4: Auto-Close Testing
+Trigger 1: Manual 3:29 PM simulation Trigger 2: 3-trade limit reached Trigger 3: Stop loss hit
+Trigger 4: Inactivity timeout (1 hour)
+L-	Result:	All auto-close triggers working
+
+
+Enhancement System Testing Protocol
+
+
+ENHANCEMENT VALIDATION:
+
+
+ML Layer Testing:
+Feature calculation accuracy Model prediction consistency Confidence score reliability Ensemble averaging correctness
+L-	75%+ threshold enforcement
+
+
+Volume Profile Testing:
+POC identification accuracy HVN detection reliability Value area calculation Volume spike recognition
+L-	Market structure analysis
+
+
+Candlestick Pattern Testing:
+Pattern recognition accuracy (17 patterns) Strength scoring consistency Confirmation logic validation
+Multi-timeframe pattern analysis
+L-	Pattern reliability tracking
+
+
+Combined Score Testing:
+85% threshold enforcement Trade qualification accuracy Enhancement attribution tracking
+Performance improvement measurement
+L-	Quality vs quantity validation
+
+
+
+ SUCCESS METRICS & BENCHMARKS
+Technical Performance Benchmarks
+
+
+
+Daily Monitoring Checklist
+
+
+DAILY VALIDATION CHECKLIST:
+
+
+Morning (Pre-Market):
+VPS connectivity check API connections status Python bridge health Market calendar review
+L_	Risk parameters verify
+
+
+During Market Hours:
+Real-time gate monitoring Secondary chart management Enhancement system performance Risk limit compliance
+L_	Trade execution quality
+
+
+End of Day:
+Daily P&L reconciliation Performance attribution Risk metrics analysis Email report delivery
+L_	System health check
+
+
+Weekly Reviews:
+Comprehensive performance analysis Gate success rate trends Enhancement system optimization Risk management effectiveness
+L-	Strategy refinement suggestions
+
+
+
+ EMERGENCY PROTOCOLS
+
+Testing Emergency Scenarios
+
+
+
+
+TESTING TIMELINE SUMMARY
+
+
+4-WEEK TESTING SCHEDULE:
+
+WEEK 1: VPS DEPLOYMENT & DEMO TESTING
+Days 1-2: File transfer & compilation Days 3-5: 7-Gates functional testing Days 6-7: System integration testing
+L_  Success Criteria: All components working
+
+WEEK 2: PAPER TRADING VALIDATION
+Days 1-7: Virtual trading simulation Performance: 85%+ win rate target Risk: Virtual portfolio management
+L_  Success Criteria: Strategy validation
+
+
+WEEK 3: LIMITED LIVE TESTING
+Days 1-7: Conservative real money testing Risk: 0.25% per trade maximum
+Positions: 3 maximum concurrent
+L_	Success Criteria: Real market validation
+
+WEEK 4: FULL PRODUCTION DEPLOYMENT
+Days 1-7: Complete system activation Performance: 90%+ win rate target Full automation: All features active
+L_	Success Criteria: Production ready
+
+FINAL VALIDATION:
+90%+ win rate achieved All 7 gates operational Daily reports delivered Risk limits respected System stability proven
+Emergency protocols tested
+
+
+
+ SUPPORT & MONITORING
+Developer Contact:
+WhatsApp: +971507423656
+Email: pajitmenonai@gmail.com
+
+Daily Reports: 17:00 1ST to pajitmenonai@gmail.com Emergency Alerts: Real-time WhatsApp notifications VPS Location: 38.57.40.165:42014
+Ready to begin Phase 1: VPS Deployment & Demo Testing!
+
+
