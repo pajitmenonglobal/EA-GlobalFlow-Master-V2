@@ -1,0 +1,772 @@
+//+------------------------------------------------------------------+
+//| GlobalFlow_Indicators.mqh - Core Indicators System              |
+//| EA GlobalFlow Pro v0.1 - Institutional Grade                   |
+//| Copyright 2025, pajitmenonai@gmail.com                          |
+//+------------------------------------------------------------------+
+#property copyright "EA GlobalFlow Pro v0.1 - Indicators"
+#property link      "pajitmenonai@gmail.com"
+
+//+------------------------------------------------------------------+
+//| Indicator Handles Structure                                     |
+//+------------------------------------------------------------------+
+struct IndicatorHandles
+{
+    // Core 6 Indicators
+    int         ichimoku;           // Ichimoku Kinko Hyo (9,26,52)
+    int         tdi_rsi;            // TDI Base RSI (13)
+    int         smma50;             // SMMA 50 period
+    int         bollinger;          // Bollinger Bands (20,2.0)
+    int         str_entry;          // STR-ENTRY (ATR 20, Mult 1.0)
+    int         str_exit;           // STR-EXIT (ATR 20, Mult 1.5)
+    
+    // Supporting indicators
+    int         atr_20;             // ATR for SuperTrend calculations
+    int         volume;             // Volume for confirmation
+};
+
+//+------------------------------------------------------------------+
+//| Indicator Values Structure                                      |
+//+------------------------------------------------------------------+
+struct IndicatorValues
+{
+    // Ichimoku values (5 lines)
+    double      tenkanSen;          // Tenkan Sen (TS)
+    double      kijunSen;           // Kijun Sen (KS)
+    double      chikouSpan;         // Chikou Span (CSpan)
+    double      senkou_A;           // Senkou Span A (SSA)
+    double      senkou_B;           // Senkou Span B (SSB)
+    
+    // TDI values (5 lines)
+    double      rsi_signal;         // RSI Signal Line (rsig)
+    double      market_base;        // Market Base Line (MB)
+    double      trade_signal;       // Trade Signal Line (TSL)
+    double      vb_high;            // Volatility Band High
+    double      vb_low;             // Volatility Band Low
+    
+    // SMMA50
+    double      smma_50;            // SMMA 50 value
+    
+    // Bollinger Bands
+    double      bb_upper;           // Upper Bollinger Band
+    double      bb_lower;           // Lower Bollinger Band
+    double      bb_middle;          // Middle Bollinger Band
+    
+    // SuperTrend values
+    double      str_entry_value;    // STR-ENTRY value
+    double      str_exit_value;     // STR-EXIT value
+    int         str_entry_trend;    // STR-ENTRY trend direction
+    int         str_exit_trend;     // STR-EXIT trend direction
+    
+    // Supporting values
+    double      atr_value;          // ATR value
+    long        volume_current;     // Current volume
+    long        volume_average;     // Average volume (20 periods)
+};
+
+//+------------------------------------------------------------------+
+//| Multi-Timeframe Indicator Data                                  |
+//+------------------------------------------------------------------+
+struct MultiTimeframeData
+{
+    IndicatorValues major_tf;       // Daily/4H data
+    IndicatorValues middle_tf;      // 1H/30M data
+    IndicatorValues entry_tf;       // 15M/5M data
+    datetime        last_update;    // Last update time
+    bool            valid_data;     // Data validity flag
+};
+
+//+------------------------------------------------------------------+
+//| Global Indicator Variables                                      |
+//+------------------------------------------------------------------+
+IndicatorHandles        g_Handles;
+MultiTimeframeData      g_MTFData;
+ENUM_TIMEFRAMES         g_MajorTF = PERIOD_D1;
+ENUM_TIMEFRAMES         g_MiddleTF = PERIOD_H1;
+ENUM_TIMEFRAMES         g_EntryTF = PERIOD_M15;
+
+//+------------------------------------------------------------------+
+//| Initialize All Indicators                                       |
+//+------------------------------------------------------------------+
+bool InitializeIndicators()
+{
+    Print("📊 Initializing 6 Core Indicators System...");
+    
+    // Set timeframes from external parameters
+    g_MajorTF = MajorTrendTF;
+    g_MiddleTF = MiddleTrendTF;
+    g_EntryTF = EntryTF;
+    
+    // Initialize indicator handles
+    if(!CreateIndicatorHandles())
+    {
+        Print("❌ Failed to create indicator handles");
+        return false;
+    }
+    
+    // Validate all handles
+    if(!ValidateIndicatorHandles())
+    {
+        Print("❌ Indicator handle validation failed");
+        return false;
+    }
+    
+    // Initialize multi-timeframe data
+    InitializeMultiTimeframeData();
+    
+    // Initial data load
+    if(!UpdateAllIndicators())
+    {
+        Print("❌ Initial indicator data load failed");
+        return false;
+    }
+    
+    Print("✅ All 6 Core Indicators initialized successfully");
+    PrintIndicatorDetails();
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Create Indicator Handles                                        |
+//+------------------------------------------------------------------+
+bool CreateIndicatorHandles()
+{
+    Print("🔧 Creating indicator handles...");
+    
+    // 1. Ichimoku Kinko Hyo (9, 26, 52)
+    g_Handles.ichimoku = iIchimoku(Symbol(), PERIOD_CURRENT, 9, 26, 52);
+    if(g_Handles.ichimoku == INVALID_HANDLE)
+    {
+        Print("❌ Failed to create Ichimoku handle");
+        return false;
+    }
+    
+    // 2. TDI Base RSI (Period: 13)
+    g_Handles.tdi_rsi = iRSI(Symbol(), PERIOD_CURRENT, 13, PRICE_CLOSE);
+    if(g_Handles.tdi_rsi == INVALID_HANDLE)
+    {
+        Print("❌ Failed to create TDI RSI handle");
+        return false;
+    }
+    
+    // 3. SMMA 50
+    g_Handles.smma50 = iMA(Symbol(), PERIOD_CURRENT, 50, 0, MODE_SMMA, PRICE_CLOSE);
+    if(g_Handles.smma50 == INVALID_HANDLE)
+    {
+        Print("❌ Failed to create SMMA50 handle");
+        return false;
+    }
+    
+    // 4. Bollinger Bands (20, 2.0)
+    g_Handles.bollinger = iBands(Symbol(), PERIOD_CURRENT, 20, 0, 2.0, PRICE_CLOSE);
+    if(g_Handles.bollinger == INVALID_HANDLE)
+    {
+        Print("❌ Failed to create Bollinger Bands handle");
+        return false;
+    }
+    
+    // 5. ATR for SuperTrend calculations
+    g_Handles.atr_20 = iATR(Symbol(), PERIOD_CURRENT, 20);
+    if(g_Handles.atr_20 == INVALID_HANDLE)
+    {
+        Print("❌ Failed to create ATR handle");
+        return false;
+    }
+    
+    // 6. Volume (built-in)
+    g_Handles.volume = INVALID_HANDLE;  // Volume uses iVolume() function
+    
+    Print("✅ All indicator handles created");
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Validate Indicator Handles                                      |
+//+------------------------------------------------------------------+
+bool ValidateIndicatorHandles()
+{
+    int validHandles = 0;
+    int totalHandles = 5;  // 5 custom handles (volume is built-in)
+    
+    if(g_Handles.ichimoku != INVALID_HANDLE) validHandles++;
+    if(g_Handles.tdi_rsi != INVALID_HANDLE) validHandles++;
+    if(g_Handles.smma50 != INVALID_HANDLE) validHandles++;
+    if(g_Handles.bollinger != INVALID_HANDLE) validHandles++;
+    if(g_Handles.atr_20 != INVALID_HANDLE) validHandles++;
+    
+    Print("📊 Indicator handles validation: ", validHandles, "/", totalHandles, " valid");
+    
+    return (validHandles == totalHandles);
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Multi-Timeframe Data                                 |
+//+------------------------------------------------------------------+
+void InitializeMultiTimeframeData()
+{
+    g_MTFData.last_update = 0;
+    g_MTFData.valid_data = false;
+    
+    // Initialize all timeframe data to zero
+    ResetIndicatorValues(g_MTFData.major_tf);
+    ResetIndicatorValues(g_MTFData.middle_tf);
+    ResetIndicatorValues(g_MTFData.entry_tf);
+}
+
+//+------------------------------------------------------------------+
+//| Reset Indicator Values                                          |
+//+------------------------------------------------------------------+
+void ResetIndicatorValues(IndicatorValues &values)
+{
+    // Ichimoku
+    values.tenkanSen = 0.0;
+    values.kijunSen = 0.0;
+    values.chikouSpan = 0.0;
+    values.senkou_A = 0.0;
+    values.senkou_B = 0.0;
+    
+    // TDI
+    values.rsi_signal = 0.0;
+    values.market_base = 0.0;
+    values.trade_signal = 0.0;
+    values.vb_high = 0.0;
+    values.vb_low = 0.0;
+    
+    // SMMA50
+    values.smma_50 = 0.0;
+    
+    // Bollinger Bands
+    values.bb_upper = 0.0;
+    values.bb_lower = 0.0;
+    values.bb_middle = 0.0;
+    
+    // SuperTrend
+    values.str_entry_value = 0.0;
+    values.str_exit_value = 0.0;
+    values.str_entry_trend = 0;
+    values.str_exit_trend = 0;
+    
+    // Supporting
+    values.atr_value = 0.0;
+    values.volume_current = 0;
+    values.volume_average = 0;
+}
+
+//+------------------------------------------------------------------+
+//| Update All Indicators                                           |
+//+------------------------------------------------------------------+
+bool UpdateAllIndicators()
+{
+    bool success = true;
+    
+    // Update Major Timeframe indicators
+    if(!UpdateTimeframeIndicators(g_MajorTF, g_MTFData.major_tf))
+    {
+        Print("❌ Failed to update Major TF indicators");
+        success = false;
+    }
+    
+    // Update Middle Timeframe indicators
+    if(!UpdateTimeframeIndicators(g_MiddleTF, g_MTFData.middle_tf))
+    {
+        Print("❌ Failed to update Middle TF indicators");
+        success = false;
+    }
+    
+    // Update Entry Timeframe indicators
+    if(!UpdateTimeframeIndicators(g_EntryTF, g_MTFData.entry_tf))
+    {
+        Print("❌ Failed to update Entry TF indicators");
+        success = false;
+    }
+    
+    if(success)
+    {
+        g_MTFData.last_update = TimeCurrent();
+        g_MTFData.valid_data = true;
+    }
+    
+    return success;
+}
+
+//+------------------------------------------------------------------+
+//| Update Timeframe Specific Indicators                           |
+//+------------------------------------------------------------------+
+bool UpdateTimeframeIndicators(ENUM_TIMEFRAMES timeframe, IndicatorValues &values)
+{
+    // Create temporary handles for this timeframe if different from current
+    int ichimoku_handle = g_Handles.ichimoku;
+    int tdi_rsi_handle = g_Handles.tdi_rsi;
+    int smma50_handle = g_Handles.smma50;
+    int bollinger_handle = g_Handles.bollinger;
+    int atr_handle = g_Handles.atr_20;
+    
+    // If different timeframe, create temporary handles
+    if(timeframe != PERIOD_CURRENT)
+    {
+        ichimoku_handle = iIchimoku(Symbol(), timeframe, 9, 26, 52);
+        tdi_rsi_handle = iRSI(Symbol(), timeframe, 13, PRICE_CLOSE);
+        smma50_handle = iMA(Symbol(), timeframe, 50, 0, MODE_SMMA, PRICE_CLOSE);
+        bollinger_handle = iBands(Symbol(), timeframe, 20, 0, 2.0, PRICE_CLOSE);
+        atr_handle = iATR(Symbol(), timeframe, 20);
+        
+        // Validate temporary handles
+        if(ichimoku_handle == INVALID_HANDLE || tdi_rsi_handle == INVALID_HANDLE ||
+           smma50_handle == INVALID_HANDLE || bollinger_handle == INVALID_HANDLE ||
+           atr_handle == INVALID_HANDLE)
+        {
+            Print("❌ Failed to create temporary handles for TF: ", EnumToString(timeframe));
+            return false;
+        }
+    }
+    
+    // Update Ichimoku values
+    if(!UpdateIchimokuValues(ichimoku_handle, timeframe, values))
+        return false;
+    
+    // Update TDI values
+    if(!UpdateTDIValues(tdi_rsi_handle, timeframe, values))
+        return false;
+    
+    // Update SMMA50
+    if(!UpdateSMMAValues(smma50_handle, timeframe, values))
+        return false;
+    
+    // Update Bollinger Bands
+    if(!UpdateBollingerValues(bollinger_handle, timeframe, values))
+        return false;
+    
+    // Update SuperTrend values
+    if(!UpdateSuperTrendValues(atr_handle, timeframe, values))
+        return false;
+    
+    // Update Volume
+    if(!UpdateVolumeValues(timeframe, values))
+        return false;
+    
+    // Release temporary handles
+    if(timeframe != PERIOD_CURRENT)
+    {
+        IndicatorRelease(ichimoku_handle);
+        IndicatorRelease(tdi_rsi_handle);
+        IndicatorRelease(smma50_handle);
+        IndicatorRelease(bollinger_handle);
+        IndicatorRelease(atr_handle);
+    }
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Update Ichimoku Values                                          |
+//+------------------------------------------------------------------+
+bool UpdateIchimokuValues(int handle, ENUM_TIMEFRAMES timeframe, IndicatorValues &values)
+{
+    double ichimoku_buffer[5];
+    ArraySetAsSeries(ichimoku_buffer, true);
+    
+    // Get Tenkan Sen (0)
+    if(CopyBuffer(handle, 0, 0, 1, ichimoku_buffer) <= 0)
+        return false;
+    values.tenkanSen = ichimoku_buffer[0];
+    
+    // Get Kijun Sen (1)
+    if(CopyBuffer(handle, 1, 0, 1, ichimoku_buffer) <= 0)
+        return false;
+    values.kijunSen = ichimoku_buffer[0];
+    
+    // Get Senkou Span A (2)
+    if(CopyBuffer(handle, 2, 0, 1, ichimoku_buffer) <= 0)
+        return false;
+    values.senkou_A = ichimoku_buffer[0];
+    
+    // Get Senkou Span B (3)
+    if(CopyBuffer(handle, 3, 0, 1, ichimoku_buffer) <= 0)
+        return false;
+    values.senkou_B = ichimoku_buffer[0];
+    
+    // Get Chikou Span (4)
+    if(CopyBuffer(handle, 4, 0, 1, ichimoku_buffer) <= 0)
+        return false;
+    values.chikouSpan = ichimoku_buffer[0];
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Update TDI Values                                               |
+//+------------------------------------------------------------------+
+bool UpdateTDIValues(int rsi_handle, ENUM_TIMEFRAMES timeframe, IndicatorValues &values)
+{
+    // Get base RSI value
+    double rsi_buffer[1];
+    ArraySetAsSeries(rsi_buffer, true);
+    
+    if(CopyBuffer(rsi_handle, 0, 0, 1, rsi_buffer) <= 0)
+        return false;
+    
+    double rsi_value = rsi_buffer[0];
+    
+    // Calculate TDI components based on RSI
+    // These are simplified calculations - in production, use custom TDI indicator
+    
+    // RSI Signal Line (smoothed RSI)
+    values.rsi_signal = rsi_value;
+    
+    // Market Base Line (moving average of RSI)
+    values.market_base = CalculateRSIMA(rsi_handle, timeframe, 7);
+    
+    // Trade Signal Line (signal line of market base)
+    values.trade_signal = CalculateRSIMA(rsi_handle, timeframe, 2);
+    
+    // Volatility Bands (based on standard deviation)
+    double rsi_std = CalculateRSIStdDev(rsi_handle, timeframe, 34);
+    values.vb_high = values.market_base + (1.6185 * rsi_std);
+    values.vb_low = values.market_base - (1.6185 * rsi_std);
+    
+    // Ensure bands are within 0-100 range
+    values.vb_high = MathMin(values.vb_high, 100.0);
+    values.vb_low = MathMax(values.vb_low, 0.0);
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate RSI Moving Average                                    |
+//+------------------------------------------------------------------+
+double CalculateRSIMA(int rsi_handle, ENUM_TIMEFRAMES timeframe, int period)
+{
+    double rsi_values[50];
+    ArraySetAsSeries(rsi_values, true);
+    
+    int copied = CopyBuffer(rsi_handle, 0, 0, MathMin(period, 50), rsi_values);
+    if(copied <= 0) return 50.0;  // Default middle value
+    
+    double sum = 0.0;
+    int count = MathMin(copied, period);
+    
+    for(int i = 0; i < count; i++)
+    {
+        sum += rsi_values[i];
+    }
+    
+    return sum / count;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate RSI Standard Deviation                               |
+//+------------------------------------------------------------------+
+double CalculateRSIStdDev(int rsi_handle, ENUM_TIMEFRAMES timeframe, int period)
+{
+    double rsi_values[50];
+    ArraySetAsSeries(rsi_values, true);
+    
+    int copied = CopyBuffer(rsi_handle, 0, 0, MathMin(period, 50), rsi_values);
+    if(copied <= 0) return 10.0;  // Default std dev
+    
+    // Calculate mean
+    double sum = 0.0;
+    int count = MathMin(copied, period);
+    
+    for(int i = 0; i < count; i++)
+    {
+        sum += rsi_values[i];
+    }
+    double mean = sum / count;
+    
+    // Calculate standard deviation
+    double variance = 0.0;
+    for(int i = 0; i < count; i++)
+    {
+        variance += MathPow(rsi_values[i] - mean, 2);
+    }
+    
+    return MathSqrt(variance / count);
+}
+
+//+------------------------------------------------------------------+
+//| Update SMMA Values                                              |
+//+------------------------------------------------------------------+
+bool UpdateSMMAValues(int handle, ENUM_TIMEFRAMES timeframe, IndicatorValues &values)
+{
+    double smma_buffer[1];
+    ArraySetAsSeries(smma_buffer, true);
+    
+    if(CopyBuffer(handle, 0, 0, 1, smma_buffer) <= 0)
+        return false;
+    
+    values.smma_50 = smma_buffer[0];
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Update Bollinger Bands Values                                  |
+//+------------------------------------------------------------------+
+bool UpdateBollingerValues(int handle, ENUM_TIMEFRAMES timeframe, IndicatorValues &values)
+{
+    double bb_buffer[1];
+    ArraySetAsSeries(bb_buffer, true);
+    
+    // Upper Band (0)
+    if(CopyBuffer(handle, 0, 0, 1, bb_buffer) <= 0)
+        return false;
+    values.bb_upper = bb_buffer[0];
+    
+    // Lower Band (1)
+    if(CopyBuffer(handle, 1, 0, 1, bb_buffer) <= 0)
+        return false;
+    values.bb_lower = bb_buffer[0];
+    
+    // Middle Band (2)
+    if(CopyBuffer(handle, 2, 0, 1, bb_buffer) <= 0)
+        return false;
+    values.bb_middle = bb_buffer[0];
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Update SuperTrend Values                                       |
+//+------------------------------------------------------------------+
+bool UpdateSuperTrendValues(int atr_handle, ENUM_TIMEFRAMES timeframe, IndicatorValues &values)
+{
+    // Get ATR value
+    double atr_buffer[1];
+    ArraySetAsSeries(atr_buffer, true);
+    
+    if(CopyBuffer(atr_handle, 0, 0, 1, atr_buffer) <= 0)
+        return false;
+    
+    values.atr_value = atr_buffer[0];
+    
+    // Calculate SuperTrend Entry (Multiplier 1.0)
+    double hl2 = (iHigh(Symbol(), timeframe, 0) + iLow(Symbol(), timeframe, 0)) / 2.0;
+    double close_price = iClose(Symbol(), timeframe, 0);
+    
+    double basic_upper_entry = hl2 + (1.0 * values.atr_value);
+    double basic_lower_entry = hl2 - (1.0 * values.atr_value);
+    
+    // Simple SuperTrend calculation (Entry)
+    if(close_price > basic_upper_entry)
+    {
+        values.str_entry_value = basic_lower_entry;
+        values.str_entry_trend = 1;  // Bullish
+    }
+    else if(close_price < basic_lower_entry)
+    {
+        values.str_entry_value = basic_upper_entry;
+        values.str_entry_trend = -1;  // Bearish
+    }
+    else
+    {
+        // Use previous value logic would go here
+        values.str_entry_value = (basic_upper_entry + basic_lower_entry) / 2.0;
+        values.str_entry_trend = 0;  // Neutral
+    }
+    
+    // Calculate SuperTrend Exit (Multiplier 1.5)
+    double basic_upper_exit = hl2 + (1.5 * values.atr_value);
+    double basic_lower_exit = hl2 - (1.5 * values.atr_value);
+    
+    // Simple SuperTrend calculation (Exit)
+    if(close_price > basic_upper_exit)
+    {
+        values.str_exit_value = basic_lower_exit;
+        values.str_exit_trend = 1;  // Bullish
+    }
+    else if(close_price < basic_lower_exit)
+    {
+        values.str_exit_value = basic_upper_exit;
+        values.str_exit_trend = -1;  // Bearish
+    }
+    else
+    {
+        values.str_exit_value = (basic_upper_exit + basic_lower_exit) / 2.0;
+        values.str_exit_trend = 0;  // Neutral
+    }
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Update Volume Values                                            |
+//+------------------------------------------------------------------+
+bool UpdateVolumeValues(ENUM_TIMEFRAMES timeframe, IndicatorValues &values)
+{
+    // Current volume
+    values.volume_current = iVolume(Symbol(), timeframe, 0);
+    
+    // Calculate 20-period average volume
+    long volume_sum = 0;
+    int period = 20;
+    
+    for(int i = 1; i <= period; i++)  // Start from 1 to exclude current incomplete bar
+    {
+        volume_sum += iVolume(Symbol(), timeframe, i);
+    }
+    
+    values.volume_average = volume_sum / period;
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Get Major Timeframe Data                                        |
+//+------------------------------------------------------------------+
+IndicatorValues GetMajorTimeframeData()
+{
+    return g_MTFData.major_tf;
+}
+
+//+------------------------------------------------------------------+
+//| Get Middle Timeframe Data                                       |
+//+------------------------------------------------------------------+
+IndicatorValues GetMiddleTimeframeData()
+{
+    return g_MTFData.middle_tf;
+}
+
+//+------------------------------------------------------------------+
+//| Get Entry Timeframe Data                                        |
+//+------------------------------------------------------------------+
+IndicatorValues GetEntryTimeframeData()
+{
+    return g_MTFData.entry_tf;
+}
+
+//+------------------------------------------------------------------+
+//| Check if Indicator Data is Valid                               |
+//+------------------------------------------------------------------+
+bool IsIndicatorDataValid()
+{
+    return g_MTFData.valid_data && (TimeCurrent() - g_MTFData.last_update) < 300;  // 5 minutes tolerance
+}
+
+//+------------------------------------------------------------------+
+//| Print Indicator Details                                         |
+//+------------------------------------------------------------------+
+void PrintIndicatorDetails()
+{
+    Print("📊 Indicator System Details:");
+    Print("   Major TF: ", EnumToString(g_MajorTF));
+    Print("   Middle TF: ", EnumToString(g_MiddleTF));
+    Print("   Entry TF: ", EnumToString(g_EntryTF));
+    Print("   Ichimoku: (9,26,52)");
+    Print("   TDI: RSI(13), Volatility(34), Price(2), Signal(7)");
+    Print("   SMMA: 50 period");
+    Print("   Bollinger: (20, 2.0)");
+    Print("   STR-ENTRY: ATR(20), Mult(1.0)");
+    Print("   STR-EXIT: ATR(20), Mult(1.5)");
+}
+
+//+------------------------------------------------------------------+
+//| Get Bollinger Band Squeeze Status                              |
+//+------------------------------------------------------------------+
+bool IsBBSqueeze(ENUM_TIMEFRAMES timeframe = PERIOD_CURRENT)
+{
+    IndicatorValues values;
+    
+    if(timeframe == g_MajorTF)
+        values = g_MTFData.major_tf;
+    else if(timeframe == g_MiddleTF)
+        values = g_MTFData.middle_tf;
+    else
+        values = g_MTFData.entry_tf;
+    
+    // Calculate band width as percentage of middle band
+    double bandWidth = ((values.bb_upper - values.bb_lower) / values.bb_middle) * 100.0;
+    
+    // Squeeze threshold - adjust based on market conditions
+    double squeezeThreshold = 2.0;  // 2% band width indicates squeeze
+    
+    return (bandWidth < squeezeThreshold);
+}
+
+//+------------------------------------------------------------------+
+//| Check for Kumo Breakout                                        |
+//+------------------------------------------------------------------+
+int CheckKumoBreakout(ENUM_TIMEFRAMES timeframe = PERIOD_CURRENT)
+{
+    IndicatorValues values;
+    
+    if(timeframe == g_MajorTF)
+        values = g_MTFData.major_tf;
+    else if(timeframe == g_MiddleTF)
+        values = g_MTFData.middle_tf;
+    else
+        values = g_MTFData.entry_tf;
+    
+    double currentPrice = iClose(Symbol(), timeframe, 0);
+    double kumoTop = MathMax(values.senkou_A, values.senkou_B);
+    double kumoBottom = MathMin(values.senkou_A, values.senkou_B);
+    
+    if(currentPrice > kumoTop)
+        return 1;   // Bullish breakout
+    else if(currentPrice < kumoBottom)
+        return -1;  // Bearish breakout
+    else
+        return 0;   // Inside Kumo
+}
+
+//+------------------------------------------------------------------+
+//| Get TDI Signal                                                  |
+//+------------------------------------------------------------------+
+int GetTDISignal(ENUM_TIMEFRAMES timeframe = PERIOD_CURRENT)
+{
+    IndicatorValues values;
+    
+    if(timeframe == g_MajorTF)
+        values = g_MTFData.major_tf;
+    else if(timeframe == g_MiddleTF)
+        values = g_MTFData.middle_tf;
+    else
+        values = g_MTFData.entry_tf;
+    
+    // TDI Signal Logic
+    if(values.rsi_signal > values.market_base && values.rsi_signal > 50)
+        return 1;   // Bullish
+    else if(values.rsi_signal < values.market_base && values.rsi_signal < 50)
+        return -1;  // Bearish
+    else
+        return 0;   // Neutral
+}
+
+//+------------------------------------------------------------------+
+//| Cleanup Indicators                                             |
+//+------------------------------------------------------------------+
+void CleanupIndicators()
+{
+    Print("🧹 Cleaning up indicators...");
+    
+    // Release indicator handles
+    if(g_Handles.ichimoku != INVALID_HANDLE)
+        IndicatorRelease(g_Handles.ichimoku);
+    
+    if(g_Handles.tdi_rsi != INVALID_HANDLE)
+        IndicatorRelease(g_Handles.tdi_rsi);
+    
+    if(g_Handles.smma50 != INVALID_HANDLE)
+        IndicatorRelease(g_Handles.smma50);
+    
+    if(g_Handles.bollinger != INVALID_HANDLE)
+        IndicatorRelease(g_Handles.bollinger);
+    
+    if(g_Handles.atr_20 != INVALID_HANDLE)
+        IndicatorRelease(g_Handles.atr_20);
+    
+    // Reset handles
+    g_Handles.ichimoku = INVALID_HANDLE;
+    g_Handles.tdi_rsi = INVALID_HANDLE;
+    g_Handles.smma50 = INVALID_HANDLE;
+    g_Handles.bollinger = INVALID_HANDLE;
+    g_Handles.str_entry = INVALID_HANDLE;
+    g_Handles.str_exit = INVALID_HANDLE;
+    g_Handles.atr_20 = INVALID_HANDLE;
+    
+    // Reset data
+    InitializeMultiTimeframeData();
+    
+    Print("✅ Indicators cleanup complete");
+}
+
+//+------------------------------------------------------------------+

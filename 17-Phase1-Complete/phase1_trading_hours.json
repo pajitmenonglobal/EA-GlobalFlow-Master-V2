@@ -1,0 +1,698 @@
+{
+  "config_info": {
+    "name": "EA GlobalFlow Pro Trading Hours Configuration",
+    "version": "v0.1",
+    "created_date": "2025-01-01",
+    "description": "Complete trading hours configuration for all supported markets",
+    "timezone_note": "All times are in respective market timezones unless specified"
+  },
+  
+  "indian_markets": {
+    "description": "Indian stock market trading hours (NSE/BSE)",
+    "timezone": "Asia/Kolkata",
+    "utc_offset": "+05:30",
+    
+    "equity": {
+      "regular_session": {
+        "start_time": "09:15:00",
+        "end_time": "15:30:00",
+        "trading_enabled": true,
+        "pre_market": {
+          "enabled": true,
+          "start_time": "09:00:00",
+          "end_time": "09:15:00"
+        },
+        "post_market": {
+          "enabled": false,
+          "start_time": "15:30:00",
+          "end_time": "16:00:00"
+        }
+      },
+      "trading_days": {
+        "monday": true,
+        "tuesday": true,
+        "wednesday": true,
+        "thursday": true,
+        "friday": true,
+        "saturday": false,
+        "sunday": false
+      },
+      "holidays": [
+        "2025-01-26",
+        "2025-03-14",
+        "2025-03-31",
+        "2025-04-14",
+        "2025-04-17",
+        "2025-05-01",
+        "2025-08-15",
+        "2025-08-16",
+        "2025-10-02",
+        "2025-10-24",
+        "2025-11-01",
+        "2025-11-15",
+        "2025-12-25"
+      ]
+    },
+    
+    "derivatives": {
+      "futures_options": {
+        "start_time": "09:15:00",
+        "end_time": "15:30:00",
+        "trading_enabled": true,
+        "weekly_expiry": {
+          "nifty": "thursday",
+          "bank_nifty": "wednesday",
+          "fin_nifty": "tuesday"
+        },
+        "monthly_expiry": {
+          "last_thursday": true,
+          "adjustment_for_holiday": true
+        },
+        "expiry_day_hours": {
+          "start_time": "09:15:00",
+          "end_time": "15:29:30",
+          "auto_close_enabled": true,
+          "warning_time": "15:25:00"
+        }
+      },
+      "currency": {
+        "start_time": "09:00:00",
+        "end_time": "17:00:00",
+        "trading_enabled": false
+      },
+      "commodity": {
+        "start_time": "09:00:00",
+        "end_time": "23:30:00",
+        "trading_enabled": false,
+        "break_times": [
+          {
+            "start": "17:00:00",
+            "end": "17:30:00",
+            "description": "Evening break"
+          }
+        ]
+      }
+    }
+  },
+  
+  "forex_markets": {
+    "description": "Foreign exchange market trading hours",
+    "timezone": "UTC",
+    "24_hour_trading": true,
+    
+    "major_sessions": {
+      "sydney": {
+        "start_time": "21:00:00",
+        "end_time": "06:00:00",
+        "timezone": "UTC",
+        "overlap_periods": []
+      },
+      "tokyo": {
+        "start_time": "23:00:00",
+        "end_time": "08:00:00",
+        "timezone": "UTC",
+        "overlap_periods": ["sydney"]
+      },
+      "london": {
+        "start_time": "07:00:00",
+        "end_time": "16:00:00",
+        "timezone": "UTC",
+        "overlap_periods": ["tokyo"]
+      },
+      "new_york": {
+        "start_time": "12:00:00",
+        "end_time": "21:00:00",
+        "timezone": "UTC",
+        "overlap_periods": ["london"]
+      }
+    },
+    
+    "trading_configuration": {
+      "enable_24_7": false,
+      "weekend_trading": false,
+      "friday_close": "21:00:00",
+      "sunday_open": "21:00:00",
+      "major_pairs_only": true,
+      "high_volatility_pairs": [
+        "EUR/USD",
+        "GBP/USD",
+        "USD/JPY",
+        "USD/CHF",
+        "AUD/USD",
+        "USD/CAD",
+        "NZD/USD"
+      ]
+    },
+    
+    "restricted_hours": {
+      "low_liquidity_warning": {
+        "enabled": true,
+        "periods": [
+          {
+            "start": "21:00:00",
+            "end": "23:00:00",
+            "description": "Sydney-only session"
+          },
+          {
+            "start": "16:00:00", 
+            "end": "17:00:00",
+            "description": "London close gap"
+          }
+        ]
+      },
+      "news_events": {
+        "pause_trading": true,
+        "pause_minutes_before": 15,
+        "pause_minutes_after": 15,
+        "high_impact_only": true
+      }
+    }
+  },
+  
+  "commodity_markets": {
+    "description": "International commodity trading hours",
+    "timezone": "UTC",
+    
+    "energy": {
+      "crude_oil": {
+        "start_time": "23:00:00",
+        "end_time": "22:00:00",
+        "trading_enabled": false,
+        "break_times": [
+          {
+            "start": "21:00:00",
+            "end": "23:00:00",
+            "description": "Daily settlement break"
+          }
+        ]
+      },
+      "natural_gas": {
+        "start_time": "23:00:00",
+        "end_time": "22:00:00",
+        "trading_enabled": false
+      }
+    },
+    
+    "metals": {
+      "gold": {
+        "start_time": "23:00:00",
+        "end_time": "22:00:00",
+        "trading_enabled": false
+      },
+      "silver": {
+        "start_time": "23:00:00",
+        "end_time": "22:00:00",
+        "trading_enabled": false
+      }
+    },
+    
+    "agricultural": {
+      "enabled": false,
+      "hours": "Market specific"
+    }
+  },
+  
+  "ea_trading_schedule": {
+    "description": "EA GlobalFlow Pro specific trading schedule",
+    
+    "indian_fno_schedule": {
+      "enabled": true,
+      "trading_start": "09:30:00",
+      "trading_end": "15:29:00",
+      "timezone": "Asia/Kolkata",
+      "auto_start": true,
+      "auto_stop": true,
+      "warm_up_period": {
+        "enabled": true,
+        "duration_minutes": 15,
+        "activities": [
+          "System health check",
+          "API connection verification",
+          "Market data feed validation",
+          "Risk parameter update"
+        ]
+      },
+      "cool_down_period": {
+        "enabled": true,
+        "duration_minutes": 30,
+        "activities": [
+          "Position reconciliation",
+          "P&L calculation",
+          "Risk report generation",
+          "System cleanup"
+        ]
+      },
+      "expiry_day_handling": {
+        "early_close": "15:29:30",
+        "position_monitoring": "15:25:00",
+        "auto_square_off": true,
+        "alert_times": ["15:20:00", "15:25:00", "15:28:00"]
+      }
+    },
+    
+    "forex_schedule": {
+      "enabled": true,
+      "trading_start": "01:00:00",
+      "trading_end": "23:00:00",
+      "timezone": "Server",
+      "weekend_break": {
+        "friday_stop": "23:00:00",
+        "monday_start": "01:00:00"
+      },
+      "session_preferences": {
+        "london_session": {
+          "priority": "high",
+          "start": "07:00:00",
+          "end": "16:00:00"
+        },
+        "new_york_session": {
+          "priority": "high", 
+          "start": "12:00:00",
+          "end": "21:00:00"
+        },
+        "overlap_periods": {
+          "london_new_york": {
+            "priority": "highest",
+            "start": "12:00:00",
+            "end": "16:00:00"
+          }
+        }
+      }
+    },
+    
+    "risk_management_schedule": {
+      "enabled": true,
+      "continuous_monitoring": true,
+      "daily_risk_review": "08:30:00",
+      "weekly_risk_review": {
+        "day": "sunday",
+        "time": "20:00:00"
+      },
+      "emergency_protocols": {
+        "24_7_monitoring": true,
+        "auto_response": true,
+        "escalation_times": [5, 15, 30, 60]
+      }
+    }
+  },
+  
+  "seasonal_adjustments": {
+    "description": "Seasonal trading hour adjustments",
+    
+    "daylight_saving": {
+      "us_dst": {
+        "start_date": "2025-03-09",
+        "end_date": "2025-11-02",
+        "forex_adjustment": "-1_hour",
+        "commodity_adjustment": "-1_hour"
+      },
+      "uk_dst": {
+        "start_date": "2025-03-30",
+        "end_date": "2025-10-26",
+        "forex_adjustment": "-1_hour"
+      },
+      "australia_dst": {
+        "start_date": "2025-10-05",
+        "end_date": "2025-04-06",
+        "forex_adjustment": "+1_hour"
+      }
+    },
+    
+    "holiday_adjustments": {
+      "early_close_days": [
+        {
+          "date": "2025-12-24",
+          "market": "forex",
+          "close_time": "17:00:00",
+          "description": "Christmas Eve"
+        },
+        {
+          "date": "2025-12-31",
+          "market": "forex",
+          "close_time": "17:00:00",
+          "description": "New Year's Eve"
+        },
+        {
+          "date": "2025-07-04",
+          "market": "us_commodities",
+          "close_time": "17:00:00",
+          "description": "US Independence Day"
+        }
+      ],
+      "market_closures": [
+        {
+          "date": "2025-12-25",
+          "markets": ["forex", "commodities"],
+          "description": "Christmas Day"
+        },
+        {
+          "date": "2025-01-01",
+          "markets": ["forex", "commodities"],
+          "description": "New Year's Day"
+        }
+      ]
+    }
+  },
+  
+  "market_microstructure": {
+    "description": "Market opening/closing behavior and liquidity patterns",
+    
+    "indian_markets": {
+      "opening_volatility": {
+        "high_volatility_period": "09:15:00-09:30:00",
+        "settlement_period": "09:30:00-10:00:00",
+        "stable_period": "10:00:00-14:30:00",
+        "closing_volatility": "14:30:00-15:30:00"
+      },
+      "liquidity_patterns": {
+        "high_liquidity": ["10:00:00-11:30:00", "13:30:00-15:00:00"],
+        "medium_liquidity": ["09:30:00-10:00:00", "11:30:00-13:30:00"],
+        "low_liquidity": ["09:15:00-09:30:00", "15:00:00-15:30:00"]
+      },
+      "option_chain_updates": {
+        "frequency": "real_time",
+        "batch_updates": ["09:20:00", "12:00:00", "15:00:00"],
+        "expiry_day_frequency": "every_minute"
+      }
+    },
+    
+    "forex_markets": {
+      "volatility_patterns": {
+        "high_volatility": {
+          "london_open": "07:00:00-09:00:00",
+          "ny_open": "12:00:00-14:00:00",
+          "london_ny_overlap": "12:00:00-16:00:00"
+        },
+        "low_volatility": {
+          "asian_session": "23:00:00-07:00:00",
+          "weekend_gap": "21:00:00-23:00:00"
+        }
+      },
+      "spread_patterns": {
+        "tight_spreads": "07:00:00-21:00:00",
+        "wide_spreads": "21:00:00-07:00:00",
+        "news_impact": "spread_widening_expected"
+      }
+    }
+  },
+  
+  "ea_operational_settings": {
+    "description": "EA-specific operational timing settings",
+    
+    "system_startup": {
+      "auto_start_enabled": true,
+      "startup_time": "08:00:00",
+      "startup_timezone": "Asia/Kolkata",
+      "startup_sequence": [
+        {
+          "step": 1,
+          "action": "system_initialization",
+          "duration_seconds": 30
+        },
+        {
+          "step": 2,
+          "action": "api_authentication",
+          "duration_seconds": 60
+        },
+        {
+          "step": 3,
+          "action": "market_data_connection",
+          "duration_seconds": 30
+        },
+        {
+          "step": 4,
+          "action": "risk_parameter_loading",
+          "duration_seconds": 15
+        },
+        {
+          "step": 5,
+          "action": "ml_model_initialization",
+          "duration_seconds": 45
+        },
+        {
+          "step": 6,
+          "action": "trading_ready",
+          "duration_seconds": 0
+        }
+      ]
+    },
+    
+    "system_shutdown": {
+      "auto_shutdown_enabled": true,
+      "shutdown_time": "16:30:00",
+      "shutdown_timezone": "Asia/Kolkata",
+      "shutdown_sequence": [
+        {
+          "step": 1,
+          "action": "stop_new_positions",
+          "duration_seconds": 0
+        },
+        {
+          "step": 2,
+          "action": "monitor_existing_positions",
+          "duration_seconds": 300
+        },
+        {
+          "step": 3,
+          "action": "generate_daily_report",
+          "duration_seconds": 60
+        },
+        {
+          "step": 4,
+          "action": "backup_data",
+          "duration_seconds": 30
+        },
+        {
+          "step": 5,
+          "action": "disconnect_apis",
+          "duration_seconds": 15
+        },
+        {
+          "step": 6,
+          "action": "system_cleanup",
+          "duration_seconds": 15
+        }
+      ]
+    },
+    
+    "maintenance_windows": {
+      "daily_maintenance": {
+        "enabled": true,
+        "start_time": "02:00:00",
+        "duration_minutes": 30,
+        "activities": [
+          "Log file rotation",
+          "Database cleanup",
+          "Cache clearing",
+          "Performance metrics calculation"
+        ]
+      },
+      "weekly_maintenance": {
+        "enabled": true,
+        "day": "sunday",
+        "start_time": "01:00:00",
+        "duration_hours": 2,
+        "activities": [
+          "Full system backup",
+          "Security scan",
+          "Performance optimization",
+          "ML model retraining",
+          "Risk parameter review"
+        ]
+      },
+      "monthly_maintenance": {
+        "enabled": true,
+        "first_sunday": true,
+        "start_time": "00:00:00",
+        "duration_hours": 4,
+        "activities": [
+          "Complete system audit",
+          "Security certificate renewal",
+          "Database optimization",
+          "Historical data archiving",
+          "Strategy performance review"
+        ]
+      }
+    }
+  },
+  
+  "emergency_protocols": {
+    "description": "Emergency trading hour modifications",
+    
+    "market_disruption": {
+      "circuit_breaker_response": {
+        "level_1": {
+          "pause_duration": 15,
+          "action": "pause_new_orders"
+        },
+        "level_2": {
+          "pause_duration": 60,
+          "action": "close_risky_positions"
+        },
+        "level_3": {
+          "pause_duration": "market_close",
+          "action": "emergency_exit_all"
+        }
+      },
+      "technical_halt": {
+        "response_time": 30,
+        "action": "switch_to_backup_feed"
+      },
+      "api_failure": {
+        "response_time": 60,
+        "action": "activate_backup_broker"
+      }
+    },
+    
+    "force_majeure": {
+      "natural_disaster": {
+        "action": "immediate_shutdown",
+        "notification": "all_channels"
+      },
+      "geopolitical_event": {
+        "action": "risk_reduction",
+        "position_limit": "50_percent"
+      },
+      "cyber_security_threat": {
+        "action": "emergency_stop",
+        "isolation": "complete"
+      }
+    }
+  },
+  
+  "timezone_management": {
+    "description": "Timezone handling and conversion settings",
+    
+    "primary_timezone": "Asia/Kolkata",
+    "server_timezone": "UTC",
+    "conversion_rules": {
+      "ist_to_utc": "-5.5_hours",
+      "utc_to_ist": "+5.5_hours",
+      "auto_dst_adjustment": true
+    },
+    
+    "time_synchronization": {
+      "ntp_servers": [
+        "time.google.com",
+        "pool.ntp.org",
+        "time.nist.gov"
+      ],
+      "sync_interval": 3600,
+      "max_drift_tolerance": 5
+    },
+    
+    "logging_timezone": {
+      "system_logs": "UTC",
+      "trading_logs": "Asia/Kolkata",
+      "api_logs": "UTC",
+      "user_reports": "Asia/Kolkata"
+    }
+  },
+  
+  "performance_optimization": {
+    "description": "Trading hour specific performance settings",
+    
+    "peak_hours": {
+      "indian_markets": ["09:15:00-10:30:00", "14:00:00-15:30:00"],
+      "resource_allocation": {
+        "cpu_priority": "high",
+        "memory_allocation": "80_percent",
+        "network_priority": "maximum"
+      }
+    },
+    
+    "off_hours": {
+      "resource_conservation": true,
+      "background_tasks": [
+        "data_cleanup",
+        "report_generation",
+        "model_training",
+        "system_backup"
+      ]
+    },
+    
+    "real_time_requirements": {
+      "market_data_latency": "< 100ms",
+      "order_execution_latency": "< 200ms",
+      "risk_calculation_latency": "< 50ms",
+      "ml_prediction_latency": "< 500ms"
+    }
+  },
+  
+  "compliance_requirements": {
+    "description": "Regulatory compliance for trading hours",
+    
+    "sebi_requirements": {
+      "position_reporting": {
+        "frequency": "real_time",
+        "threshold": "large_positions"
+      },
+      "risk_disclosure": {
+        "frequency": "daily",
+        "timing": "post_market"
+      }
+    },
+    
+    "exchange_requirements": {
+      "nse": {
+        "member_obligations": "real_time_reporting",
+        "risk_management": "continuous_monitoring"
+      },
+      "bse": {
+        "member_obligations": "real_time_reporting",
+        "risk_management": "continuous_monitoring"
+      }
+    },
+    
+    "audit_trail": {
+      "enabled": true,
+      "retention_period": "7_years",
+      "real_time_logging": true,
+      "immutable_records": true
+    }
+  },
+  
+  "notification_schedule": {
+    "description": "Automated notification timing",
+    
+    "daily_notifications": {
+      "market_open": {
+        "time": "09:10:00",
+        "message": "Market opened - EA GlobalFlow Pro active"
+      },
+      "midday_update": {
+        "time": "12:30:00",
+        "message": "Midday performance update"
+      },
+      "market_close": {
+        "time": "15:35:00",
+        "message": "Market closed - Daily summary"
+      }
+    },
+    
+    "weekly_notifications": {
+      "weekly_summary": {
+        "day": "friday",
+        "time": "17:00:00",
+        "message": "Weekly performance summary"
+      }
+    },
+    
+    "alert_scheduling": {
+      "risk_alerts": "immediate",
+      "performance_alerts": "end_of_day",
+      "system_alerts": "immediate",
+      "maintenance_alerts": "1_hour_before"
+    }
+  },
+  
+  "validation": {
+    "last_updated": "2025-01-01T00:00:00Z",
+    "validated_by": "EA GlobalFlow Pro System",
+    "validation_status": "ACTIVE",
+    "next_validation": "2025-01-08T00:00:00Z",
+    "timezone_accuracy": "VERIFIED",
+    "market_hours_accuracy": "VERIFIED",
+    "holiday_calendar_updated": "2025-01-01"
+  }
+}

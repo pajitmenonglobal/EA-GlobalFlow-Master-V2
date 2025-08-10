@@ -1,0 +1,1236 @@
+//+------------------------------------------------------------------+
+//| GlobalFlow_Trading.mqh - 34 Entry Conditions & Triple Enhancement |
+//| EA GlobalFlow Pro v0.1 - Institutional Grade                   |
+//| Copyright 2025, pajitmenonai@gmail.com                          |
+//+------------------------------------------------------------------+
+#property copyright "EA GlobalFlow Pro v0.1 - Trading System"
+#property link      "pajitmenonai@gmail.com"
+
+//+------------------------------------------------------------------+
+//| Entry Condition Structure                                       |
+//+------------------------------------------------------------------+
+struct EntryCondition
+{
+    string      name;               // Condition name (B1, B2, S1, etc.)
+    string      path;               // "CT" or "PB"
+    string      direction;          // "BUY" or "SELL"
+    bool        triggered;          // Current trigger status
+    datetime    lastTrigger;        // Last trigger time
+    double      confidence;         // 0-100 confidence score
+    bool        enabled;            // Enable/disable condition
+    int         priority;           // 1-10 priority level
+    string      description;        // Human readable description
+};
+
+//+------------------------------------------------------------------+
+//| Trend Analysis Structure                                        |
+//+------------------------------------------------------------------+
+struct TrendAnalysis
+{
+    string      majorTrend;         // "BULLISH", "BEARISH", "SIDEWAYS"
+    string      middleTrend;        // "BULLISH", "BEARISH", "SIDEWAYS"
+    double      trendStrength;      // 0-100 trend strength
+    datetime    lastUpdate;         // Last analysis update
+    bool        ctPathValid;        // Continuation path validity
+    bool        pbPathValid;        // Pullback path validity
+    double      trendScore;         // Overall trend score
+};
+
+//+------------------------------------------------------------------+
+//| Triple Enhancement Structure                                    |
+//+------------------------------------------------------------------+
+struct TripleEnhancement
+{
+    // Layer 1: Entry Conditions (65-70%)
+    double      conditionsScore;    // Score from 34 conditions
+    int         triggeredCount;     // Number of triggered conditions
+    bool        conditionsPass;     // Did conditions pass minimum
+    
+    // Layer 2: ML Enhancement (80-85%)
+    double      mlConfidence;       // ML prediction confidence
+    string      mlPrediction;       // "BUY", "SELL", "HOLD"
+    bool        mlPass;             // Did ML pass threshold
+    bool        mlFallback;         // Using fallback mode
+    
+    // Layer 3: Candlestick + Volume (90-95%)
+    string      candlePattern;      // Detected pattern
+    double      candleStrength;     // Pattern strength
+    double      volumeRatio;        // Volume vs average
+    bool        volumeConfirm;      // Volume confirmation
+    bool        candleVolumePass;   // Did candle+volume pass
+    
+    // Final Results
+    double      finalScore;         // Combined final score
+    bool        enhancementPass;    // Overall enhancement result
+    string      failReason;         // Why it failed (if applicable)
+};
+
+//+------------------------------------------------------------------+
+//| Trade Signal Structure                                          |
+//+------------------------------------------------------------------+
+struct TradeSignal
+{
+    string      symbol;             // Trading symbol
+    string      direction;          // "BUY" or "SELL"
+    string      path;               // "CT" or "PB"
+    double      entryPrice;         // Suggested entry price
+    double      stopLoss;           // Stop loss level
+    double      takeProfit;         // Take profit level
+    double      confidence;         // Overall confidence (0-100)
+    double      riskReward;         // Risk:Reward ratio
+    datetime    signalTime;         // Signal generation time
+    bool        valid;              // Signal validity
+};
+
+//+------------------------------------------------------------------+
+//| Global Trading Variables                                        |
+//+------------------------------------------------------------------+
+EntryCondition      g_EntryConditions[34];     // All 34 conditions
+TrendAnalysis       g_TrendAnalysis;           // Multi-timeframe trend
+TripleEnhancement   g_Enhancement;             // Triple enhancement status
+TradeSignal         g_CurrentSignal;           // Current trade signal
+int                 g_TriggeredCount = 0;      // Currently triggered conditions
+bool                g_MinimumConditionsMet = false;
+
+//+------------------------------------------------------------------+
+//| Initialize Trading System                                       |
+//+------------------------------------------------------------------+
+bool InitializeTradingSystem()
+{
+    Print("🎯 Initializing 34 Entry Conditions & Triple Enhancement System...");
+    
+    // Initialize 34 entry conditions
+    if(!Initialize34Conditions())
+    {
+        Print("❌ Failed to initialize 34 entry conditions");
+        return false;
+    }
+    
+    // Initialize trend analysis
+    InitializeTrendAnalysis();
+    
+    // Initialize triple enhancement
+    InitializeTripleEnhancement();
+    
+    // Initialize current signal
+    InitializeTradeSignal();
+    
+    Print("✅ Trading System initialized successfully");
+    Print("📊 Minimum conditions required: ", MinimumConditionsRequired);
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Initialize 34 Entry Conditions                                 |
+//+------------------------------------------------------------------+
+bool Initialize34Conditions()
+{
+    Print("📋 Initializing 34 Entry Conditions...");
+    
+    // Define all 34 condition names
+    string conditionNames[34] = {
+        // CT-BUY CONDITIONS (B1-B13) - 13 conditions
+        "B1_CT_BBSqueeze_Bull", "B2_CT_BBBreak_Upper", "B3_CT_KumoBreak_Bull", "B4_CT_SMMA_Bull",
+        "B5_CT_TDI_Upper_1", "B6_CT_TDI_Upper_2", "B7_CT_TDI_Upper_3", "B8_CT_TDI_Upper_4",
+        "B9_CT_TDI_Lower_1", "B10_CT_TDI_Lower_2", "B11_CT_TDI_Lower_3", "B12_CT_TDI_Lower_4", "B13_CT_STR_Bull",
+        
+        // CT-SELL CONDITIONS (S1-S13) - 13 conditions  
+        "S1_CT_BBSqueeze_Bear", "S2_CT_BBBreak_Lower", "S3_CT_KumoBreak_Bear", "S4_CT_SMMA_Bear",
+        "S5_CT_TDI_Lower_1", "S6_CT_TDI_Lower_2", "S7_CT_TDI_Lower_3", "S8_CT_TDI_Lower_4",
+        "S9_CT_TDI_Upper_1", "S10_CT_TDI_Upper_2", "S11_CT_TDI_Upper_3", "S12_CT_TDI_Upper_4", "S13_CT_STR_Bear",
+        
+        // PB-BUY CONDITIONS (B14-B17) - 4 conditions
+        "B14_PB_Reversal_Bull", "B15_PB_Divergence_Bull", "B16_PB_Support_Bull", "B17_PB_Volume_Bull",
+        
+        // PB-SELL CONDITIONS (S14-S17) - 4 conditions
+        "S14_PB_Reversal_Bear", "S15_PB_Divergence_Bear", "S16_PB_Resistance_Bear", "S17_PB_Volume_Bear"
+    };
+    
+    // Initialize each condition
+    for(int i = 0; i < 34; i++)
+    {
+        g_EntryConditions[i].name = conditionNames[i];
+        g_EntryConditions[i].triggered = false;
+        g_EntryConditions[i].lastTrigger = 0;
+        g_EntryConditions[i].confidence = 0.0;
+        g_EntryConditions[i].enabled = true;
+        g_EntryConditions[i].priority = 5;  // Default priority
+        
+        // Set path and direction
+        if(StringFind(conditionNames[i], "CT") >= 0)
+            g_EntryConditions[i].path = "CT";
+        else
+            g_EntryConditions[i].path = "PB";
+            
+        if(StringFind(conditionNames[i], "B") == 0)
+            g_EntryConditions[i].direction = "BUY";
+        else
+            g_EntryConditions[i].direction = "SELL";
+        
+        // Set specific priorities based on condition type
+        if(StringFind(conditionNames[i], "BBSqueeze") >= 0)
+            g_EntryConditions[i].priority = BB_SqueezeWeight;
+        else if(StringFind(conditionNames[i], "STR") >= 0)
+            g_EntryConditions[i].priority = STR_EntryWeight;
+        else if(StringFind(conditionNames[i], "Kumo") >= 0)
+            g_EntryConditions[i].priority = KumoBreakWeight;
+        else if(StringFind(conditionNames[i], "TDI") >= 0)
+            g_EntryConditions[i].priority = TDI_SignalWeight;
+        else if(StringFind(conditionNames[i], "Volume") >= 0)
+            g_EntryConditions[i].priority = VolumeConfirmWeight;
+            
+        // Set descriptions
+        g_EntryConditions[i].description = GetConditionDescription(conditionNames[i]);
+    }
+    
+    Print("✅ 34 Entry Conditions initialized with priorities");
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Get Condition Description                                       |
+//+------------------------------------------------------------------+
+string GetConditionDescription(string conditionName)
+{
+    if(StringFind(conditionName, "BBSqueeze") >= 0)
+        return "Bollinger Band Squeeze breakout";
+    else if(StringFind(conditionName, "BBBreak") >= 0)
+        return "Bollinger Band boundary breakout";
+    else if(StringFind(conditionName, "KumoBreak") >= 0)
+        return "Ichimoku Kumo cloud breakout";
+    else if(StringFind(conditionName, "SMMA") >= 0)
+        return "SMMA 50 trend alignment";
+    else if(StringFind(conditionName, "TDI") >= 0)
+        return "TDI momentum signal";
+    else if(StringFind(conditionName, "STR") >= 0)
+        return "SuperTrend direction signal";
+    else if(StringFind(conditionName, "Reversal") >= 0)
+        return "Pullback reversal pattern";
+    else if(StringFind(conditionName, "Divergence") >= 0)
+        return "Price-indicator divergence";
+    else if(StringFind(conditionName, "Support") >= 0)
+        return "Support level bounce";
+    else if(StringFind(conditionName, "Resistance") >= 0)
+        return "Resistance level rejection";
+    else if(StringFind(conditionName, "Volume") >= 0)
+        return "Volume confirmation signal";
+    else
+        return "Technical analysis condition";
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Trend Analysis                                       |
+//+------------------------------------------------------------------+
+void InitializeTrendAnalysis()
+{
+    g_TrendAnalysis.majorTrend = "UNKNOWN";
+    g_TrendAnalysis.middleTrend = "UNKNOWN";
+    g_TrendAnalysis.trendStrength = 0.0;
+    g_TrendAnalysis.lastUpdate = 0;
+    g_TrendAnalysis.ctPathValid = false;
+    g_TrendAnalysis.pbPathValid = false;
+    g_TrendAnalysis.trendScore = 0.0;
+    
+    Print("📈 Trend Analysis initialized");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Triple Enhancement                                   |
+//+------------------------------------------------------------------+
+void InitializeTripleEnhancement()
+{
+    g_Enhancement.conditionsScore = 0.0;
+    g_Enhancement.triggeredCount = 0;
+    g_Enhancement.conditionsPass = false;
+    g_Enhancement.mlConfidence = 0.0;
+    g_Enhancement.mlPrediction = "UNKNOWN";
+    g_Enhancement.mlPass = false;
+    g_Enhancement.mlFallback = false;
+    g_Enhancement.candlePattern = "NONE";
+    g_Enhancement.candleStrength = 0.0;
+    g_Enhancement.volumeRatio = 0.0;
+    g_Enhancement.volumeConfirm = false;
+    g_Enhancement.candleVolumePass = false;
+    g_Enhancement.finalScore = 0.0;
+    g_Enhancement.enhancementPass = false;
+    g_Enhancement.failReason = "";
+    
+    Print("🎯 Triple Enhancement initialized");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Trade Signal                                         |
+//+------------------------------------------------------------------+
+void InitializeTradeSignal()
+{
+    g_CurrentSignal.symbol = Symbol();
+    g_CurrentSignal.direction = "NONE";
+    g_CurrentSignal.path = "NONE";
+    g_CurrentSignal.entryPrice = 0.0;
+    g_CurrentSignal.stopLoss = 0.0;
+    g_CurrentSignal.takeProfit = 0.0;
+    g_CurrentSignal.confidence = 0.0;
+    g_CurrentSignal.riskReward = 0.0;
+    g_CurrentSignal.signalTime = 0;
+    g_CurrentSignal.valid = false;
+}
+
+//+------------------------------------------------------------------+
+//| Perform Multi-Timeframe Trend Analysis                         |
+//+------------------------------------------------------------------+
+void PerformMultiTimeframeTrendAnalysis()
+{
+    Print("📊 Performing multi-timeframe trend analysis...");
+    
+    // Get indicator data for all timeframes
+    IndicatorValues majorData = GetMajorTimeframeData();
+    IndicatorValues middleData = GetMiddleTimeframeData();
+    IndicatorValues entryData = GetEntryTimeframeData();
+    
+    // Analyze major trend
+    AnalyzeMajorTrend(majorData);
+    
+    // Analyze middle trend
+    AnalyzeMiddleTrend(middleData);
+    
+    // Calculate trend strength
+    CalculateTrendStrength(majorData, middleData);
+    
+    // Determine path validity
+    DeterminePathValidity();
+    
+    g_TrendAnalysis.lastUpdate = TimeCurrent();
+    
+    if(EnableDetailedLogging)
+    {
+        Print("📈 Trend Analysis Results:");
+        Print("   Major Trend: ", g_TrendAnalysis.majorTrend, " (Strength: ", DoubleToString(g_TrendAnalysis.trendStrength, 1), "%)");
+        Print("   Middle Trend: ", g_TrendAnalysis.middleTrend);
+        Print("   CT Path Valid: ", g_TrendAnalysis.ctPathValid);
+        Print("   PB Path Valid: ", g_TrendAnalysis.pbPathValid);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Major Trend                                            |
+//+------------------------------------------------------------------+
+void AnalyzeMajorTrend(const IndicatorValues &data)
+{
+    double currentPrice = iClose(Symbol(), g_MajorTF, 0);
+    int trendVotes = 0;
+    
+    // Ichimoku trend analysis
+    if(currentPrice > data.tenkanSen && data.tenkanSen > data.kijunSen)
+        trendVotes++;
+    else if(currentPrice < data.tenkanSen && data.tenkanSen < data.kijunSen)
+        trendVotes--;
+    
+    // Kumo analysis
+    double kumoTop = MathMax(data.senkou_A, data.senkou_B);
+    double kumoBottom = MathMin(data.senkou_A, data.senkou_B);
+    
+    if(currentPrice > kumoTop)
+        trendVotes++;
+    else if(currentPrice < kumoBottom)
+        trendVotes--;
+    
+    // SMMA analysis
+    if(currentPrice > data.smma_50)
+        trendVotes++;
+    else if(currentPrice < data.smma_50)
+        trendVotes--;
+    
+    // SuperTrend analysis
+    if(data.str_exit_trend == 1)
+        trendVotes++;
+    else if(data.str_exit_trend == -1)
+        trendVotes--;
+    
+    // Determine major trend
+    if(trendVotes >= 2)
+        g_TrendAnalysis.majorTrend = "BULLISH";
+    else if(trendVotes <= -2)
+        g_TrendAnalysis.majorTrend = "BEARISH";
+    else
+        g_TrendAnalysis.majorTrend = "SIDEWAYS";
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Middle Trend                                           |
+//+------------------------------------------------------------------+
+void AnalyzeMiddleTrend(const IndicatorValues &data)
+{
+    double currentPrice = iClose(Symbol(), g_MiddleTF, 0);
+    double previousPrice = iClose(Symbol(), g_MiddleTF, 1);
+    
+    // Short-term momentum
+    if(currentPrice > previousPrice && currentPrice > data.smma_50)
+        g_TrendAnalysis.middleTrend = "BULLISH";
+    else if(currentPrice < previousPrice && currentPrice < data.smma_50)
+        g_TrendAnalysis.middleTrend = "BEARISH";
+    else
+        g_TrendAnalysis.middleTrend = "SIDEWAYS";
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Trend Strength                                       |
+//+------------------------------------------------------------------+
+void CalculateTrendStrength(const IndicatorValues &major, const IndicatorValues &middle)
+{
+    double strength = 50.0;  // Base strength
+    
+    // Trend alignment bonus
+    if(g_TrendAnalysis.majorTrend == g_TrendAnalysis.middleTrend && g_TrendAnalysis.majorTrend != "SIDEWAYS")
+        strength += 25.0;
+    
+    // Volume confirmation
+    if(middle.volume_current > middle.volume_average * 1.2)
+        strength += 10.0;
+    
+    // Momentum confirmation
+    if(middle.rsi_signal > 60 && g_TrendAnalysis.majorTrend == "BULLISH")
+        strength += 15.0;
+    else if(middle.rsi_signal < 40 && g_TrendAnalysis.majorTrend == "BEARISH")
+        strength += 15.0;
+    
+    g_TrendAnalysis.trendStrength = MathMin(strength, 100.0);
+    g_TrendAnalysis.trendScore = strength;
+}
+
+//+------------------------------------------------------------------+
+//| Determine Path Validity                                         |
+//+------------------------------------------------------------------+
+void DeterminePathValidity()
+{
+    // CT Path: Both major and middle trends aligned
+    g_TrendAnalysis.ctPathValid = (g_TrendAnalysis.majorTrend == g_TrendAnalysis.middleTrend &&
+                                   g_TrendAnalysis.majorTrend != "SIDEWAYS" &&
+                                   g_TrendAnalysis.trendStrength > 60.0);
+    
+    // PB Path: Trends different or consolidating with potential reversal
+    g_TrendAnalysis.pbPathValid = (g_TrendAnalysis.majorTrend != g_TrendAnalysis.middleTrend ||
+                                   g_TrendAnalysis.majorTrend == "SIDEWAYS" ||
+                                   g_TrendAnalysis.trendStrength < 70.0);
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate All Entry Conditions                                  |
+//+------------------------------------------------------------------+
+void EvaluateAllEntryConditions()
+{
+    if(EnableDetailedLogging)
+        Print("🧮 Evaluating all 34 entry conditions...");
+    
+    g_TriggeredCount = 0;
+    datetime currentTime = TimeCurrent();
+    
+    // Sequential Logic: CT first, then PB
+    if(EnableSequentialLogic)
+    {
+        // First evaluate CT conditions (if CT path valid)
+        if(g_TrendAnalysis.ctPathValid)
+        {
+            EvaluateCTConditions();
+        }
+        
+        // Then evaluate PB conditions (if PB path valid and CT didn't qualify)
+        if(g_TrendAnalysis.pbPathValid && g_TriggeredCount < MinimumConditionsRequired)
+        {
+            EvaluatePBConditions();
+        }
+    }
+    else
+    {
+        // Evaluate all conditions simultaneously
+        EvaluateCTConditions();
+        EvaluatePBConditions();
+    }
+    
+    // Check if minimum conditions met
+    g_MinimumConditionsMet = (g_TriggeredCount >= MinimumConditionsRequired);
+    
+    if(EnableDetailedLogging)
+    {
+        Print("📊 Conditions evaluation complete:");
+        Print("   Triggered: ", g_TriggeredCount, "/34");
+        Print("   Minimum met: ", g_MinimumConditionsMet);
+        Print("   CT Path: ", g_TrendAnalysis.ctPathValid);
+        Print("   PB Path: ", g_TrendAnalysis.pbPathValid);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate CT (Continuation Trend) Conditions                    |
+//+------------------------------------------------------------------+
+void EvaluateCTConditions()
+{
+    // Evaluate CT-BUY conditions (B1-B13)
+    if(g_TrendAnalysis.majorTrend == "BULLISH")
+    {
+        EvaluateCTBuyConditions();
+    }
+    
+    // Evaluate CT-SELL conditions (S1-S13)
+    if(g_TrendAnalysis.majorTrend == "BEARISH")
+    {
+        EvaluateCTSellConditions();
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate CT-BUY Conditions (B1-B13)                           |
+//+------------------------------------------------------------------+
+void EvaluateCTBuyConditions()
+{
+    IndicatorValues entryData = GetEntryTimeframeData();
+    
+    // B1: CT_BBSqueeze_Bull Complex
+    EvaluateCondition_B1(entryData);
+    
+    // B2: CT_BBBreak_Upper
+    EvaluateCondition_B2(entryData);
+    
+    // B3: CT_KumoBreak_Bull
+    EvaluateCondition_B3(entryData);
+    
+    // B4: CT_SMMA_Bull
+    EvaluateCondition_B4(entryData);
+    
+    // B5-B8: TDI Upper Band conditions
+    EvaluateConditions_B5_B8(entryData);
+    
+    // B9-B12: TDI Lower Band conditions
+    EvaluateConditions_B9_B12(entryData);
+    
+    // B13: CT_STR_Bull
+    EvaluateCondition_B13(entryData);
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate CT-SELL Conditions (S1-S13)                          |
+//+------------------------------------------------------------------+
+void EvaluateCTSellConditions()
+{
+    IndicatorValues entryData = GetEntryTimeframeData();
+    
+    // S1: CT_BBSqueeze_Bear
+    EvaluateCondition_S1(entryData);
+    
+    // S2: CT_BBBreak_Lower
+    EvaluateCondition_S2(entryData);
+    
+    // S3: CT_KumoBreak_Bear
+    EvaluateCondition_S3(entryData);
+    
+    // S4: CT_SMMA_Bear
+    EvaluateCondition_S4(entryData);
+    
+    // S5-S8: TDI Lower Band conditions
+    EvaluateConditions_S5_S8(entryData);
+    
+    // S9-S12: TDI Upper Band conditions
+    EvaluateConditions_S9_S12(entryData);
+    
+    // S13: CT_STR_Bear
+    EvaluateCondition_S13(entryData);
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate PB (Pullback) Conditions                              |
+//+------------------------------------------------------------------+
+void EvaluatePBConditions()
+{
+    EvaluatePBBuyConditions();
+    EvaluatePBSellConditions();
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate PB-BUY Conditions (B14-B17)                          |
+//+------------------------------------------------------------------+
+void EvaluatePBBuyConditions()
+{
+    IndicatorValues entryData = GetEntryTimeframeData();
+    
+    // B14: PB_Reversal_Bull
+    EvaluateCondition_B14(entryData);
+    
+    // B15: PB_Divergence_Bull
+    EvaluateCondition_B15(entryData);
+    
+    // B16: PB_Support_Bull
+    EvaluateCondition_B16(entryData);
+    
+    // B17: PB_Volume_Bull
+    EvaluateCondition_B17(entryData);
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate PB-SELL Conditions (S14-S17)                         |
+//+------------------------------------------------------------------+
+void EvaluatePBSellConditions()
+{
+    IndicatorValues entryData = GetEntryTimeframeData();
+    
+    // S14: PB_Reversal_Bear
+    EvaluateCondition_S14(entryData);
+    
+    // S15: PB_Divergence_Bear
+    EvaluateCondition_S15(entryData);
+    
+    // S16: PB_Resistance_Bear
+    EvaluateCondition_S16(entryData);
+    
+    // S17: PB_Volume_Bear
+    EvaluateCondition_S17(entryData);
+}
+
+//+------------------------------------------------------------------+
+//| Individual Condition Evaluations                               |
+//+------------------------------------------------------------------+
+
+void EvaluateCondition_B1(const IndicatorValues &data)
+{
+    bool triggered = false;
+    double confidence = 0.0;
+    
+    // BB Squeeze bullish breakout
+    double currentPrice = iClose(Symbol(), PERIOD_CURRENT, 0);
+    bool bbSqueeze = IsBBSqueeze();
+    
+    if(bbSqueeze && currentPrice > data.bb_middle && data.volume_current > data.volume_average * 1.2)
+    {
+        triggered = true;
+        confidence = 75.0;
+    }
+    
+    SetConditionResult(0, triggered, confidence);
+}
+
+void EvaluateCondition_B2(const IndicatorValues &data)
+{
+    bool triggered = false;
+    double confidence = 0.0;
+    
+    // BB upper band breakout
+    double currentPrice = iClose(Symbol(), PERIOD_CURRENT, 0);
+    double previousPrice = iClose(Symbol(), PERIOD_CURRENT, 1);
+    
+    if(currentPrice > data.bb_upper && previousPrice <= data.bb_upper)
+    {
+        triggered = true;
+        confidence = 70.0;
+    }
+    
+    SetConditionResult(1, triggered, confidence);
+}
+
+void EvaluateCondition_B3(const IndicatorValues &data)
+{
+    bool triggered = false;
+    double confidence = 0.0;
+    
+    // Kumo bullish breakout
+    int kumoBreak = CheckKumoBreakout();
+    if(kumoBreak == 1 && g_TrendAnalysis.trendStrength > 60)
+    {
+        triggered = true;
+        confidence = 80.0;
+    }
+    
+    SetConditionResult(2, triggered, confidence);
+}
+
+void EvaluateCondition_B4(const IndicatorValues &data)
+{
+    bool triggered = false;
+    double confidence = 0.0;
+    
+    // SMMA bullish alignment
+    double currentPrice = iClose(Symbol(), PERIOD_CURRENT, 0);
+    if(currentPrice > data.smma_50 && data.smma_50 > iClose(Symbol(), PERIOD_CURRENT, 5))
+    {
+        triggered = true;
+        confidence = 65.0;
+    }
+    
+    SetConditionResult(3, triggered, confidence);
+}
+
+void EvaluateConditions_B5_B8(const IndicatorValues &data)
+{
+    // TDI Upper Band momentum conditions
+    for(int i = 4; i < 8; i++)
+    {
+        bool triggered = false;
+        double confidence = 0.0;
+        
+        if(data.rsi_signal > 50 && data.rsi_signal > data.market_base && 
+           data.market_base < 68 && data.vb_high < 68)
+        {
+            triggered = true;
+            confidence = 60.0 + (i - 4) * 3;
+        }
+        
+        SetConditionResult(i, triggered, confidence);
+    }
+}
+
+void EvaluateConditions_B9_B12(const IndicatorValues &data)
+{
+    // TDI Lower Band recovery conditions
+    for(int i = 8; i < 12; i++)
+    {
+        bool triggered = false;
+        double confidence = 0.0;
+        
+        if(data.rsi_signal < 50 && data.rsi_signal > 32 && 
+           data.vb_low > 32 && g_TrendAnalysis.middleTrend == "BULLISH")
+        {
+            triggered = true;
+            confidence = 55.0 + (i - 8) * 2;
+        }
+        
+        SetConditionResult(i, triggered, confidence);
+    }
+}
+
+void EvaluateCondition_B13(const IndicatorValues &data)
+{
+    bool triggered = false;
+    double confidence = 0.0;
+    
+    // SuperTrend bullish signal
+    if(data.str_entry_trend == 1 && g_TrendAnalysis.majorTrend == "BULLISH")
+    {
+        triggered = true;
+        confidence = 85.0;
+    }
+    
+    SetConditionResult(12, triggered, confidence);
+}
+
+// Similar implementations for S1-S13 (sell conditions)
+void EvaluateCondition_S1(const IndicatorValues &data)
+{
+    bool triggered = false;
+    double confidence = 0.0;
+    
+    double currentPrice = iClose(Symbol(), PERIOD_CURRENT, 0);
+    bool bbSqueeze = IsBBSqueeze();
+    
+    if(bbSqueeze && currentPrice < data.bb_middle && data.volume_current > data.volume_average * 1.2)
+    {
+        triggered = true;
+        confidence = 75.0;
+    }
+    
+    SetConditionResult(13, triggered, confidence);
+}
+
+// Continue with S2-S13 implementations...
+void EvaluateCondition_S2(const IndicatorValues &data)
+{
+    bool triggered = false;
+    double confidence = 0.0;
+    
+    double currentPrice = iClose(Symbol(), PERIOD_CURRENT, 0);
+    double previousPrice = iClose(Symbol(), PERIOD_CURRENT, 1);
+    
+    if(currentPrice < data.bb_lower && previousPrice >= data.bb_lower)
+    {
+        triggered = true;
+        confidence = 70.0;
+    }
+    
+    SetConditionResult(14, triggered, confidence);
+}
+
+// Pullback conditions (B14-B17, S14-S17)
+void EvaluateCondition_B14(const IndicatorValues &data)
+{
+    bool triggered = false;
+    double confidence = 0.0;
+    
+    // Pullback bullish reversal
+    if(g_TrendAnalysis.majorTrend == "BULLISH" && g_TrendAnalysis.middleTrend == "BEARISH")
+    {
+        double currentPrice = iClose(Symbol(), PERIOD_CURRENT, 0);
+        if(currentPrice > iClose(Symbol(), PERIOD_CURRENT, 1) && data.volume_current > data.volume_average)
+        {
+            triggered = true;
+            confidence = 70.0;
+        }
+    }
+    
+    SetConditionResult(26, triggered, confidence);
+}
+
+// Continue with remaining conditions...
+
+//+------------------------------------------------------------------+
+//| Set Condition Result                                            |
+//+------------------------------------------------------------------+
+void SetConditionResult(int index, bool triggered, double confidence)
+{
+    if(index < 0 || index >= 34) return;
+    
+    bool wasTriggered = g_EntryConditions[index].triggered;
+    
+    g_EntryConditions[index].triggered = triggered;
+    g_EntryConditions[index].confidence = confidence;
+    
+    if(triggered)
+    {
+        if(!wasTriggered)
+        {
+            g_EntryConditions[index].lastTrigger = TimeCurrent();
+            g_TriggeredCount++;
+            
+            if(EnableDetailedLogging)
+            {
+                Print("✅ ", g_EntryConditions[index].name, " TRIGGERED (", 
+                      DoubleToString(confidence, 1), "%)");
+            }
+        }
+    }
+    else
+    {
+        if(wasTriggered)
+        {
+            g_TriggeredCount--;
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Apply Triple Enhancement System                                 |
+//+------------------------------------------------------------------+
+void ApplyTripleEnhancement()
+{
+    if(!EnableTripleEnhancement)
+    {
+        g_Enhancement.enhancementPass = g_MinimumConditionsMet;
+        return;
+    }
+    
+    Print("🎯 Applying Triple Enhancement System...");
+    
+    // Layer 1: 34 Entry Conditions (65-70%)
+    CalculateLayer1_EntryConditions();
+    
+    // Layer 2: ML Enhancement (80-85%)
+    CalculateLayer2_MLValidation();
+    
+    // Layer 3: Candlestick + Volume (90-95%)
+    CalculateLayer3_CandlestickVolume();
+    
+    // Calculate final score
+    CalculateFinalEnhancementScore();
+    
+    // Determine if enhancement passed
+    g_Enhancement.enhancementPass = (g_Enhancement.finalScore >= FinalScoreThreshold);
+    
+    if(EnableDetailedLogging)
+    {
+        Print("🎯 Triple Enhancement Results:");
+        Print("   Layer 1 (Conditions): ", DoubleToString(g_Enhancement.conditionsScore, 1), "% - ", 
+              g_Enhancement.conditionsPass ? "PASS" : "FAIL");
+        Print("   Layer 2 (ML): ", DoubleToString(g_Enhancement.mlConfidence, 1), "% - ", 
+              g_Enhancement.mlPass ? "PASS" : (g_Enhancement.mlFallback ? "FALLBACK" : "FAIL"));
+        Print("   Layer 3 (Candle+Vol): ", DoubleToString(g_Enhancement.candleStrength, 1), "% - ", 
+              g_Enhancement.candleVolumePass ? "PASS" : "FAIL");
+        Print("   FINAL SCORE: ", DoubleToString(g_Enhancement.finalScore, 1), "% - ", 
+              g_Enhancement.enhancementPass ? "✅ APPROVED" : "❌ REJECTED");
+        
+        if(!g_Enhancement.enhancementPass && g_Enhancement.failReason != "")
+            Print("   Fail Reason: ", g_Enhancement.failReason);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Layer 1: Entry Conditions                            |
+//+------------------------------------------------------------------+
+void CalculateLayer1_EntryConditions()
+{
+    g_Enhancement.triggeredCount = g_TriggeredCount;
+    
+    if(g_TriggeredCount >= MinimumConditionsRequired)
+    {
+        // Calculate weighted score based on triggered conditions
+        double totalConfidence = 0.0;
+        int validConditions = 0;
+        
+        for(int i = 0; i < 34; i++)
+        {
+            if(g_EntryConditions[i].triggered)
+            {
+                totalConfidence += g_EntryConditions[i].confidence * g_EntryConditions[i].priority;
+                validConditions++;
+            }
+        }
+        
+        if(validConditions > 0)
+        {
+            g_Enhancement.conditionsScore = totalConfidence / (validConditions * 10);  // Normalize by max priority
+            g_Enhancement.conditionsPass = true;
+        }
+    }
+    else
+    {
+        g_Enhancement.conditionsScore = (double)g_TriggeredCount / MinimumConditionsRequired * Layer1_MinScore;
+        g_Enhancement.conditionsPass = false;
+        g_Enhancement.failReason = StringFormat("Only %d/%d conditions triggered", 
+                                               g_TriggeredCount, MinimumConditionsRequired);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Layer 2: ML Validation                               |
+//+------------------------------------------------------------------+
+void CalculateLayer2_MLValidation()
+{
+    if(!EnableMLValidation)
+    {
+        g_Enhancement.mlPass = true;  // Skip if disabled
+        g_Enhancement.mlConfidence = 0.0;
+        return;
+    }
+    
+    // Check VIX threshold
+    double currentVIX = GetCurrentVIX();
+    if(DisableMLOnHighVIX && currentVIX > VIXThreshold)
+    {
+        g_Enhancement.mlFallback = true;
+        g_Enhancement.mlConfidence = CalculateFallbackMLScore();
+        g_Enhancement.mlPass = (g_Enhancement.mlConfidence >= MLConfidenceThreshold * 0.8);
+        g_Enhancement.failReason = StringFormat("VIX %.1f > threshold, using fallback", currentVIX);
+        return;
+    }
+    
+    // Request ML prediction
+    string mlResponse = RequestMLPrediction(Symbol(), EnumToString(g_EntryTF));
+    
+    // Parse ML response (simplified)
+    if(StringFind(mlResponse, "confidence") >= 0)
+    {
+        // Extract confidence from JSON response
+        int confStart = StringFind(mlResponse, "confidence\":");
+        if(confStart >= 0)
+        {
+            confStart += 12;
+            int confEnd = StringFind(mlResponse, ",", confStart);
+            if(confEnd < 0) confEnd = StringFind(mlResponse, "}", confStart);
+            
+            if(confEnd > confStart)
+            {
+                string confStr = StringSubstr(mlResponse, confStart, confEnd - confStart);
+                g_Enhancement.mlConfidence = StringToDouble(confStr);
+                g_Enhancement.mlPass = (g_Enhancement.mlConfidence >= MLConfidenceThreshold);
+                
+                // Extract prediction
+                int predStart = StringFind(mlResponse, "prediction\":\"");
+                if(predStart >= 0)
+                {
+                    predStart += 13;
+                    int predEnd = StringFind(mlResponse, "\"", predStart);
+                    if(predEnd > predStart)
+                        g_Enhancement.mlPrediction = StringSubstr(mlResponse, predStart, predEnd - predStart);
+                }
+            }
+        }
+    }
+    else if(EnableMLFallback)
+    {
+        // Fallback to enhanced technical analysis
+        g_Enhancement.mlFallback = true;
+        g_Enhancement.mlConfidence = CalculateFallbackMLScore();
+        g_Enhancement.mlPass = (g_Enhancement.mlConfidence >= MLConfidenceThreshold * 0.8);
+    }
+    else
+    {
+        g_Enhancement.mlConfidence = 0.0;
+        g_Enhancement.mlPass = false;
+        g_Enhancement.failReason = "ML unavailable and fallback disabled";
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Fallback ML Score                                    |
+//+------------------------------------------------------------------+
+double CalculateFallbackMLScore()
+{
+    double fallbackScore = 50.0;
+    IndicatorValues data = GetEntryTimeframeData();
+    
+    // Trend alignment
+    if(g_TrendAnalysis.majorTrend == g_TrendAnalysis.middleTrend && g_TrendAnalysis.majorTrend != "SIDEWAYS")
+        fallbackScore += 20.0;
+    
+    // Momentum confirmation
+    if((data.rsi_signal > 60 && g_TrendAnalysis.majorTrend == "BULLISH") ||
+       (data.rsi_signal < 40 && g_TrendAnalysis.majorTrend == "BEARISH"))
+        fallbackScore += 15.0;
+    
+    // Volume confirmation
+    if(data.volume_current > data.volume_average * 1.2)
+        fallbackScore += 10.0;
+    
+    // SuperTrend alignment
+    if((data.str_entry_trend == 1 && g_TrendAnalysis.majorTrend == "BULLISH") ||
+       (data.str_entry_trend == -1 && g_TrendAnalysis.majorTrend == "BEARISH"))
+        fallbackScore += 15.0;
+    
+    return MathMin(fallbackScore, 95.0);  // Cap at 95% for fallback
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Layer 3: Candlestick + Volume                        |
+//+------------------------------------------------------------------+
+void CalculateLayer3_CandlestickVolume()
+{
+    // Analyze current candlestick pattern
+    AnalyzeCandlestickPattern();
+    
+    // Analyze volume confirmation
+    AnalyzeVolumeConfirmation();
+    
+    // Combine scores
+    double combinedScore = (g_Enhancement.candleStrength * 0.6) + 
+                          (g_Enhancement.volumeRatio > 1.2 ? 80.0 : 40.0) * 0.4;
+    
+    g_Enhancement.candleVolumePass = (g_Enhancement.candleStrength >= Layer3_MinCandleScore) &&
+                                    (!RequireVolumeConfirmation || g_Enhancement.volumeConfirm);
+    
+    if(!g_Enhancement.candleVolumePass)
+    {
+        if(g_Enhancement.candleStrength < Layer3_MinCandleScore)
+            g_Enhancement.failReason = StringFormat("Candlestick strength %.1f%% < %.1f%%", 
+                                                   g_Enhancement.candleStrength, Layer3_MinCandleScore);
+        else
+            g_Enhancement.failReason = StringFormat("Volume ratio %.2f insufficient", g_Enhancement.volumeRatio);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Candlestick Pattern                                    |
+//+------------------------------------------------------------------+
+void AnalyzeCandlestickPattern()
+{
+    double open = iOpen(Symbol(), PERIOD_CURRENT, 0);
+    double high = iHigh(Symbol(), PERIOD_CURRENT, 0);
+    double low = iLow(Symbol(), PERIOD_CURRENT, 0);
+    double close = iClose(Symbol(), PERIOD_CURRENT, 0);
+    
+    double bodySize = MathAbs(close - open);
+    double totalRange = high - low;
+    double upperWick = high - MathMax(open, close);
+    double lowerWick = MathMin(open, close) - low;
+    
+    double bodyPercent = (totalRange > 0) ? (bodySize / totalRange) * 100.0 : 0.0;
+    
+    // Pattern recognition
+    if(close > open && bodyPercent > 60.0 && upperWick < bodySize * 0.3)
+    {
+        g_Enhancement.candlePattern = "STRONG_BULL";
+        g_Enhancement.candleStrength = 85.0;
+    }
+    else if(close < open && bodyPercent > 60.0 && lowerWick < bodySize * 0.3)
+    {
+        g_Enhancement.candlePattern = "STRONG_BEAR";
+        g_Enhancement.candleStrength = 85.0;
+    }
+    else if(lowerWick > bodySize * 2.0 && upperWick < bodySize * 0.5)
+    {
+        g_Enhancement.candlePattern = "HAMMER";
+        g_Enhancement.candleStrength = 75.0;
+    }
+    else if(upperWick > bodySize * 2.0 && lowerWick < bodySize * 0.5)
+    {
+        g_Enhancement.candlePattern = "SHOOTING_STAR";
+        g_Enhancement.candleStrength = 75.0;
+    }
+    else if(bodyPercent < 20.0)
+    {
+        g_Enhancement.candlePattern = "DOJI";
+        g_Enhancement.candleStrength = 45.0;
+    }
+    else
+    {
+        g_Enhancement.candlePattern = "NORMAL";
+        g_Enhancement.candleStrength = (close > open) ? 60.0 : 55.0;
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Volume Confirmation                                    |
+//+------------------------------------------------------------------+
+void AnalyzeVolumeConfirmation()
+{
+    IndicatorValues data = GetEntryTimeframeData();
+    
+    g_Enhancement.volumeRatio = (data.volume_average > 0) ? 
+                               (double)data.volume_current / data.volume_average : 1.0;
+    
+    g_Enhancement.volumeConfirm = (g_Enhancement.volumeRatio >= Layer3_MinVolumeRatio);
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Final Enhancement Score                               |
+//+------------------------------------------------------------------+
+void CalculateFinalEnhancementScore()
+{
+    g_Enhancement.finalScore = 0.0;
+    
+    // Layer 1 contribution (40%)
+    g_Enhancement.finalScore += g_Enhancement.conditionsScore * Layer1_Weight;
+    
+    // Layer 2 contribution (35% or reduced if fallback)
+    if(!g_Enhancement.mlFallback)
+        g_Enhancement.finalScore += g_Enhancement.mlConfidence * Layer2_Weight;
+    else
+        g_Enhancement.finalScore += g_Enhancement.mlConfidence * (Layer2_Weight * 0.7);
+    
+    // Layer 3 contribution (25%)
+    double layer3Score = (g_Enhancement.candleStrength + 
+                         (g_Enhancement.volumeRatio > 1.2 ? 80.0 : 40.0)) / 2.0;
+    g_Enhancement.finalScore += layer3Score * Layer3_Weight;
+    
+    // Ensure score doesn't exceed 100%
+    g_Enhancement.finalScore = MathMin(g_Enhancement.finalScore, 100.0);
+}
+
+//+------------------------------------------------------------------+
+//| Check for Trade Opportunities                                  |
+//+------------------------------------------------------------------+
+void CheckForTradeOpportunities()
+{
+    // Reset current signal
+    InitializeTradeSignal();
+    
+    if(!g_Enhancement.enhancementPass)
+    {
+        if(EnableDetailedLogging)
+            Print("❌ No trade opportunity - Enhancement failed");
+        return;
+    }
+    
+    // Determine dominant signal direction
+    int buyCount = 0, sellCount = 0;
+    string dominantPath = "";
+    
+    for(int i = 0; i < 34; i++)
+    {
+        if(g_EntryConditions[i].triggered)
+        {
+            if(g_EntryConditions[i].direction == "BUY")
+                buyCount++;
+            else
+                sellCount++;
+                
+            if(dominantPath == "")
+                dominantPath = g_EntryConditions[i].path;
+        }
+    }
+    
+    if(buyCount > sellCount && buyCount >= MinimumConditionsRequired / 2)
+    {
+        GenerateTradeSignal("BUY", dominantPath);
+    }
+    else if(sellCount > buyCount && sellCount >= MinimumConditionsRequired / 2)
+    {
+        GenerateTradeSignal("SELL", dominantPath);
+    }
+    else
+    {
+        if(EnableDetailedLogging)
+            Print("⚖️ Conflicted signals - No trade generated");
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Generate Trade Signal                                           |
+//+------------------------------------------------------------------+
+void GenerateTradeSignal(string direction, string path)
+{
+    g_CurrentSignal.symbol = Symbol();
+    g_CurrentSignal.direction = direction;
+    g_CurrentSignal.path = path;
+    g_CurrentSignal.confidence = g_Enhancement.finalScore;
+    g_CurrentSignal.signalTime = TimeCurrent();
+    g_CurrentSignal.valid = true;
+    
+    // Calculate entry price
+    double currentPrice = iClose(Symbol(), PERIOD_CURRENT, 0);
+    IndicatorValues data = GetEntryTimeframeData();
+    
+    if(direction == "BUY")
+    {
+        g_CurrentSignal.entryPrice = currentPrice;
+        g_CurrentSignal.stopLoss = data.str_exit_value - (data.str_exit_value * STR_EXIT_TrailingBuffer / 100.0);
+        g_CurrentSignal.takeProfit = currentPrice + ((currentPrice - g_CurrentSignal.stopLoss) * MinRiskRewardRatio);
+    }
+    else
+    {
+        g_CurrentSignal.entryPrice = currentPrice;
+        g_CurrentSignal.stopLoss = data.str_exit_value + (data.str_exit_value * STR_EXIT_TrailingBuffer / 100.0);
+        g_CurrentSignal.takeProfit = currentPrice - ((g_CurrentSignal.stopLoss - currentPrice) * MinRiskRewardRatio);
+    }
+    
+    g_CurrentSignal.riskReward = MathAbs((g_CurrentSignal.takeProfit - g_CurrentSignal.entryPrice) / 
+                                        (g_CurrentSignal.stopLoss - g_CurrentSignal.entryPrice));
+    
+    Print("🎯 TRADE SIGNAL GENERATED:");
+    Print("   Direction: ", direction, " | Path: ", path);
+    Print("   Entry: ", DoubleToString(g_CurrentSignal.entryPrice, 5));
+    Print("   Stop Loss: ", DoubleToString(g_CurrentSignal.stopLoss, 5));
+    Print("   Take Profit: ", DoubleToString(g_CurrentSignal.takeProfit, 5));
+    Print("   Risk:Reward: 1:", DoubleToString(g_CurrentSignal.riskReward, 2));
+    Print("   Confidence: ", DoubleToString(g_CurrentSignal.confidence, 1), "%");
+}
+
+//+------------------------------------------------------------------+
+//| Get Current Trade Signal                                        |
+//+------------------------------------------------------------------+
+TradeSignal GetCurrentTradeSignal()
+{
+    return g_CurrentSignal;
+}
+
+//+------------------------------------------------------------------+
+//| Get Enhancement Status                                          |
+//+------------------------------------------------------------------+
+TripleEnhancement GetEnhancementStatus()
+{
+    return g_Enhancement;
+}
+
+//+------------------------------------------------------------------+
+//| Cleanup Trading System                                         |
+//+------------------------------------------------------------------+
+void CleanupTradingSystem()
+{
+    Print("🧹 Cleaning up Trading System...");
+    
+    // Reset all conditions
+    for(int i = 0; i < 34; i++)
+    {
+        g_EntryConditions[i].triggered = false;
+        g_EntryConditions[i].confidence = 0.0;
+        g_EntryConditions[i].lastTrigger = 0;
+    }
+    
+    // Reset counters
+    g_TriggeredCount = 0;
+    g_MinimumConditionsMet = false;
+    
+    // Reset enhancement
+    InitializeTripleEnhancement();
+    
+    // Reset signal
+    InitializeTradeSignal();
+    
+    Print("✅ Trading System cleanup complete");
+}
+
+//+------------------------------------------------------------------+

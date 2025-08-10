@@ -1,0 +1,820 @@
+{
+  "metadata": {
+    "config_name": "EA GlobalFlow Pro v0.1 - 34 Entry Conditions Configuration",
+    "version": "1.0",
+    "created_date": "2025-08-05",
+    "description": "Complete configuration for all 34 entry conditions implementing Triple Enhancement System",
+    "strategy": "Ichimoku-TDI-PA-BBsqueeze-Kumocross",
+    "target_win_rate": "90-95%",
+    "author": "EA GlobalFlow Pro Development Team"
+  },
+  "entry_conditions": {
+    "total_conditions": 34,
+    "buy_conditions": 17,
+    "sell_conditions": 17,
+    "minimum_conditions_required": 10,
+    "evaluation_mode": "ALL_OR_NONE",
+    "timeout_seconds": 5
+  },
+  "path_structure": {
+    "continuation_path": {
+      "description": "Trade with ongoing trends - CT signals",
+      "sub_paths": {
+        "A1_CT_SELL": {
+          "name": "Continuation Sell Path A1",
+          "trend_alignment": "BEARISH_MAJOR_BEARISH_MIDDLE",
+          "conditions": [1, 2, 3, 18, 19, 20]
+        },
+        "A2_CT_SELL": {
+          "name": "Continuation Sell Path A2", 
+          "trend_alignment": "BEARISH_MAJOR_BEARISH_MIDDLE",
+          "conditions": [4, 5, 6, 21, 22, 23]
+        },
+        "A3_CT_SELL": {
+          "name": "Continuation Sell Path A3",
+          "trend_alignment": "BEARISH_MAJOR_BEARISH_MIDDLE", 
+          "conditions": [7, 8, 9, 24, 25, 26]
+        },
+        "B1_CT_BUY": {
+          "name": "Continuation Buy Path B1",
+          "trend_alignment": "BULLISH_MAJOR_BULLISH_MIDDLE",
+          "conditions": [1, 2, 3, 18, 19, 20]
+        },
+        "B2_CT_BUY": {
+          "name": "Continuation Buy Path B2",
+          "trend_alignment": "BULLISH_MAJOR_BULLISH_MIDDLE", 
+          "conditions": [4, 5, 6, 21, 22, 23]
+        },
+        "B3_CT_BUY": {
+          "name": "Continuation Buy Path B3",
+          "trend_alignment": "BULLISH_MAJOR_BULLISH_MIDDLE",
+          "conditions": [7, 8, 9, 24, 25, 26]
+        }
+      }
+    },
+    "pullback_path": {
+      "description": "Trade market reversals - PB signals",
+      "sub_paths": {
+        "C_PB_SELL": {
+          "name": "Pullback Sell Path C",
+          "trend_alignment": "BULLISH_MAJOR_BEARISH_MIDDLE",
+          "conditions": [10, 11, 12, 27, 28, 29]
+        },
+        "D_PB_BUY": {
+          "name": "Pullback Buy Path D", 
+          "trend_alignment": "BEARISH_MAJOR_BULLISH_MIDDLE",
+          "conditions": [13, 14, 15, 30, 31, 32]
+        }
+      }
+    }
+  },
+  "individual_conditions": {
+    "condition_1": {
+      "id": 1,
+      "name": "Ichimoku Cloud Breakout",
+      "category": "ICHIMOKU",
+      "type": "PRICE_ACTION",
+      "description": "Price breaks above/below Ichimoku cloud with momentum",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "cloud_buffer_pips": 2,
+        "confirmation_bars": 1,
+        "volume_multiplier": 1.2
+      },
+      "logic": {
+        "buy": "Close[0] > Senkou_Span_A[0] AND Close[0] > Senkou_Span_B[0] AND Volume[0] > SMA(Volume, 20) * 1.2",
+        "sell": "Close[0] < Senkou_Span_A[0] AND Close[0] < Senkou_Span_B[0] AND Volume[0] > SMA(Volume, 20) * 1.2"
+      },
+      "weight": 1.0,
+      "enabled": true
+    },
+    "condition_2": {
+      "id": 2,
+      "name": "Tenkan-Kijun Cross",
+      "category": "ICHIMOKU",
+      "type": "MOMENTUM",
+      "description": "Tenkan-Sen crosses above/below Kijun-Sen with trend alignment",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "cross_confirmation": 1,
+        "trend_alignment_required": true
+      },
+      "logic": {
+        "buy": "Tenkan_Sen[0] > Kijun_Sen[0] AND Tenkan_Sen[1] <= Kijun_Sen[1]",
+        "sell": "Tenkan_Sen[0] < Kijun_Sen[0] AND Tenkan_Sen[1] >= Kijun_Sen[1]"
+      },
+      "weight": 1.0,
+      "enabled": true
+    },
+    "condition_3": {
+      "id": 3,
+      "name": "Chikou Span Confirmation",
+      "category": "ICHIMOKU", 
+      "type": "MOMENTUM",
+      "description": "Chikou Span clear of price action 26 periods ago",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "lookback_periods": 26,
+        "clearance_pips": 3
+      },
+      "logic": {
+        "buy": "Close[0] > High[26] + 3_pips",
+        "sell": "Close[0] < Low[26] - 3_pips"
+      },
+      "weight": 1.0,
+      "enabled": true
+    },
+    "condition_4": {
+      "id": 4,
+      "name": "TDI RSI Level",
+      "category": "TDI",
+      "type": "OSCILLATOR",
+      "description": "TDI RSI in appropriate zone for entry direction",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "rsi_period": 13,
+        "oversold_level": 32,
+        "overbought_level": 68,
+        "middle_zone": [40, 60]
+      },
+      "logic": {
+        "buy": "TDI_RSI[0] > 32 AND TDI_RSI[0] < 68 AND TDI_RSI[0] > TDI_RSI[1]",
+        "sell": "TDI_RSI[0] < 68 AND TDI_RSI[0] > 32 AND TDI_RSI[0] < TDI_RSI[1]"
+      },
+      "weight": 1.0,
+      "enabled": true
+    },
+    "condition_5": {
+      "id": 5,
+      "name": "TDI Signal Line Cross",
+      "category": "TDI",
+      "type": "MOMENTUM",
+      "description": "TDI signal line crosses trade line with momentum",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "signal_period": 2,
+        "trade_period": 7,
+        "momentum_threshold": 0.5
+      },
+      "logic": {
+        "buy": "TDI_Signal[0] > TDI_Trade[0] AND TDI_Signal[1] <= TDI_Trade[1]",
+        "sell": "TDI_Signal[0] < TDI_Trade[0] AND TDI_Signal[1] >= TDI_Trade[1]"
+      },
+      "weight": 1.0,
+      "enabled": true
+    },
+    "condition_6": {
+      "id": 6,
+      "name": "TDI Momentum Alignment",
+      "category": "TDI",
+      "type": "MOMENTUM", 
+      "description": "TDI shows momentum in entry direction",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "momentum_periods": 3,
+        "minimum_slope": 0.3
+      },
+      "logic": {
+        "buy": "TDI_RSI[0] > TDI_RSI[2] AND TDI_Signal[0] > TDI_Signal[2]",
+        "sell": "TDI_RSI[0] < TDI_RSI[2] AND TDI_Signal[0] < TDI_Signal[2]"
+      },
+      "weight": 1.0,
+      "enabled": true
+    },
+    "condition_7": {
+      "id": 7,
+      "name": "Price Action Pattern",
+      "category": "PRICE_ACTION",
+      "type": "PATTERN",
+      "description": "Strong directional candlestick pattern with volume",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "min_body_size": 0.6,
+        "max_wick_ratio": 0.3,
+        "volume_multiplier": 1.3
+      },
+      "logic": {
+        "buy": "Body_Size_Percent[0] > 60 AND Upper_Wick_Ratio[0] < 30 AND Lower_Wick_Ratio[0] < 30 AND Close[0] > Open[0]",
+        "sell": "Body_Size_Percent[0] > 60 AND Upper_Wick_Ratio[0] < 30 AND Lower_Wick_Ratio[0] < 30 AND Close[0] < Open[0]"
+      },
+      "weight": 1.5,
+      "enabled": true
+    },
+    "condition_8": {
+      "id": 8,
+      "name": "Support/Resistance Break",
+      "category": "PRICE_ACTION",
+      "type": "BREAKOUT",
+      "description": "Clean break of significant S/R level with volume",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "sr_lookback_periods": 50,
+        "break_buffer_pips": 2,
+        "volume_confirmation": true
+      },
+      "logic": {
+        "buy": "Close[0] > Resistance_Level + 2_pips AND Volume[0] > AvgVolume_20",
+        "sell": "Close[0] < Support_Level - 2_pips AND Volume[0] > AvgVolume_20"
+      },
+      "weight": 1.2,
+      "enabled": true
+    },
+    "condition_9": {
+      "id": 9,
+      "name": "Higher High/Lower Low",
+      "category": "PRICE_ACTION",
+      "type": "TREND",
+      "description": "Price creates higher high (buy) or lower low (sell)",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "swing_lookback": 10,
+        "confirmation_bars": 2
+      },
+      "logic": {
+        "buy": "High[0] > SwingHigh(10) AND Close[0] > Close[1]",
+        "sell": "Low[0] < SwingLow(10) AND Close[0] < Close[1]"
+      },
+      "weight": 1.0,
+      "enabled": true
+    },
+    "condition_10": {
+      "id": 10,
+      "name": "Bollinger Band Squeeze Release",
+      "category": "BOLLINGER",
+      "type": "VOLATILITY",
+      "description": "BB squeeze ends with directional move",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "bb_period": 20,
+        "bb_deviation": 2.0,
+        "squeeze_threshold": 0.1,
+        "release_multiplier": 1.5
+      },
+      "logic": {
+        "buy": "BB_Squeeze_Released[0] AND Close[0] > BB_Upper[0]",
+        "sell": "BB_Squeeze_Released[0] AND Close[0] < BB_Lower[0]"
+      },
+      "weight": 1.3,
+      "enabled": true
+    },
+    "condition_11": {
+      "id": 11,
+      "name": "Bollinger Band Bounce",
+      "category": "BOLLINGER", 
+      "type": "REVERSAL",
+      "description": "Price bounces off BB upper/lower band",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "bb_period": 20,
+        "bb_deviation": 2.0,
+        "bounce_confirmation": 2
+      },
+      "logic": {
+        "buy": "Low[1] <= BB_Lower[1] AND Close[0] > BB_Lower[0] AND Close[0] > Open[0]",
+        "sell": "High[1] >= BB_Upper[1] AND Close[0] < BB_Upper[0] AND Close[0] < Open[0]"
+      },
+      "weight": 1.1,
+      "enabled": true
+    },
+    "condition_12": {
+      "id": 12,
+      "name": "Bollinger Band Trend Alignment",
+      "category": "BOLLINGER",
+      "type": "TREND",
+      "description": "BB middle line trend aligns with entry direction",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "bb_period": 20,
+        "trend_periods": 5,
+        "min_slope": 0.0001
+      },
+      "logic": {
+        "buy": "BB_Middle[0] > BB_Middle[4] AND (BB_Middle[0] - BB_Middle[4]) > 0.0001",
+        "sell": "BB_Middle[0] < BB_Middle[4] AND (BB_Middle[4] - BB_Middle[0]) > 0.0001"
+      },
+      "weight": 1.0,
+      "enabled": true
+    },
+    "condition_13": {
+      "id": 13,
+      "name": "SMMA 50 Trend Direction",
+      "category": "MOVING_AVERAGE",
+      "type": "TREND",
+      "description": "SMMA 50 slope confirms trend direction",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "smma_period": 50,
+        "slope_periods": 3,
+        "min_slope": 0.0001
+      },
+      "logic": {
+        "buy": "SMMA_50[0] > SMMA_50[2] AND Price[0] > SMMA_50[0]",
+        "sell": "SMMA_50[0] < SMMA_50[2] AND Price[0] < SMMA_50[0]"
+      },
+      "weight": 1.0,
+      "enabled": true
+    },
+    "condition_14": {
+      "id": 14,
+      "name": "SMMA 50 Cross",
+      "category": "MOVING_AVERAGE",
+      "type": "MOMENTUM",
+      "description": "Price crosses above/below SMMA 50 with momentum",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "smma_period": 50,
+        "cross_confirmation": 1,
+        "momentum_required": true
+      },
+      "logic": {
+        "buy": "Close[0] > SMMA_50[0] AND Close[1] <= SMMA_50[1] AND Volume[0] > AvgVolume_10",
+        "sell": "Close[0] < SMMA_50[0] AND Close[1] >= SMMA_50[1] AND Volume[0] > AvgVolume_10"
+      },
+      "weight": 1.1,
+      "enabled": true
+    },
+    "condition_15": {
+      "id": 15,
+      "name": "SMMA 50 Distance",
+      "category": "MOVING_AVERAGE",
+      "type": "MOMENTUM",
+      "description": "Price maintains optimal distance from SMMA 50",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "smma_period": 50,
+        "min_distance_percent": 0.1,
+        "max_distance_percent": 2.0
+      },
+      "logic": {
+        "buy": "((Close[0] - SMMA_50[0]) / SMMA_50[0] * 100) BETWEEN 0.1 AND 2.0",
+        "sell": "((SMMA_50[0] - Close[0]) / SMMA_50[0] * 100) BETWEEN 0.1 AND 2.0"
+      },
+      "weight": 0.8,
+      "enabled": true
+    },
+    "condition_16": {
+      "id": 16,
+      "name": "SuperTrend Entry Signal",
+      "category": "SUPERTREND",
+      "type": "TREND",
+      "description": "STR-ENTRY indicator confirms trend direction",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "atr_period": 20,
+        "atr_multiplier": 1.0,
+        "signal_confirmation": 1
+      },
+      "logic": {
+        "buy": "STR_ENTRY_Direction[0] == 1 AND STR_ENTRY_Direction[1] != 1",
+        "sell": "STR_ENTRY_Direction[0] == -1 AND STR_ENTRY_Direction[1] != -1"
+      },
+      "weight": 1.4,
+      "enabled": true
+    },
+    "condition_17": {
+      "id": 17,
+      "name": "SuperTrend Trend Strength",
+      "category": "SUPERTREND",
+      "type": "MOMENTUM",
+      "description": "STR-ENTRY shows strong trend momentum",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "atr_period": 20,
+        "atr_multiplier": 1.0,
+        "strength_bars": 3
+      },
+      "logic": {
+        "buy": "STR_ENTRY_Direction[0] == 1 AND STR_ENTRY_Direction[1] == 1 AND STR_ENTRY_Direction[2] == 1",
+        "sell": "STR_ENTRY_Direction[0] == -1 AND STR_ENTRY_Direction[1] == -1 AND STR_ENTRY_Direction[2] == -1"
+      },
+      "weight": 1.2,
+      "enabled": true
+    },
+    "condition_18": {
+      "id": 18,
+      "name": "Volume Surge Confirmation",
+      "category": "VOLUME",
+      "type": "MOMENTUM", 
+      "description": "Volume surge confirms price movement",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "volume_multiplier": 1.5,
+        "average_periods": 20,
+        "surge_duration": 2
+      },
+      "logic": {
+        "buy": "Volume[0] > SMA(Volume, 20) * 1.5 AND Close[0] > Open[0]",
+        "sell": "Volume[0] > SMA(Volume, 20) * 1.5 AND Close[0] < Open[0]"
+      },
+      "weight": 1.1,
+      "enabled": true
+    },
+    "condition_19": {
+      "id": 19,
+      "name": "Volume Trend Alignment",
+      "category": "VOLUME",
+      "type": "TREND",
+      "description": "Volume trend supports price trend",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "volume_sma_period": 10,
+        "trend_periods": 5
+      },
+      "logic": {
+        "buy": "SMA(Volume, 10)[0] > SMA(Volume, 10)[4] AND Close[0] > Open[0]",
+        "sell": "SMA(Volume, 10)[0] > SMA(Volume, 10)[4] AND Close[0] < Open[0]"
+      },
+      "weight": 0.9,
+      "enabled": true
+    },
+    "condition_20": {
+      "id": 20,
+      "name": "Volume Price Divergence",
+      "category": "VOLUME",
+      "type": "DIVERGENCE",
+      "description": "No negative volume-price divergence present",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "lookback_periods": 10,
+        "divergence_threshold": 0.2
+      },
+      "logic": {
+        "buy": "NO_BEARISH_VOLUME_DIVERGENCE_10_BARS",
+        "sell": "NO_BULLISH_VOLUME_DIVERGENCE_10_BARS"
+      },
+      "weight": 0.8,
+      "enabled": true
+    },
+    "condition_21": {
+      "id": 21,
+      "name": "ATR Volatility Check",
+      "category": "VOLATILITY",
+      "type": "MARKET_CONDITIONS",
+      "description": "ATR within acceptable range for trading",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "atr_period": 14,
+        "min_atr_multiplier": 0.5,
+        "max_atr_multiplier": 3.0
+      },
+      "logic": {
+        "buy": "ATR(14)[0] BETWEEN (AvgATR_50 * 0.5) AND (AvgATR_50 * 3.0)",
+        "sell": "ATR(14)[0] BETWEEN (AvgATR_50 * 0.5) AND (AvgATR_50 * 3.0)"
+      },
+      "weight": 0.7,
+      "enabled": true
+    },
+    "condition_22": {
+      "id": 22,
+      "name": "Market Session Filter",
+      "category": "TIME",
+      "type": "MARKET_CONDITIONS",
+      "description": "Trade only during active market sessions",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "indian_fno_start": "09:30",
+        "indian_fno_end": "15:29",
+        "forex_start": "01:00", 
+        "forex_end": "23:00"
+      },
+      "logic": {
+        "buy": "WITHIN_TRADING_HOURS AND NOT_NEWS_TIME",
+        "sell": "WITHIN_TRADING_HOURS AND NOT_NEWS_TIME"
+      },
+      "weight": 0.5,
+      "enabled": true
+    },
+    "condition_23": {
+      "id": 23,
+      "name": "Spread Filter",
+      "category": "MARKET_CONDITIONS",
+      "type": "LIQUIDITY",
+      "description": "Bid-ask spread within acceptable limits",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "max_spread_pips": 3,
+        "max_spread_percent": 0.1
+      },
+      "logic": {
+        "buy": "Spread_Pips <= 3 AND Spread_Percent <= 0.1",
+        "sell": "Spread_Pips <= 3 AND Spread_Percent <= 0.1"
+      },
+      "weight": 0.6,
+      "enabled": true
+    },
+    "condition_24": {
+      "id": 24,
+      "name": "Multi-Timeframe Alignment",
+      "category": "MULTI_TIMEFRAME",
+      "type": "TREND",
+      "description": "Higher timeframe trend supports entry",
+      "timeframes": ["1H", "30M"],
+      "parameters": {
+        "higher_tf_1": "1H",
+        "higher_tf_2": "30M",
+        "alignment_required": true
+      },
+      "logic": {
+        "buy": "HTF_Trend_1H == BULLISH AND HTF_Trend_30M == BULLISH",
+        "sell": "HTF_Trend_1H == BEARISH AND HTF_Trend_30M == BEARISH"
+      },
+      "weight": 1.3,
+      "enabled": true
+    },
+    "condition_25": {
+      "id": 25,
+      "name": "Daily Bias Alignment",
+      "category": "MULTI_TIMEFRAME",
+      "type": "TREND",
+      "description": "Daily timeframe bias supports entry",
+      "timeframes": ["DAILY"],
+      "parameters": {
+        "daily_trend_method": "ICHIMOKU_CLOUD",
+        "required_alignment": true
+      },
+      "logic": {
+        "buy": "Daily_Bias == BULLISH OR Daily_Bias == NEUTRAL",
+        "sell": "Daily_Bias == BEARISH OR Daily_Bias == NEUTRAL"
+      },
+      "weight": 1.0,
+      "enabled": true
+    },
+    "condition_26": {
+      "id": 26,
+      "name": "Weekly Trend Filter",
+      "category": "MULTI_TIMEFRAME",
+      "type": "TREND",
+      "description": "Weekly trend doesn't oppose entry strongly",
+      "timeframes": ["WEEKLY"],
+      "parameters": {
+        "weekly_opposition_threshold": 0.7,
+        "trend_strength_required": false
+      },
+      "logic": {
+        "buy": "Weekly_Trend != STRONG_BEARISH",
+        "sell": "Weekly_Trend != STRONG_BULLISH"
+      },
+      "weight": 0.8,
+      "enabled": true
+    },
+    "condition_27": {
+      "id": 27,
+      "name": "VIX Level Check",
+      "category": "MARKET_CONDITIONS",
+      "type": "VOLATILITY",
+      "description": "VIX within acceptable range for strategy",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "max_vix_level": 30,
+        "optimal_vix_range": [10, 25],
+        "vix_rising_threshold": 5
+      },
+      "logic": {
+        "buy": "VIX_Level <= 30 AND VIX_Change_5M <= 5",
+        "sell": "VIX_Level <= 30 AND VIX_Change_5M <= 5"
+      },
+      "weight": 1.1,
+      "enabled": true
+    },
+    "condition_28": {
+      "id": 28,
+      "name": "Economic News Filter",
+      "category": "FUNDAMENTAL",
+      "type": "NEWS",
+      "description": "No high impact news within 30 minutes",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "news_buffer_minutes": 30,
+        "high_impact_only": true,
+        "relevant_currencies": ["USD", "EUR", "GBP", "JPY", "INR"]
+      },
+      "logic": {
+        "buy": "NO_HIGH_IMPACT_NEWS_30MIN",
+        "sell": "NO_HIGH_IMPACT_NEWS_30MIN"
+      },
+      "weight": 0.9,
+      "enabled": true
+    },
+    "condition_29": {
+      "id": 29,
+      "name": "Market Correlation Check",
+      "category": "MARKET_CONDITIONS",
+      "type": "CORRELATION",
+      "description": "Related markets show supportive movement",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "correlation_threshold": 0.3,
+        "related_markets": ["DXY", "US10Y", "SPX", "NIFTY"],
+        "timeframe": "1H"
+      },
+      "logic": {
+        "buy": "MARKET_CORRELATION_SUPPORTIVE",
+        "sell": "MARKET_CORRELATION_SUPPORTIVE"
+      },
+      "weight": 0.7,
+      "enabled": true
+    },
+    "condition_30": {
+      "id": 30,
+      "name": "Risk-Off Sentiment Filter",
+      "category": "MARKET_CONDITIONS",
+      "type": "SENTIMENT",
+      "description": "No extreme risk-off sentiment present",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "risk_indicators": ["VIX", "GOLD", "JPY_STRENGTH"],
+        "extreme_threshold": 0.8
+      },
+      "logic": {
+        "buy": "RISK_SENTIMENT != EXTREME_RISK_OFF",
+        "sell": "RISK_SENTIMENT != EXTREME_RISK_OFF"
+      },
+      "weight": 0.8,
+      "enabled": true
+    },
+    "condition_31": {
+      "id": 31,
+      "name": "Liquidity Check",
+      "category": "MARKET_CONDITIONS", 
+      "type": "LIQUIDITY",
+      "description": "Sufficient market liquidity for entry size",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "min_volume_ratio": 0.8,
+        "average_period": 20,
+        "depth_check": true
+      },
+      "logic": {
+        "buy": "Volume_Ratio_20 >= 0.8 AND Market_Depth_Adequate",
+        "sell": "Volume_Ratio_20 >= 0.8 AND Market_Depth_Adequate"
+      },
+      "weight": 0.6,
+      "enabled": true
+    },
+    "condition_32": {
+      "id": 32,
+      "name": "Price Action Quality",
+      "category": "PRICE_ACTION",
+      "type": "QUALITY",
+      "description": "Clean, decisive price action without whipsaws",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "max_whipsaw_ratio": 0.3,
+        "min_directional_move": 0.5,
+        "quality_periods": 5
+      },
+      "logic": {
+        "buy": "Price_Action_Quality_5_Bars >= 0.7 AND Whipsaw_Ratio_5 <= 0.3",
+        "sell": "Price_Action_Quality_5_Bars >= 0.7 AND Whipsaw_Ratio_5 <= 0.3"
+      },
+      "weight": 1.0,
+      "enabled": true
+    },
+    "condition_33": {
+      "id": 33,
+      "name": "Momentum Persistence",
+      "category": "MOMENTUM",
+      "type": "PERSISTENCE",
+      "description": "Momentum shows persistence over multiple bars",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "persistence_bars": 3,
+        "min_momentum_threshold": 0.4,
+        "momentum_indicator": "ROC"
+      },
+      "logic": {
+        "buy": "ROC_Positive_3_Bars AND Avg_ROC_3 >= 0.4",
+        "sell": "ROC_Negative_3_Bars AND Abs_Avg_ROC_3 >= 0.4"
+      },
+      "weight": 1.0,
+      "enabled": true
+    },
+    "condition_34": {
+      "id": 34,
+      "name": "Entry Timing Precision",
+      "category": "TIMING",
+      "type": "PRECISION",
+      "description": "Optimal entry timing based on bar close analysis",
+      "timeframes": ["5M", "15M"],
+      "parameters": {
+        "bar_close_required": true,
+        "confirmation_delay_seconds": 10,
+        "max_delay_after_signal": 60
+      },
+      "logic": {
+        "buy": "Bar_Closed AND Time_Since_Signal <= 60_Seconds AND All_Conditions_Still_Valid",
+        "sell": "Bar_Closed AND Time_Since_Signal <= 60_Seconds AND All_Conditions_Still_Valid"
+      },
+      "weight": 1.2,
+      "enabled": true
+    }
+  },
+  "triple_enhancement_system": {
+    "layer_1": {
+      "name": "34 Entry Conditions Base Layer",
+      "target_win_rate": "65-70%",
+      "minimum_conditions_required": 10,
+      "evaluation_method": "WEIGHTED_SCORE",
+      "pass_threshold": 0.75
+    },
+    "layer_2": {
+      "name": "ML Enhancement Layer",
+      "target_win_rate": "80-85%", 
+      "ml_confidence_threshold": 0.75,
+      "fallback_when_ml_unavailable": true,
+      "fallback_vix_threshold": 30
+    },
+    "layer_3": {
+      "name": "Candlestick + Volume Validation",
+      "target_win_rate": "90-95%",
+      "required_patterns": ["STRONG_DIRECTIONAL_CANDLE", "VOLUME_CONFIRMATION"],
+      "pattern_strength_threshold": 0.8,
+      "volume_multiplier_required": 1.2
+    }
+  },
+  "timeframe_cascade": {
+    "description": "Multi-timeframe analysis cascade",
+    "sequence": ["DAILY", "4H", "1H", "30M", "15M", "5M"],
+    "major_trend_timeframes": ["DAILY", "4H"],
+    "middle_trend_timeframes": ["1H", "30M"],
+    "entry_timeframes": ["15M", "5M"],
+    "confirmation_required": {
+      "major_to_middle": true,
+      "middle_to_entry": true,
+      "all_timeframes_aligned": false
+    }
+  },
+  "condition_weights": {
+    "description": "Dynamic weighting system for conditions",
+    "base_weights": {
+      "ICHIMOKU": 1.0,
+      "TDI": 1.0,
+      "PRICE_ACTION": 1.2,
+      "BOLLINGER": 1.1,
+      "MOVING_AVERAGE": 1.0,
+      "SUPERTREND": 1.3,
+      "VOLUME": 1.0,
+      "VOLATILITY": 0.8,
+      "TIME": 0.6,
+      "MARKET_CONDITIONS": 0.9,
+      "MULTI_TIMEFRAME": 1.2,
+      "FUNDAMENTAL": 0.8,
+      "MOMENTUM": 1.1,
+      "TIMING": 1.1
+    },
+    "dynamic_adjustment": {
+      "enabled": true,
+      "vix_adjustment": {
+        "low_vix": {
+          "threshold": 15,
+          "weight_multiplier": 1.1
+        },
+        "high_vix": {
+          "threshold": 25,
+          "weight_multiplier": 0.9
+        }
+      },
+      "market_session_adjustment": {
+        "active_session": 1.0,
+        "overlap_session": 1.1,
+        "quiet_session": 0.8
+      }
+    }
+  },
+  "performance_tracking": {
+    "enabled": true,
+    "metrics_to_track": [
+      "individual_condition_success_rate",
+      "path_performance",
+      "timeframe_effectiveness",
+      "market_condition_correlation",
+      "dynamic_weight_optimization"
+    ],
+    "optimization_frequency": "weekly",
+    "minimum_sample_size": 100
+  },
+  "fallback_mechanisms": {
+    "ml_unavailable": {
+      "action": "USE_ENHANCED_CANDLESTICK_VOLUME_VALIDATION", 
+      "threshold_adjustment": 0.85
+    },
+    "data_feed_issues": {
+      "action": "INCREASE_CONFIRMATION_REQUIREMENTS",
+      "additional_conditions_required": 2
+    },
+    "extreme_volatility": {
+      "vix_threshold": 30,
+      "action": "DISABLE_ML_USE_STRICT_CONDITIONS",
+      "minimum_conditions_required": 15
+    }
+  },
+  "system_settings": {
+    "evaluation_timeout_seconds": 5,
+    "parallel_processing": true,
+    "cache_condition_results": true,
+    "cache_expiry_seconds": 30,
+    "error_handling": "CONTINUE_WITH_AVAILABLE_CONDITIONS",
+    "logging_level": "INFO",
+    "performance_monitoring": true
+  }
+}

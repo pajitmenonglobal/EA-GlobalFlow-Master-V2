@@ -1,0 +1,709 @@
+{
+  "metadata": {
+    "config_name": "EA GlobalFlow Pro v0.1 - Dashboard and UI Configuration",
+    "version": "1.0",
+    "created_date": "2025-08-05",
+    "description": "Complete dashboard and user interface configuration for multi-market trading system",
+    "strategy": "Ichimoku-TDI-PA-BBsqueeze-Kumocross",
+    "target_markets": ["Indian F&O", "Forex", "International Commodities"],
+    "author": "EA GlobalFlow Pro Development Team"
+  },
+  "main_dashboard": {
+    "layout": {
+      "type": "MULTI_PANEL",
+      "orientation": "HORIZONTAL",
+      "panels": 4,
+      "resizable": true,
+      "draggable": true
+    },
+    "dimensions": {
+      "width": 1920,
+      "height": 1080,
+      "min_width": 1280,
+      "min_height": 720,
+      "responsive": true
+    },
+    "theme": {
+      "color_scheme": "DARK_PROFESSIONAL",
+      "primary_color": "#1E3A8A",
+      "secondary_color": "#3B82F6", 
+      "accent_color": "#10B981",
+      "warning_color": "#F59E0B",
+      "danger_color": "#EF4444",
+      "background_color": "#0F172A",
+      "text_color": "#F8FAFC",
+      "border_color": "#334155"
+    },
+    "fonts": {
+      "primary_font": "Segoe UI, sans-serif",
+      "monospace_font": "Consolas, monospace",
+      "header_size": "16px",
+      "body_size": "14px",
+      "small_size": "12px"
+    }
+  },
+  "panel_1_market_overview": {
+    "title": "Market Overview & Status",
+    "position": {
+      "x": 0,
+      "y": 0,
+      "width": "25%",
+      "height": "100%"
+    },
+    "components": [
+      {
+        "type": "MARKET_STATUS_GRID",
+        "height": "20%",
+        "content": {
+          "indian_fno": {
+            "label": "Indian F&O",
+            "status_indicator": true,
+            "trading_hours": "09:30 - 15:29 IST",
+            "current_session": "ACTIVE/CLOSED/PRE_MARKET"
+          },
+          "forex": {
+            "label": "Forex Markets",
+            "status_indicator": true,
+            "trading_hours": "01:00 - 23:00 Server Time",
+            "current_session": "LONDON/NEW_YORK/ASIAN/CLOSED"
+          },
+          "commodities": {
+            "label": "International Commodities",
+            "status_indicator": true,
+            "trading_hours": "Variable by Asset",
+            "current_session": "ACTIVE/CLOSED"
+          }
+        }
+      },
+      {
+        "type": "VIX_MONITOR",
+        "height": "15%",
+        "content": {
+          "india_vix": {
+            "label": "India VIX",
+            "current_value": "REAL_TIME",
+            "change_24h": "PERCENTAGE",
+            "color_coding": {
+              "low": "< 15 (Green)",
+              "medium": "15-25 (Yellow)", 
+              "high": "> 25 (Red)",
+              "extreme": "> 30 (Flash Red)"
+            }
+          },
+          "risk_level": {
+            "label": "Risk Level",
+            "value": "LOW/MEDIUM/HIGH/EXTREME",
+            "ml_adjustment": "ON/OFF"
+          }
+        }
+      },
+      {
+        "type": "SYSTEM_STATUS",
+        "height": "20%",
+        "content": {
+          "ea_status": "RUNNING/STOPPED/ERROR",
+          "api_connections": {
+            "fyers": "CONNECTED/DISCONNECTED/ERROR",
+            "truedata": "CONNECTED/DISCONNECTED/ERROR",
+            "ic_markets": "CONNECTED/DISCONNECTED/ERROR"
+          },
+          "last_update": "TIMESTAMP",
+          "uptime": "HH:MM:SS"
+        }
+      },
+      {
+        "type": "ACTIVE_SIGNALS",
+        "height": "25%",
+        "content": {
+          "title": "Active Trading Signals",
+          "signal_list": {
+            "max_items": 10,
+            "columns": ["Symbol", "Signal", "Time", "Status"],
+            "auto_refresh": 5,
+            "color_coding": {
+              "buy_signal": "green",
+              "sell_signal": "red",
+              "pending": "yellow",
+              "executed": "blue"
+            }
+          }
+        }
+      },
+      {
+        "type": "ECONOMIC_CALENDAR",
+        "height": "20%",
+        "content": {
+          "title": "Economic Calendar",
+          "time_window": "NEXT_4_HOURS",
+          "impact_filter": "HIGH_ONLY",
+          "relevant_currencies": ["USD", "EUR", "GBP", "JPY", "INR"],
+          "alert_before_minutes": 30
+        }
+      }
+    ]
+  },
+  "panel_2_trading_activity": {
+    "title": "Trading Activity & Positions",
+    "position": {
+      "x": "25%",
+      "y": 0,
+      "width": "35%",
+      "height": "100%"
+    },
+    "components": [
+      {
+        "type": "ACTIVE_POSITIONS",
+        "height": "35%",
+        "content": {
+          "title": "Active Positions",
+          "table_config": {
+            "columns": [
+              "Symbol",
+              "Type", 
+              "Size",
+              "Entry Price",
+              "Current Price",
+              "P&L",
+              "P&L %",
+              "Duration",
+              "Exit Signal"
+            ],
+            "max_rows": 15,
+            "sortable": true,
+            "color_coding": {
+              "profit": "green",
+              "loss": "red",
+              "breakeven": "yellow"
+            },
+            "auto_refresh": 2
+          }
+        }
+      },
+      {
+        "type": "SECONDARY_CHARTS_MONITOR",
+        "height": "30%",
+        "content": {
+          "title": "F&O Secondary Charts",
+          "chart_grid": {
+            "max_charts": 20,
+            "columns": ["Chart ID", "Symbol", "Strike", "Type", "OI Bias", "Trades", "P&L", "Status"],
+            "visual_markers": {
+              "call_charts": "🟢 CALL",
+              "put_charts": "🔴 PUT",
+              "active": "✅",
+              "closed": "❌",
+              "warning": "⚠️"
+            },
+            "auto_close_countdown": true
+          }
+        }
+      },
+      {
+        "type": "ORDER_HISTORY",
+        "height": "20%",
+        "content": {
+          "title": "Recent Orders",
+          "max_orders": 10,
+          "columns": ["Time", "Symbol", "Action", "Size", "Price", "Status"],
+          "filter_options": ["TODAY", "LAST_24H", "THIS_WEEK"],
+          "export_enabled": true
+        }
+      },
+      {
+        "type": "PERFORMANCE_SUMMARY",
+        "height": "15%",
+        "content": {
+          "title": "Today's Performance",
+          "metrics": {
+            "total_pnl": "CURRENCY_FORMAT",
+            "total_pnl_percent": "PERCENTAGE",
+            "winning_trades": "COUNT",
+            "losing_trades": "COUNT",
+            "win_rate": "PERCENTAGE",
+            "largest_win": "CURRENCY_FORMAT",
+            "largest_loss": "CURRENCY_FORMAT",
+            "trades_count": "COUNT"
+          },
+          "color_coding": {
+            "positive_pnl": "green",
+            "negative_pnl": "red",
+            "neutral": "gray"
+          }
+        }
+      }
+    ]
+  },
+  "panel_3_analysis_charts": {
+    "title": "Market Analysis & Charts",
+    "position": {
+      "x": "60%",
+      "y": 0,
+      "width": "25%",
+      "height": "100%"
+    },
+    "components": [
+      {
+        "type": "MINI_CHART_GRID",
+        "height": "50%",
+        "content": {
+          "title": "Key Market Charts",
+          "charts": [
+            {
+              "symbol": "NIFTY",
+              "timeframe": "15M",
+              "indicators": ["Ichimoku", "STR-ENTRY"],
+              "size": "SMALL"
+            },
+            {
+              "symbol": "BANKNIFTY", 
+              "timeframe": "15M",
+              "indicators": ["Ichimoku", "STR-ENTRY"],
+              "size": "SMALL"
+            },
+            {
+              "symbol": "EURUSD",
+              "timeframe": "15M", 
+              "indicators": ["Ichimoku", "STR-ENTRY"],
+              "size": "SMALL"
+            },
+            {
+              "symbol": "GBPUSD",
+              "timeframe": "15M",
+              "indicators": ["Ichimoku", "STR-ENTRY"], 
+              "size": "SMALL"
+            }
+          ],
+          "auto_refresh": 30,
+          "click_to_expand": true
+        }
+      },
+      {
+        "type": "SIGNAL_STRENGTH_METER",
+        "height": "20%",
+        "content": {
+          "title": "Current Signal Strength",
+          "meters": [
+            {
+              "label": "Continuation Path (CT)",
+              "value": "0-100",
+              "color": "gradient_green",
+              "threshold_lines": [70, 85]
+            },
+            {
+              "label": "Pullback Path (PB)",
+              "value": "0-100", 
+              "color": "gradient_blue",
+              "threshold_lines": [70, 85]
+            },
+            {
+              "label": "ML Enhancement",
+              "value": "0-100",
+              "color": "gradient_purple",
+              "threshold_lines": [75]
+            }
+          ]
+        }
+      },
+      {
+        "type": "MARKET_SENTIMENT",
+        "height": "15%",
+        "content": {
+          "title": "Market Sentiment",
+          "indicators": [
+            {
+              "label": "Risk Sentiment",
+              "value": "RISK_ON/RISK_OFF/NEUTRAL",
+              "color_coding": true
+            },
+            {
+              "label": "Volatility Regime",
+              "value": "LOW/MEDIUM/HIGH/EXTREME",
+              "threshold_vix": [15, 25, 30]
+            },
+            {
+              "label": "Trend Strength",
+              "value": "WEAK/MEDIUM/STRONG",
+              "multi_timeframe": true
+            }
+          ]
+        }
+      },
+      {
+        "type": "NEWS_FEED",
+        "height": "15%",
+        "content": {
+          "title": "Market News",
+          "sources": ["Reuters", "Bloomberg", "Economic Calendar"],
+          "max_items": 5,
+          "impact_filter": "MEDIUM_HIGH",
+          "auto_refresh": 300,
+          "scroll_enabled": true
+        }
+      }
+    ]
+  },
+  "panel_4_controls_logs": {
+    "title": "Controls & System Logs",
+    "position": {
+      "x": "85%",
+      "y": 0,
+      "width": "15%",
+      "height": "100%"
+    },
+    "components": [
+      {
+        "type": "TRADING_CONTROLS",
+        "height": "25%",
+        "content": {
+          "title": "Trading Controls",
+          "controls": [
+            {
+              "type": "TOGGLE",
+              "label": "Auto Trading",
+              "default": false,
+              "color": "green_red"
+            },
+            {
+              "type": "TOGGLE",
+              "label": "F&O Scanner",
+              "default": true,
+              "color": "blue_gray"
+            },
+            {
+              "type": "TOGGLE", 
+              "label": "Forex Scanner",
+              "default": true,
+              "color": "blue_gray"
+            },
+            {
+              "type": "BUTTON",
+              "label": "Emergency Stop",
+              "color": "red",
+              "confirmation": true
+            },
+            {
+              "type": "BUTTON",
+              "label": "Close All Positions",
+              "color": "orange",
+              "confirmation": true
+            }
+          ]
+        }
+      },
+      {
+        "type": "RISK_CONTROLS",
+        "height": "20%",
+        "content": {
+          "title": "Risk Management",
+          "controls": [
+            {
+              "type": "SLIDER",
+              "label": "Risk Level",
+              "min": 0.1,
+              "max": 2.0,
+              "default": 1.0,
+              "step": 0.1
+            },
+            {
+              "type": "INPUT",
+              "label": "Max Daily Loss",
+              "default": 50000,
+              "currency": true
+            },
+            {
+              "type": "INPUT",
+              "label": "Max Position Size",
+              "default": 100000,
+              "currency": true
+            }
+          ]
+        }
+      },
+      {
+        "type": "SYSTEM_LOGS",
+        "height": "35%",
+        "content": {
+          "title": "System Logs",
+          "log_config": {
+            "max_lines": 100,
+            "auto_scroll": true,
+            "color_coding": {
+              "ERROR": "red",
+              "WARNING": "yellow", 
+              "INFO": "white",
+              "DEBUG": "gray",
+              "SUCCESS": "green"
+            },
+            "timestamp_format": "HH:MM:SS",
+            "filter_levels": ["ERROR", "WARNING", "INFO"],
+            "search_enabled": true
+          }
+        }
+      },
+      {
+        "type": "ALERTS_PANEL",
+        "height": "20%",
+        "content": {
+          "title": "Active Alerts",
+          "alert_config": {
+            "max_alerts": 10,
+            "auto_dismiss_seconds": 30,
+            "sound_enabled": true,
+            "priority_levels": {
+              "CRITICAL": "red_flash",
+              "HIGH": "red",
+              "MEDIUM": "yellow",
+              "LOW": "blue"
+            },
+            "dismiss_all_button": true
+          }
+        }
+      }
+    ]
+  },
+  "popup_windows": {
+    "trade_confirmation": {
+      "enabled": true,
+      "title": "Trade Confirmation",
+      "content": {
+        "trade_details": ["Symbol", "Action", "Size", "Entry Price", "Stop Loss", "Take Profit"],
+        "risk_metrics": ["Risk Amount", "Risk %", "R:R Ratio"],
+        "buttons": ["Confirm", "Cancel", "Modify"]
+      },
+      "auto_dismiss_seconds": 15
+    },
+    "position_details": {
+      "enabled": true,
+      "title": "Position Details",
+      "content": {
+        "position_info": ["Symbol", "Size", "Entry Details", "Current P&L"],
+        "charts": "Mini chart with entry point",
+        "actions": ["Close Position", "Modify SL/TP", "Add to Position"]
+      }
+    },
+    "secondary_chart_manager": {
+      "enabled": true,
+      "title": "F&O Secondary Charts Manager",
+      "content": {
+        "chart_list": "All active secondary charts",
+        "bulk_actions": ["Close All", "Close Profitable", "Close Losing"],
+        "individual_actions": ["View Chart", "Close Chart", "Modify Settings"]
+      }
+    }
+  },
+  "notification_system": {
+    "sound_alerts": {
+      "enabled": true,
+      "sounds": {
+        "new_signal": "chime.wav",
+        "trade_opened": "success.wav",
+        "trade_closed": "notification.wav",
+        "error": "error.wav",
+        "warning": "warning.wav"
+      },
+      "volume": 0.7
+    },
+    "email_alerts": {
+      "enabled": true,
+      "email": "pajitmenonai@gmail.com",
+      "trigger_events": [
+        "Trade Opened",
+        "Trade Closed", 
+        "System Error",
+        "Daily Summary",
+        "Risk Limit Reached"
+      ],
+      "template": "HTML_PROFESSIONAL"
+    },
+    "phone_alerts": {
+      "enabled": true,
+      "phone": "+971507423656",
+      "trigger_events": [
+        "System Error",
+        "Emergency Stop",
+        "Risk Limit Exceeded",
+        "Connection Lost"
+      ],
+      "service": "WhatsApp"
+    },
+    "desktop_notifications": {
+      "enabled": true,
+      "position": "TOP_RIGHT",
+      "duration_seconds": 5,
+      "stack_limit": 5
+    }
+  },
+  "data_visualization": {
+    "chart_settings": {
+      "default_timeframe": "15M",
+      "chart_type": "CANDLESTICK",
+      "color_scheme": {
+        "bullish_candle": "#10B981",
+        "bearish_candle": "#EF4444",
+        "wick_color": "#6B7280",
+        "background": "#0F172A",
+        "grid_color": "#374151"
+      },
+      "indicators_display": {
+        "ichimoku_cloud": true,
+        "tdi_panel": true,
+        "bollinger_bands": true,
+        "supertrend": true,
+        "volume": true
+      }
+    },
+    "real_time_updates": {
+      "enabled": true,
+      "update_frequency_ms": 1000,
+      "smooth_animations": true,
+      "data_compression": true
+    },
+    "performance_charts": {
+      "equity_curve": {
+        "enabled": true,
+        "timeframe": "DAILY",
+        "show_drawdown": true
+      },
+      "win_rate_trend": {
+        "enabled": true,
+        "rolling_period": 30
+      },
+      "monthly_returns": {
+        "enabled": true,
+        "heatmap_style": true
+      }
+    }
+  },
+  "user_preferences": {
+    "layout_persistence": {
+      "save_layout": true,
+      "auto_restore": true,
+      "multiple_layouts": 3
+    },
+    "customization": {
+      "panel_resize": true,
+      "panel_reorder": true,
+      "hide_panels": true,
+      "custom_watchlists": true
+    },
+    "display_settings": {
+      "font_size_scaling": 1.0,
+      "high_contrast_mode": false,
+      "dark_theme": true,
+      "animations_enabled": true
+    }
+  },
+  "mobile_responsive": {
+    "enabled": true,
+    "breakpoints": {
+      "mobile": 768,
+      "tablet": 1024,
+      "desktop": 1280
+    },
+    "mobile_layout": {
+      "stack_panels": true,
+      "simplified_controls": true,
+      "essential_info_only": true
+    },
+    "tablet_layout": {
+      "two_column": true,
+      "swipe_navigation": true,
+      "touch_friendly": true
+    }
+  },
+  "performance_optimization": {
+    "rendering": {
+      "canvas_acceleration": true,
+      "frame_rate_limit": 60,
+      "memory_cleanup": "AUTOMATIC",
+      "lazy_loading": true
+    },
+    "data_management": {
+      "cache_size_mb": 100,
+      "cache_duration_minutes": 30,
+      "data_compression": true,
+      "background_updates": true
+    },
+    "resource_limits": {
+      "max_chart_points": 5000,
+      "max_log_entries": 1000,
+      "max_alert_history": 500
+    }
+  },
+  "accessibility": {
+    "keyboard_navigation": true,
+    "screen_reader_support": true,
+    "color_blind_friendly": true,
+    "high_contrast_option": true,
+    "font_size_options": [0.8, 1.0, 1.2, 1.4],
+    "focus_indicators": true
+  },
+  "security_features": {
+    "session_timeout_minutes": 480,
+    "auto_lock_inactive": true,
+    "encrypted_data_storage": true,
+    "audit_trail": true,
+    "user_authentication": "BIOMETRIC_OPTIONAL"
+  },
+  "integration_apis": {
+    "mt5_connection": {
+      "named_pipe": "\\\\.\\pipe\\EA_GlobalFlow_Dashboard",
+      "data_sync_ms": 1000,
+      "command_timeout_ms": 5000
+    },
+    "python_bridge": {
+      "websocket_port": 8765,
+      "api_endpoint": "http://localhost:8080/api",
+      "authentication": "API_KEY"
+    },
+    "database_connection": {
+      "sqlite_path": "Data/dashboard.db",
+      "backup_frequency": "HOURLY",
+      "retention_days": 90
+    }
+  },
+  "backup_and_recovery": {
+    "auto_backup": {
+      "enabled": true,
+      "frequency": "DAILY",
+      "retention_days": 30,
+      "backup_location": "Backups/Dashboard/"
+    },
+    "export_options": {
+      "csv_export": true,
+      "json_export": true,
+      "pdf_reports": true,
+      "image_export": true
+    },
+    "disaster_recovery": {
+      "cloud_backup": false,
+      "recovery_time_minutes": 5,
+      "data_integrity_check": true
+    }
+  },
+  "testing_and_validation": {
+    "demo_mode": {
+      "enabled": true,
+      "simulated_data": true,
+      "paper_trading": true,
+      "performance_tracking": true
+    },
+    "ui_testing": {
+      "automated_tests": true,
+      "user_acceptance_testing": true,
+      "performance_benchmarks": {
+        "load_time_ms": 3000,
+        "response_time_ms": 500,
+        "memory_usage_mb": 200
+      }
+    }
+  },
+  "deployment_settings": {
+    "environment": "PRODUCTION",
+    "debug_mode": false,
+    "logging_level": "INFO",
+    "error_reporting": true,
+    "analytics_tracking": false,
+    "update_mechanism": "MANUAL"
+  }
+}

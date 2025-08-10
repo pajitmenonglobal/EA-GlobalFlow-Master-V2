@@ -1,0 +1,1478 @@
+//+------------------------------------------------------------------+
+//| GlobalFlow_FnO.mqh - Indian F&O Specialized System             |
+//| EA GlobalFlow Pro v0.1 - Institutional Grade                   |
+//| Copyright 2025, pajitmenonai@gmail.com                          |
+//+------------------------------------------------------------------+
+#property copyright "EA GlobalFlow Pro v0.1 - F&O System"
+#property link      "pajitmenonai@gmail.com"
+
+//+------------------------------------------------------------------+
+//| F&O Market Structure                                           |
+//+------------------------------------------------------------------+
+struct FnOMarketInfo
+{
+    string      underlying;         // NIFTY, BANKNIFTY, etc.
+    string      marketType;         // "INDEX_OPTION", "STOCK_OPTION", "FUTURES"
+    int         strikeInterval;     // 50 for NIFTY, 100 for others
+    double      currentSpotPrice;   // Current underlying price
+    double      atmStrike;          // ATM strike price
+    datetime    expiryDate;         // Current expiry date
+    bool        isExpiryDay;        // Is today expiry day
+    double      lotSize;            // Lot size for the instrument
+    string      exchangeSymbol;     // NSE/BSE symbol format
+};
+
+//+------------------------------------------------------------------+
+//| Option Chain Data Structure                                    |
+//+------------------------------------------------------------------+
+struct OptionChainData
+{
+    double      strike;             // Strike price
+    double      callOI;             // Call Open Interest
+    double      putOI;              // Put Open Interest
+    double      callLTP;            // Call Last Traded Price
+    double      putLTP;             // Put Last Traded Price
+    double      callVolume;         // Call Volume
+    double      putVolume;          // Put Volume
+    double      oiBias;             // OI bias percentage
+    bool        isATM;              // Is ATM strike
+    bool        isOTM_Plus1;        // Is +1 OTM
+    bool        isOTM_Minus1;       // Is -1 OTM
+};
+
+//+------------------------------------------------------------------+
+//| Hybrid OI Logic Structure                                      |
+//+------------------------------------------------------------------+
+struct HybridOILogic
+{
+    bool        directionalBias;    // Directional bias pattern found
+    bool        independentBias;    // Independent bias pattern found
+    string      biasDirection;      // "BULLISH", "BEARISH", "NEUTRAL"
+    double      atmCallBias;        // ATM Call bias percentage
+    double      atmPutBias;         // ATM Put bias percentage
+    double      otmCallBias;        // OTM Call bias percentage
+    double      otmPutBias;         // OTM Put bias percentage
+    double      callStrike;         // Selected Call strike
+    double      putStrike;          // Selected Put strike
+    bool        criteriasMet;       // All criteria met for chart opening
+    string      failReason;         // Reason for failure
+};
+
+//+------------------------------------------------------------------+
+//| Secondary Chart Structure                                      |
+//+------------------------------------------------------------------+
+struct SecondaryChart
+{
+    long        chartId;            // Chart ID
+    string      symbol;             // Symbol name
+    string      side;               // "CALL" or "PUT"
+    double      strikePrice;        // Strike price
+    datetime    openTime;           // Chart open time
+    bool        active;             // Chart active status
+    int         tradesExecuted;     // Number of trades executed
+    double      unrealizedPnL;      // Current unrealized P&L
+    double      realizedPnL;        // Realized P&L
+    bool        autoCloseTriggered; // Auto-close triggered
+    string      closeReason;        // Reason for closing
+};
+
+//+------------------------------------------------------------------+
+//| Global F&O Variables                                          |
+//+------------------------------------------------------------------+
+FnOMarketInfo       g_FnOMarket;
+OptionChainData     g_OptionChain[11];    // 5 levels above + ATM + 5 below
+HybridOILogic       g_HybridLogic;
+SecondaryChart      g_CallChart;
+SecondaryChart      g_PutChart;
+bool                g_FnOSystemActive = false;
+datetime            g_LastScanTime = 0;
+int                 g_ActiveSecondaryCharts = 0;
+
+//+------------------------------------------------------------------+
+//| Initialize F&O System                                         |
+//+------------------------------------------------------------------+
+bool InitializeFnOSystem()
+{
+    Print("🇮🇳 Initializing Indian F&O Specialized System...");
+    
+    // Detect if current symbol is F&O
+    if(!DetectFnOMarket())
+    {
+        Print("❌ Current symbol is not Indian F&O - F&O system disabled");
+        return false;
+    }
+    
+    // Initialize market information
+    if(!InitializeFnOMarketInfo())
+    {
+        Print("❌ Failed to initialize F&O market info");
+        return false;
+    }
+    
+    // Initialize option chain structure
+    InitializeOptionChain();
+    
+    // Initialize hybrid logic
+    InitializeHybridLogic();
+    
+    // Initialize secondary charts
+    InitializeSecondaryCharts();
+    
+    g_FnOSystemActive = true;
+    g_LastScanTime = TimeCurrent();
+    
+    Print("✅ F&O System initialized successfully");
+    PrintFnOMarketInfo();
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Detect F&O Market                                             |
+//+------------------------------------------------------------------+
+bool DetectFnOMarket()
+{
+    string currentSymbol = Symbol();
+    
+    // Check for Indian F&O symbols
+    if(StringFind(currentSymbol, "NIFTY") >= 0 ||
+       StringFind(currentSymbol, "BANKNIFTY") >= 0 ||
+       StringFind(currentSymbol, "FINNIFTY") >= 0 ||
+       StringFind(currentSymbol, "MIDCPNIFTY") >= 0 ||
+       StringFind(currentSymbol, "RELIANCE") >= 0 ||
+       StringFind(currentSymbol, "TCS") >= 0 ||
+       StringFind(currentSymbol, "HDFC") >= 0 ||
+       StringFind(currentSymbol, "INFY") >= 0)
+    {
+        Print("✅ Indian F&O symbol detected: ", currentSymbol);
+        return true;
+    }
+    
+    // Check for NSE/BSE suffixes
+    if(StringFind(currentSymbol, "NSE") >= 0 || StringFind(currentSymbol, "BSE") >= 0)
+    {
+        Print("✅ NSE/BSE symbol detected: ", currentSymbol);
+        return true;
+    }
+    
+    return false;
+}
+
+//+------------------------------------------------------------------+
+//| Initialize F&O Market Info                                    |
+//+------------------------------------------------------------------+
+bool InitializeFnOMarketInfo()
+{
+    string currentSymbol = Symbol();
+    
+    // Determine underlying and market type
+    if(StringFind(currentSymbol, "NIFTY") >= 0 && StringFind(currentSymbol, "BANK") < 0)
+    {
+        g_FnOMarket.underlying = "NIFTY";
+        g_FnOMarket.strikeInterval = 50;
+        g_FnOMarket.lotSize = 50;
+    }
+    else if(StringFind(currentSymbol, "BANKNIFTY") >= 0)
+    {
+        g_FnOMarket.underlying = "BANKNIFTY";
+        g_FnOMarket.strikeInterval = 100;
+        g_FnOMarket.lotSize = 15;
+    }
+    else if(StringFind(currentSymbol, "FINNIFTY") >= 0)
+    {
+        g_FnOMarket.underlying = "FINNIFTY";
+        g_FnOMarket.strikeInterval = 50;
+        g_FnOMarket.lotSize = 40;
+    }
+    else
+    {
+        // Stock options - dynamic detection
+        g_FnOMarket.underlying = ExtractUnderlyingName(currentSymbol);
+        g_FnOMarket.strikeInterval = DetectStrikeInterval(currentSymbol);
+        g_FnOMarket.lotSize = DetectLotSize(currentSymbol);
+    }
+    
+    // Determine market type
+    if(StringFind(currentSymbol, "CE") >= 0 || StringFind(currentSymbol, "PE") >= 0)
+    {
+        if(StringFind(g_FnOMarket.underlying, "NIFTY") >= 0)
+            g_FnOMarket.marketType = "INDEX_OPTION";
+        else
+            g_FnOMarket.marketType = "STOCK_OPTION";
+    }
+    else
+    {
+        g_FnOMarket.marketType = "FUTURES";
+    }
+    
+    // Get current spot price
+    g_FnOMarket.currentSpotPrice = iClose(Symbol(), PERIOD_CURRENT, 0);
+    
+    // Calculate ATM strike
+    CalculateATMStrike();
+    
+    // Determine expiry information
+    DetermineExpiryInfo();
+    
+    g_FnOMarket.exchangeSymbol = currentSymbol;
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Extract Underlying Name                                        |
+//+------------------------------------------------------------------+
+string ExtractUnderlyingName(string symbol)
+{
+    // Extract underlying from symbol (simplified)
+    if(StringFind(symbol, "RELIANCE") >= 0) return "RELIANCE";
+    if(StringFind(symbol, "TCS") >= 0) return "TCS";
+    if(StringFind(symbol, "HDFC") >= 0) return "HDFC";
+    if(StringFind(symbol, "INFY") >= 0) return "INFY";
+    if(StringFind(symbol, "ITC") >= 0) return "ITC";
+    if(StringFind(symbol, "SBIN") >= 0) return "SBIN";
+    if(StringFind(symbol, "ICICI") >= 0) return "ICICI";
+    
+    // Default extraction - take first part before numbers
+    string underlying = "";
+    for(int i = 0; i < StringLen(symbol); i++)
+    {
+        ushort char_code = StringGetCharacter(symbol, i);
+        if(char_code >= 48 && char_code <= 57) // If digit found
+            break;
+        underlying += CharToString(char_code);
+    }
+    
+    return underlying;
+}
+
+//+------------------------------------------------------------------+
+//| Detect Strike Interval                                        |
+//+------------------------------------------------------------------+
+int DetectStrikeInterval(string symbol)
+{
+    // Analyze symbol pattern to detect interval
+    // This is simplified - in production, query from TrueData API
+    
+    if(StringFind(symbol, "NIFTY") >= 0 && StringFind(symbol, "BANK") < 0)
+        return 50;
+    else if(StringFind(symbol, "BANKNIFTY") >= 0)
+        return 100;
+    else if(StringFind(symbol, "FINNIFTY") >= 0)
+        return 50;
+    else
+        return 100;  // Default for stock options
+}
+
+//+------------------------------------------------------------------+
+//| Detect Lot Size                                               |
+//+------------------------------------------------------------------+
+double DetectLotSize(string symbol)
+{
+    // Query lot size from symbol info or use defaults
+    double minVolume = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+    if(minVolume > 0)
+        return minVolume;
+    
+    // Default lot sizes
+    if(StringFind(symbol, "NIFTY") >= 0 && StringFind(symbol, "BANK") < 0)
+        return 50;
+    else if(StringFind(symbol, "BANKNIFTY") >= 0)
+        return 15;
+    else if(StringFind(symbol, "FINNIFTY") >= 0)
+        return 40;
+    else
+        return 100;  // Default for stock options
+}
+
+//+------------------------------------------------------------------+
+//| Calculate ATM Strike                                          |
+//+------------------------------------------------------------------+
+void CalculateATMStrike()
+{
+    double spotPrice = iClose(Symbol(), PERIOD_CURRENT, 0);
+    int interval = g_FnOMarket.strikeInterval;
+    
+    // Round to nearest strike interval
+    g_FnOMarket.atmStrike = MathRound(spotPrice / interval) * interval;
+    
+    if(EnableDetailedLogging)
+    {
+        Print("📍 ATM Strike calculated:");
+        Print("   Spot Price: ", DoubleToString(spotPrice, 2));
+        Print("   Strike Interval: ", interval);
+        Print("   ATM Strike: ", DoubleToString(g_FnOMarket.atmStrike, 0));
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Determine Expiry Info                                         |
+//+------------------------------------------------------------------+
+void DetermineExpiryInfo()
+{
+    MqlDateTime currentTime;
+    TimeToStruct(TimeCurrent(), currentTime);
+    
+    // Simplified expiry calculation - last Thursday of month
+    // In production, get exact expiry from exchange data
+    
+    int daysInMonth = 31;  // Simplified
+    if(currentTime.mon == 2) daysInMonth = 28;
+    else if(currentTime.mon == 4 || currentTime.mon == 6 || currentTime.mon == 9 || currentTime.mon == 11) daysInMonth = 30;
+    
+    // Find last Thursday
+    MqlDateTime expiryTime = currentTime;
+    expiryTime.day = daysInMonth;
+    expiryTime.hour = 15;
+    expiryTime.min = 30;
+    expiryTime.sec = 0;
+    
+    // Adjust to last Thursday
+    datetime expiryDateTime = StructToTime(expiryTime);
+    int dayOfWeek = TimeDayOfWeek(expiryDateTime);
+    
+    // Adjust to Thursday (4)
+    if(dayOfWeek != 4)
+    {
+        int adjustment = (dayOfWeek > 4) ? (dayOfWeek - 4) : (7 - (4 - dayOfWeek));
+        expiryDateTime -= adjustment * 24 * 3600;
+    }
+    
+    g_FnOMarket.expiryDate = expiryDateTime;
+    
+    // Check if today is expiry day
+    MqlDateTime today;
+    TimeToStruct(TimeCurrent(), today);
+    MqlDateTime expiry;
+    TimeToStruct(g_FnOMarket.expiryDate, expiry);
+    
+    g_FnOMarket.isExpiryDay = (today.year == expiry.year && 
+                               today.mon == expiry.mon && 
+                               today.day == expiry.day);
+    
+    if(EnableDetailedLogging)
+    {
+        Print("📅 Expiry Information:");
+        Print("   Expiry Date: ", TimeToString(g_FnOMarket.expiryDate));
+        Print("   Is Expiry Day: ", g_FnOMarket.isExpiryDay);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Option Chain                                        |
+//+------------------------------------------------------------------+
+void InitializeOptionChain()
+{
+    double atmStrike = g_FnOMarket.atmStrike;
+    int interval = g_FnOMarket.strikeInterval;
+    
+    // Initialize 11 strikes: ATM ± 5 levels
+    for(int i = 0; i < 11; i++)
+    {
+        int levelOffset = i - 5;  // -5 to +5
+        g_OptionChain[i].strike = atmStrike + (levelOffset * interval);
+        g_OptionChain[i].callOI = 0.0;
+        g_OptionChain[i].putOI = 0.0;
+        g_OptionChain[i].callLTP = 0.0;
+        g_OptionChain[i].putLTP = 0.0;
+        g_OptionChain[i].callVolume = 0.0;
+        g_OptionChain[i].putVolume = 0.0;
+        g_OptionChain[i].oiBias = 0.0;
+        
+        // Mark special levels
+        g_OptionChain[i].isATM = (levelOffset == 0);
+        g_OptionChain[i].isOTM_Plus1 = (levelOffset == 1);
+        g_OptionChain[i].isOTM_Minus1 = (levelOffset == -1);
+    }
+    
+    Print("📊 Option Chain initialized with 11 strikes around ATM ", DoubleToString(atmStrike, 0));
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Hybrid Logic                                       |
+//+------------------------------------------------------------------+
+void InitializeHybridLogic()
+{
+    g_HybridLogic.directionalBias = false;
+    g_HybridLogic.independentBias = false;
+    g_HybridLogic.biasDirection = "NEUTRAL";
+    g_HybridLogic.atmCallBias = 0.0;
+    g_HybridLogic.atmPutBias = 0.0;
+    g_HybridLogic.otmCallBias = 0.0;
+    g_HybridLogic.otmPutBias = 0.0;
+    g_HybridLogic.callStrike = 0.0;
+    g_HybridLogic.putStrike = 0.0;
+    g_HybridLogic.criteriasMet = false;
+    g_HybridLogic.failReason = "";
+    
+    Print("🔄 Hybrid OI Logic initialized");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Secondary Charts                                    |
+//+------------------------------------------------------------------+
+void InitializeSecondaryCharts()
+{
+    // Initialize Call Chart
+    g_CallChart.chartId = 0;
+    g_CallChart.symbol = "";
+    g_CallChart.side = "CALL";
+    g_CallChart.strikePrice = 0.0;
+    g_CallChart.openTime = 0;
+    g_CallChart.active = false;
+    g_CallChart.tradesExecuted = 0;
+    g_CallChart.unrealizedPnL = 0.0;
+    g_CallChart.realizedPnL = 0.0;
+    g_CallChart.autoCloseTriggered = false;
+    g_CallChart.closeReason = "";
+    
+    // Initialize Put Chart
+    g_PutChart.chartId = 0;
+    g_PutChart.symbol = "";
+    g_PutChart.side = "PUT";
+    g_PutChart.strikePrice = 0.0;
+    g_PutChart.openTime = 0;
+    g_PutChart.active = false;
+    g_PutChart.tradesExecuted = 0;
+    g_PutChart.unrealizedPnL = 0.0;
+    g_PutChart.realizedPnL = 0.0;
+    g_PutChart.autoCloseTriggered = false;
+    g_PutChart.closeReason = "";
+    
+    g_ActiveSecondaryCharts = 0;
+    
+    Print("📊 Secondary Charts initialized");
+}
+
+//+------------------------------------------------------------------+
+//| Perform F&O Background Scan                                   |
+//+------------------------------------------------------------------+
+void PerformFnOBackgroundScan()
+{
+    if(!g_FnOSystemActive)
+        return;
+    
+    // Avoid too frequent scanning
+    if(TimeCurrent() - g_LastScanTime < 30)  // 30 seconds minimum
+        return;
+    
+    if(EnableDetailedLogging)
+        Print("🔍 Performing F&O background scan...");
+    
+    // Step 1: Update option chain data
+    if(!UpdateOptionChainData())
+    {
+        Print("❌ Failed to update option chain data");
+        return;
+    }
+    
+    // Step 2: Evaluate hybrid OI logic
+    EvaluateHybridOILogic();
+    
+    // Step 3: Check for secondary chart opening conditions
+    if(g_HybridLogic.criteriasMet && g_ActiveSecondaryCharts == 0)
+    {
+        OpenSecondaryCharts();
+    }
+    
+    // Step 4: Monitor existing secondary charts
+    MonitorSecondaryCharts();
+    
+    g_LastScanTime = TimeCurrent();
+}
+
+//+------------------------------------------------------------------+
+//| Update Option Chain Data                                       |
+//+------------------------------------------------------------------+
+bool UpdateOptionChainData()
+{
+    // Request option chain data from TrueData via Python bridge
+    string underlying = g_FnOMarket.underlying;
+    string optionChainResponse = GetOptionChainData(underlying);
+    
+    if(optionChainResponse == "")
+    {
+        if(EnableDetailedLogging)
+            Print("⚠️ No option chain data received");
+        return false;
+    }
+    
+    // Parse the JSON response and update option chain
+    bool parseSuccess = ParseOptionChainResponse(optionChainResponse);
+    
+    if(parseSuccess)
+    {
+        // Calculate OI bias for each strike
+        CalculateOIBias();
+        
+        if(EnableDetailedLogging)
+        {
+            Print("📊 Option Chain updated successfully");
+            PrintOptionChainSummary();
+        }
+    }
+    
+    return parseSuccess;
+}
+
+//+------------------------------------------------------------------+
+//| Parse Option Chain Response                                    |
+//+------------------------------------------------------------------+
+bool ParseOptionChainResponse(string response)
+{
+    // Simplified JSON parsing - in production, use robust JSON parser
+    // Expected format: {"strikes":[{"strike":23000,"call_oi":1000,"put_oi":800,...},...]}
+    
+    if(StringFind(response, "strikes") < 0)
+        return false;
+    
+    // Extract strikes array (simplified parsing)
+    int strikesStart = StringFind(response, "strikes\":[");
+    if(strikesStart < 0) return false;
+    
+    strikesStart += 10;  // Move past "strikes":["
+    
+    // For each strike in our chain, try to find data
+    for(int i = 0; i < 11; i++)
+    {
+        double targetStrike = g_OptionChain[i].strike;
+        string strikeStr = DoubleToString(targetStrike, 0);
+        
+        // Search for this strike in the response
+        string searchPattern = "\"strike\":" + strikeStr;
+        int strikePos = StringFind(response, searchPattern, strikesStart);
+        
+        if(strikePos >= 0)
+        {
+            // Extract data for this strike (simplified)
+            string strikeData = ExtractStrikeData(response, strikePos);
+            ParseStrikeData(i, strikeData);
+        }
+    }
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Extract Strike Data                                           |
+//+------------------------------------------------------------------+
+string ExtractStrikeData(string response, int startPos)
+{
+    // Find the end of this strike object
+    int braceCount = 0;
+    int pos = startPos;
+    int endPos = startPos;
+    
+    // Find the complete object
+    while(pos < StringLen(response))
+    {
+        ushort char_code = StringGetCharacter(response, pos);
+        if(char_code == '{') braceCount++;
+        else if(char_code == '}')
+        {
+            braceCount--;
+            if(braceCount == 0)
+            {
+                endPos = pos + 1;
+                break;
+            }
+        }
+        pos++;
+    }
+    
+    return StringSubstr(response, startPos, endPos - startPos);
+}
+
+//+------------------------------------------------------------------+
+//| Parse Strike Data                                             |
+//+------------------------------------------------------------------+
+void ParseStrikeData(int index, string strikeData)
+{
+    // Extract Call OI
+    int callOiPos = StringFind(strikeData, "\"call_oi\":");
+    if(callOiPos >= 0)
+    {
+        callOiPos += 10;
+        string callOiStr = ExtractNumberFromJson(strikeData, callOiPos);
+        g_OptionChain[index].callOI = StringToDouble(callOiStr);
+    }
+    
+    // Extract Put OI
+    int putOiPos = StringFind(strikeData, "\"put_oi\":");
+    if(putOiPos >= 0)
+    {
+        putOiPos += 9;
+        string putOiStr = ExtractNumberFromJson(strikeData, putOiPos);
+        g_OptionChain[index].putOI = StringToDouble(putOiStr);
+    }
+    
+    // Extract Call LTP
+    int callLtpPos = StringFind(strikeData, "\"call_ltp\":");
+    if(callLtpPos >= 0)
+    {
+        callLtpPos += 11;
+        string callLtpStr = ExtractNumberFromJson(strikeData, callLtpPos);
+        g_OptionChain[index].callLTP = StringToDouble(callLtpStr);
+    }
+    
+    // Extract Put LTP
+    int putLtpPos = StringFind(strikeData, "\"put_ltp\":");
+    if(putLtpPos >= 0)
+    {
+        putLtpPos += 10;
+        string putLtpStr = ExtractNumberFromJson(strikeData, putLtpPos);
+        g_OptionChain[index].putLTP = StringToDouble(putLtpStr);
+    }
+    
+    // Extract volumes similarly...
+    // Simplified implementation - add volume parsing as needed
+}
+
+//+------------------------------------------------------------------+
+//| Extract Number from JSON                                       |
+//+------------------------------------------------------------------+
+string ExtractNumberFromJson(string json, int startPos)
+{
+    string number = "";
+    
+    for(int i = startPos; i < StringLen(json); i++)
+    {
+        ushort char_code = StringGetCharacter(json, i);
+        
+        // Valid number characters: 0-9, ., -
+        if((char_code >= 48 && char_code <= 57) || char_code == 46 || char_code == 45)
+        {
+            number += CharToString(char_code);
+        }
+        else
+        {
+            break;  // End of number reached
+        }
+    }
+    
+    return number;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate OI Bias                                             |
+//+------------------------------------------------------------------+
+void CalculateOIBias()
+{
+    for(int i = 0; i < 11; i++)
+    {
+        double totalOI = g_OptionChain[i].callOI + g_OptionChain[i].putOI;
+        
+        if(totalOI > 0)
+        {
+            // Calculate bias as percentage difference
+            double oiDifference = g_OptionChain[i].callOI - g_OptionChain[i].putOI;
+            g_OptionChain[i].oiBias = (oiDifference / totalOI) * 100.0;
+        }
+        else
+        {
+            g_OptionChain[i].oiBias = 0.0;
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Print Option Chain Summary                                     |
+//+------------------------------------------------------------------+
+void PrintOptionChainSummary()
+{
+    Print("📊 Option Chain Summary (Around ATM ", DoubleToString(g_FnOMarket.atmStrike, 0), "):");
+    
+    for(int i = 0; i < 11; i++)
+    {
+        string strikeInfo = StringFormat("   Strike %.0f: Call OI=%.0f, Put OI=%.0f, Bias=%.1f%%",
+                                        g_OptionChain[i].strike,
+                                        g_OptionChain[i].callOI,
+                                        g_OptionChain[i].putOI,
+                                        g_OptionChain[i].oiBias);
+        
+        if(g_OptionChain[i].isATM)
+            strikeInfo += " [ATM]";
+        else if(g_OptionChain[i].isOTM_Plus1)
+            strikeInfo += " [+1 OTM]";
+        else if(g_OptionChain[i].isOTM_Minus1)
+            strikeInfo += " [-1 OTM]";
+            
+        Print(strikeInfo);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate Hybrid OI Logic                                      |
+//+------------------------------------------------------------------+
+void EvaluateHybridOILogic()
+{
+    if(EnableDetailedLogging)
+        Print("🔄 Evaluating Hybrid OI Logic...");
+    
+    // Reset previous results
+    InitializeHybridLogic();
+    
+    // Find ATM, +1 OTM, -1 OTM indices
+    int atmIndex = 5;  // Middle of array
+    int plus1Index = 6;
+    int minus1Index = 4;
+    
+    // Get OI data for key strikes
+    double atmCallOI = g_OptionChain[atmIndex].callOI;
+    double atmPutOI = g_OptionChain[atmIndex].putOI;
+    double plus1CallOI = g_OptionChain[plus1Index].callOI;
+    double plus1PutOI = g_OptionChain[plus1Index].putOI;
+    double minus1CallOI = g_OptionChain[minus1Index].callOI;
+    double minus1PutOI = g_OptionChain[minus1Index].putOI;
+    
+    // Calculate ATM bias
+    double atmTotalOI = atmCallOI + atmPutOI;
+    if(atmTotalOI > 0)
+    {
+        g_HybridLogic.atmCallBias = (atmCallOI / atmTotalOI) * 100.0;
+        g_HybridLogic.atmPutBias = (atmPutOI / atmTotalOI) * 100.0;
+    }
+    
+    // PATH 1: Directional Bias Pattern
+    if(EvaluateDirectionalBias(atmCallOI, atmPutOI, plus1CallOI, plus1PutOI, minus1CallOI, minus1PutOI))
+    {
+        g_HybridLogic.directionalBias = true;
+        g_HybridLogic.criteriasMet = true;
+    }
+    // PATH 2: Independent Bias Pattern (alternative)
+    else if(EvaluateIndependentBias(plus1CallOI, plus1PutOI, minus1CallOI, minus1PutOI))
+    {
+        g_HybridLogic.independentBias = true;
+        g_HybridLogic.criteriasMet = true;
+    }
+    else
+    {
+        g_HybridLogic.criteriasMet = false;
+        g_HybridLogic.failReason = "Neither directional nor independent bias patterns qualified";
+    }
+    
+    if(EnableDetailedLogging)
+    {
+        Print("🎯 Hybrid OI Logic Results:");
+        Print("   ATM Call Bias: ", DoubleToString(g_HybridLogic.atmCallBias, 1), "%");
+        Print("   ATM Put Bias: ", DoubleToString(g_HybridLogic.atmPutBias, 1), "%");
+        Print("   Directional Pattern: ", g_HybridLogic.directionalBias);
+        Print("   Independent Pattern: ", g_HybridLogic.independentBias);
+        Print("   Criteria Met: ", g_HybridLogic.criteriasMet);
+        Print("   Bias Direction: ", g_HybridLogic.biasDirection);
+        
+        if(!g_HybridLogic.criteriasMet)
+            Print("   Fail Reason: ", g_HybridLogic.failReason);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate Directional Bias Pattern                             |
+//+------------------------------------------------------------------+
+bool EvaluateDirectionalBias(double atmCallOI, double atmPutOI, double plus1CallOI, double plus1PutOI, 
+                            double minus1CallOI, double minus1PutOI)
+{
+    double atmTotalOI = atmCallOI + atmPutOI;
+    if(atmTotalOI == 0) return false;
+    
+    double atmCallBias = (atmCallOI / atmTotalOI) * 100.0;
+    double atmPutBias = (atmPutOI / atmTotalOI) * 100.0;
+    
+    // Bullish Directional Pattern
+    if(atmCallBias > (50.0 + OIBiasThreshold))  // >30% relative Call OI bias at ATM
+    {
+        // Check +1 OTM Call OI > Put OI by 30%
+        if(plus1CallOI > plus1PutOI * (1.0 + OIBiasThreshold/100.0))
+        {
+            g_HybridLogic.biasDirection = "BULLISH";
+            g_HybridLogic.callStrike = g_OptionChain[6].strike;  // +1 OTM Call
+            g_HybridLogic.putStrike = g_OptionChain[4].strike;   // -1 OTM Put
+            
+            if(EnableDetailedLogging)
+                Print("✅ Bullish Directional Pattern detected");
+            
+            return true;
+        }
+    }
+    // Bearish Directional Pattern
+    else if(atmPutBias > (50.0 + OIBiasThreshold))  // >30% relative Put OI bias at ATM
+    {
+        // Check -1 OTM Put OI > Call OI by 30%
+        if(minus1PutOI > minus1CallOI * (1.0 + OIBiasThreshold/100.0))
+        {
+            g_HybridLogic.biasDirection = "BEARISH";
+            g_HybridLogic.putStrike = g_OptionChain[4].strike;   // -1 OTM Put
+            g_HybridLogic.callStrike = g_OptionChain[6].strike;  // +1 OTM Call
+            
+            if(EnableDetailedLogging)
+                Print("✅ Bearish Directional Pattern detected");
+            
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate Independent Bias Pattern                             |
+//+------------------------------------------------------------------+
+bool EvaluateIndependentBias(double plus1CallOI, double plus1PutOI, double minus1CallOI, double minus1PutOI)
+{
+    double plus1TotalOI = plus1CallOI + plus1PutOI;
+    double minus1TotalOI = minus1CallOI + minus1PutOI;
+    
+    if(plus1TotalOI == 0 || minus1TotalOI == 0) return false;
+    
+    // Calculate relative differences at both OTM levels
+    double plus1Difference = MathAbs(plus1CallOI - plus1PutOI) / plus1TotalOI * 100.0;
+    double minus1Difference = MathAbs(minus1CallOI - minus1PutOI) / minus1TotalOI * 100.0;
+    
+    // Both must have >30% relative difference
+    if(plus1Difference > OIBiasThreshold && minus1Difference > OIBiasThreshold)
+    {
+        g_HybridLogic.biasDirection = "INDEPENDENT";
+        g_HybridLogic.callStrike = g_OptionChain[6].strike;  // +1 OTM Call
+        g_HybridLogic.putStrike = g_OptionChain[4].strike;   // -1 OTM Put
+        
+        g_HybridLogic.otmCallBias = plus1Difference;
+        g_HybridLogic.otmPutBias = minus1Difference;
+        
+        if(EnableDetailedLogging)
+            Print("✅ Independent Bias Pattern detected");
+        
+        return true;
+    }
+    
+    return false;
+}
+
+//+------------------------------------------------------------------+
+//| Open Secondary Charts                                          |
+//+------------------------------------------------------------------+
+void OpenSecondaryCharts()
+{
+    Print("📊 Opening secondary charts based on hybrid logic...");
+    
+    // Special handling for expiry day
+    if(g_FnOMarket.isExpiryDay)
+    {
+        Print("📅 Expiry Day: Opening charts at ATM level");
+        g_HybridLogic.callStrike = g_FnOMarket.atmStrike;
+        g_HybridLogic.putStrike = g_FnOMarket.atmStrike;
+    }
+    
+    // Open Call Chart
+    if(OpenCallChart())
+    {
+        Print("✅ Call chart opened at strike ", DoubleToString(g_HybridLogic.callStrike, 0));
+        g_ActiveSecondaryCharts++;
+    }
+    
+    // Open Put Chart
+    if(OpenPutChart())
+    {
+        Print("✅ Put chart opened at strike ", DoubleToString(g_HybridLogic.putStrike, 0));
+        g_ActiveSecondaryCharts++;
+    }
+    
+    if(g_ActiveSecondaryCharts > 0)
+    {
+        Print("🎯 ", g_ActiveSecondaryCharts, " secondary charts opened successfully");
+        Print("   Strategy: ", g_HybridLogic.biasDirection);
+        Print("   Call Strike: ", DoubleToString(g_HybridLogic.callStrike, 0));
+        Print("   Put Strike: ", DoubleToString(g_HybridLogic.putStrike, 0));
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Open Call Chart                                               |
+//+------------------------------------------------------------------+
+bool OpenCallChart()
+{
+    // Create Call option symbol
+    string callSymbol = CreateOptionSymbol(g_HybridLogic.callStrike, "CE");
+    
+    // Open new chart
+    long chartId = ChartOpen(callSymbol, PERIOD_M15);
+    
+    if(chartId > 0)
+    {
+        g_CallChart.chartId = chartId;
+        g_CallChart.symbol = callSymbol;
+        g_CallChart.strikePrice = g_HybridLogic.callStrike;
+        g_CallChart.openTime = TimeCurrent();
+        g_CallChart.active = true;
+        
+        // Apply EA to the chart
+        if(!AttachEAToChart(chartId, callSymbol))
+        {
+            Print("⚠️ Failed to attach EA to Call chart");
+        }
+        
+        // Set visual theme
+        SetCallChartTheme(chartId);
+        
+        return true;
+    }
+    else
+    {
+        Print("❌ Failed to open Call chart for ", callSymbol);
+        print("Error: ", GetLastError());
+        return false;
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Open Put Chart                                                |
+//+------------------------------------------------------------------+
+bool OpenPutChart()
+{
+    // Create Put option symbol
+    string putSymbol = CreateOptionSymbol(g_HybridLogic.putStrike, "PE");
+    
+    // Open new chart
+    long chartId = ChartOpen(putSymbol, PERIOD_M15);
+    
+    if(chartId > 0)
+    {
+        g_PutChart.chartId = chartId;
+        g_PutChart.symbol = putSymbol;
+        g_PutChart.strikePrice = g_HybridLogic.putStrike;
+        g_PutChart.openTime = TimeCurrent();
+        g_PutChart.active = true;
+        
+        // Apply EA to the chart
+        if(!AttachEAToChart(chartId, putSymbol))
+        {
+            Print("⚠️ Failed to attach EA to Put chart");
+        }
+        
+        // Set visual theme
+        SetPutChartTheme(chartId);
+        
+        return true;
+    }
+    else
+    {
+        Print("❌ Failed to open Put chart for ", putSymbol);
+        print("Error: ", GetLastError());
+        return false;
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Create Option Symbol                                          |
+//+------------------------------------------------------------------+
+string CreateOptionSymbol(double strike, string optionType)
+{
+    // Create NSE option symbol format
+    // Example: NIFTY23JUL23000CE, BANKNIFTY23JUL44000PE
+    
+    string underlying = g_FnOMarket.underlying;
+    string strikeStr = DoubleToString(strike, 0);
+    
+    // Get expiry month/year (simplified)
+    MqlDateTime expiry;
+    TimeToStruct(g_FnOMarket.expiryDate, expiry);
+    
+    string monthCode = GetExpiryMonthCode(expiry.mon);
+    string yearCode = StringSubstr(IntegerToString(expiry.year), 2, 2);  // Last 2 digits
+    
+    string symbol = underlying + yearCode + monthCode + strikeStr + optionType;
+    
+    if(EnableDetailedLogging)
+        Print("🔧 Created option symbol: ", symbol);
+    
+    return symbol;
+}
+
+//+------------------------------------------------------------------+
+//| Get Expiry Month Code                                         |
+//+------------------------------------------------------------------+
+string GetExpiryMonthCode(int month)
+{
+    switch(month)
+    {
+        case 1: return "JAN";
+        case 2: return "FEB";
+        case 3: return "MAR";
+        case 4: return "APR";
+        case 5: return "MAY";
+        case 6: return "JUN";
+        case 7: return "JUL";
+        case 8: return "AUG";
+        case 9: return "SEP";
+        case 10: return "OCT";
+        case 11: return "NOV";
+        case 12: return "DEC";
+        default: return "JAN";
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Attach EA to Chart                                            |
+//+------------------------------------------------------------------+
+bool AttachEAToChart(long chartId, string symbol)
+{
+    // Switch to the chart
+    if(!ChartSetInteger(chartId, CHART_BRING_TO_TOP, true))
+        return false;
+    
+    // Apply the same EA to the secondary chart
+    string eaName = MQLInfoString(MQL_PROGRAM_NAME);
+    
+    // In production, this would require MT5 API to attach EA programmatically
+    // For now, we'll just prepare the chart and log the action
+    
+    if(EnableDetailedLogging)
+        Print("🔧 EA attachment prepared for chart ", chartId, " (", symbol, ")");
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Set Call Chart Theme                                          |
+//+------------------------------------------------------------------+
+void SetCallChartTheme(long chartId)
+{
+    // Set Call chart visual theme (Green theme)
+    ChartSetInteger(chartId, CHART_COLOR_BACKGROUND, C'0,50,0');        // Dark green background
+    ChartSetInteger(chartId, CHART_COLOR_FOREGROUND, clrLimeGreen);     // Green foreground
+    ChartSetInteger(chartId, CHART_COLOR_GRID, C'0,30,0');              // Dark green grid
+    ChartSetInteger(chartId, CHART_COLOR_VOLUME, clrGreen);             // Green volume
+    ChartSetInteger(chartId, CHART_COLOR_CHART_UP, clrLime);            // Bright green for up bars
+    ChartSetInteger(chartId, CHART_COLOR_CHART_DOWN, clrDarkGreen);     // Dark green for down bars
+    ChartSetInteger(chartId, CHART_COLOR_CANDLE_BULL, clrLime);         // Green bull candles
+    ChartSetInteger(chartId, CHART_COLOR_CANDLE_BEAR, clrForestGreen);  // Forest green bear candles
+    
+    // Add Call identifier
+    string callLabel = "CALL_" + DoubleToString(g_CallChart.strikePrice, 0);
+    ObjectCreate(chartId, callLabel, OBJ_LABEL, 0, 0, 0);
+    ObjectSetInteger(chartId, callLabel, OBJPROP_CORNER, CORNER_LEFT_UPPER);
+    ObjectSetInteger(chartId, callLabel, OBJPROP_XDISTANCE, 10);
+    ObjectSetInteger(chartId, callLabel, OBJPROP_YDISTANCE, 30);
+    ObjectSetString(chartId, callLabel, OBJPROP_TEXT, "📈 CALL " + DoubleToString(g_CallChart.strikePrice, 0));
+    ObjectSetInteger(chartId, callLabel, OBJPROP_COLOR, clrLime);
+    ObjectSetInteger(chartId, callLabel, OBJPROP_FONTSIZE, 12);
+    
+    if(EnableDetailedLogging)
+        Print("🎨 Call chart theme applied (Green)");
+}
+
+//+------------------------------------------------------------------+
+//| Set Put Chart Theme                                           |
+//+------------------------------------------------------------------+
+void SetPutChartTheme(long chartId)
+{
+    // Set Put chart visual theme (Red theme)
+    ChartSetInteger(chartId, CHART_COLOR_BACKGROUND, C'50,0,0');        // Dark red background
+    ChartSetInteger(chartId, CHART_COLOR_FOREGROUND, clrCrimson);       // Red foreground
+    ChartSetInteger(chartId, CHART_COLOR_GRID, C'30,0,0');              // Dark red grid
+    ChartSetInteger(chartId, CHART_COLOR_VOLUME, clrRed);               // Red volume
+    ChartSetInteger(chartId, CHART_COLOR_CHART_UP, clrPink);            // Pink for up bars
+    ChartSetInteger(chartId, CHART_COLOR_CHART_DOWN, clrDarkRed);       // Dark red for down bars
+    ChartSetInteger(chartId, CHART_COLOR_CANDLE_BULL, clrPink);         // Pink bull candles
+    ChartSetInteger(chartId, CHART_COLOR_CANDLE_BEAR, clrMaroon);       // Maroon bear candles
+    
+    // Add Put identifier
+    string putLabel = "PUT_" + DoubleToString(g_PutChart.strikePrice, 0);
+    ObjectCreate(chartId, putLabel, OBJ_LABEL, 0, 0, 0);
+    ObjectSetInteger(chartId, putLabel, OBJPROP_CORNER, CORNER_LEFT_UPPER);
+    ObjectSetInteger(chartId, putLabel, OBJPROP_XDISTANCE, 10);
+    ObjectSetInteger(chartId, putLabel, OBJPROP_YDISTANCE, 30);
+    ObjectSetString(chartId, putLabel, OBJPROP_TEXT, "📉 PUT " + DoubleToString(g_PutChart.strikePrice, 0));
+    ObjectSetInteger(chartId, putLabel, OBJPROP_COLOR, clrCrimson);
+    ObjectSetInteger(chartId, putLabel, OBJPROP_FONTSIZE, 12);
+    
+    if(EnableDetailedLogging)
+        Print("🎨 Put chart theme applied (Red)");
+}
+
+//+------------------------------------------------------------------+
+//| Monitor Secondary Charts                                       |
+//+------------------------------------------------------------------+
+void MonitorSecondaryCharts()
+{
+    // Monitor Call Chart
+    if(g_CallChart.active)
+    {
+        MonitorChart(g_CallChart);
+    }
+    
+    // Monitor Put Chart
+    if(g_PutChart.active)
+    {
+        MonitorChart(g_PutChart);
+    }
+    
+    // Check auto-close conditions
+    CheckSecondaryChartAutoClose();
+}
+
+//+------------------------------------------------------------------+
+//| Monitor Individual Chart                                       |
+//+------------------------------------------------------------------+
+void MonitorChart(SecondaryChart &chart)
+{
+    // Update P&L
+    chart.unrealizedPnL = CalculateChartPnL(chart.symbol);
+    
+    // Check for auto-close triggers
+    if(ShouldAutoCloseChart(chart))
+    {
+        CloseSecondaryChart(chart);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Chart P&L                                           |
+//+------------------------------------------------------------------+
+double CalculateChartPnL(string symbol)
+{
+    double totalPnL = 0.0;
+    
+    // Calculate from positions of this symbol
+    for(int i = 0; i < PositionsTotal(); i++)
+    {
+        if(PositionSelectByIndex(i))
+        {
+            if(PositionGetString(POSITION_SYMBOL) == symbol &&
+               PositionGetInteger(POSITION_MAGIC) == MagicNumber)
+            {
+                totalPnL += PositionGetDouble(POSITION_PROFIT);
+            }
+        }
+    }
+    
+    return totalPnL;
+}
+
+//+------------------------------------------------------------------+
+//| Check if Chart Should Auto-Close                              |
+//+------------------------------------------------------------------+
+bool ShouldAutoCloseChart(const SecondaryChart &chart)
+{
+    // 1. Expiry day closure at 3:29 PM
+    if(g_FnOMarket.isExpiryDay)
+    {
+        MqlDateTime currentTime;
+        TimeToStruct(TimeCurrent(), currentTime);
+        
+        if(currentTime.hour == 15 && currentTime.min >= 29)
+        {
+            return true;
+        }
+    }
+    
+    // 2. Maximum trades executed (3 trades per chart)
+    if(chart.tradesExecuted >= MaxTradesPerSecondaryChart)
+    {
+        return true;
+    }
+    
+    // 3. STR-EXIT signal generated
+    // This would be checked by the trading system
+    
+    // 4. Stop loss or take profit hit
+    // This would be handled by risk management
+    
+    // 5. Time-based closure (optional)
+    if(TimeCurrent() - chart.openTime > SecondaryChartMaxLifetime * 3600)  // Convert hours to seconds
+    {
+        return true;
+    }
+    
+    return false;
+}
+
+//+------------------------------------------------------------------+
+//| Close Secondary Chart                                         |
+//+------------------------------------------------------------------+
+void CloseSecondaryChart(SecondaryChart &chart)
+{
+    Print("🔄 Closing secondary chart: ", chart.symbol);
+    
+    // Close all positions on this chart first
+    CloseAllPositionsForSymbol(chart.symbol);
+    
+    // Close the chart
+    if(ChartClose(chart.chartId))
+    {
+        Print("✅ Chart closed successfully: ", chart.symbol);
+    }
+    else
+    {
+        Print("⚠️ Failed to close chart: ", chart.symbol);
+    }
+    
+    // Update chart status
+    chart.active = false;
+    chart.autoCloseTriggered = true;
+    chart.closeReason = DetermineCloseReason(chart);
+    
+    g_ActiveSecondaryCharts--;
+    
+    // Log closure summary
+    Print("📊 Chart Summary - ", chart.symbol, ":");
+    Print("   Trades Executed: ", chart.tradesExecuted);
+    Print("   Realized P&L: $", DoubleToString(chart.realizedPnL, 2));
+    Print("   Close Reason: ", chart.closeReason);
+}
+
+//+------------------------------------------------------------------+
+//| Close All Positions for Symbol                                |
+//+------------------------------------------------------------------+
+void CloseAllPositionsForSymbol(string symbol)
+{
+    int closedCount = 0;
+    
+    for(int i = PositionsTotal() - 1; i >= 0; i--)
+    {
+        if(PositionSelectByIndex(i))
+        {
+            if(PositionGetString(POSITION_SYMBOL) == symbol &&
+               PositionGetInteger(POSITION_MAGIC) == MagicNumber)
+            {
+                ulong ticket = PositionGetInteger(POSITION_TICKET);
+                if(PositionCloseByTicket(ticket))
+                {
+                    closedCount++;
+                }
+            }
+        }
+    }
+    
+    if(closedCount > 0)
+    {
+        Print("✅ Closed ", closedCount, " positions for ", symbol);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Determine Close Reason                                         |
+//+------------------------------------------------------------------+
+string DetermineCloseReason(const SecondaryChart &chart)
+{
+    if(g_FnOMarket.isExpiryDay)
+    {
+        MqlDateTime currentTime;
+        TimeToStruct(TimeCurrent(), currentTime);
+        
+        if(currentTime.hour == 15 && currentTime.min >= 29)
+            return "EXPIRY_CLOSURE";
+    }
+    
+    if(chart.tradesExecuted >= MaxTradesPerSecondaryChart)
+        return "MAX_TRADES_REACHED";
+    
+    if(TimeCurrent() - chart.openTime > SecondaryChartMaxLifetime * 3600)
+        return "TIME_LIMIT";
+    
+    return "SYSTEM_CLOSURE";
+}
+
+//+------------------------------------------------------------------+
+//| Check Secondary Chart Auto Close                              |
+//+------------------------------------------------------------------+
+void CheckSecondaryChartAutoClose()
+{
+    // This function is called by the main EA to check auto-close conditions
+    
+    if(g_CallChart.active && ShouldAutoCloseChart(g_CallChart))
+    {
+        CloseSecondaryChart(g_CallChart);
+    }
+    
+    if(g_PutChart.active && ShouldAutoCloseChart(g_PutChart))
+    {
+        CloseSecondaryChart(g_PutChart);
+    }
+    
+    // Reset hybrid logic if all charts closed
+    if(!g_CallChart.active && !g_PutChart.active)
+    {
+        InitializeHybridLogic();
+        g_ActiveSecondaryCharts = 0;
+        
+        if(EnableDetailedLogging)
+            Print("🔄 All secondary charts closed - Ready for new scan");
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Print F&O Market Info                                         |
+//+------------------------------------------------------------------+
+void PrintFnOMarketInfo()
+{
+    Print("🇮🇳 F&O Market Information:");
+    Print("   Underlying: ", g_FnOMarket.underlying);
+    Print("   Market Type: ", g_FnOMarket.marketType);
+    Print("   Strike Interval: ", g_FnOMarket.strikeInterval);
+    Print("   Current Spot: ", DoubleToString(g_FnOMarket.currentSpotPrice, 2));
+    Print("   ATM Strike: ", DoubleToString(g_FnOMarket.atmStrike, 0));
+    Print("   Lot Size: ", DoubleToString(g_FnOMarket.lotSize, 0));
+    Print("   Expiry Date: ", TimeToString(g_FnOMarket.expiryDate));
+    Print("   Is Expiry Day: ", g_FnOMarket.isExpiryDay);
+    Print("   Exchange Symbol: ", g_FnOMarket.exchangeSymbol);
+}
+
+//+------------------------------------------------------------------+
+//| Get F&O System Status                                         |
+//+------------------------------------------------------------------+
+bool IsFnOSystemActive()
+{
+    return g_FnOSystemActive;
+}
+
+//+------------------------------------------------------------------+
+//| Get Active Secondary Charts Count                             |
+//+------------------------------------------------------------------+
+int GetActiveSecondaryChartsCount()
+{
+    return g_ActiveSecondaryCharts;
+}
+
+//+------------------------------------------------------------------+
+//| Get F&O Market Info                                          |
+//+------------------------------------------------------------------+
+FnOMarketInfo GetFnOMarketInfo()
+{
+    return g_FnOMarket;
+}
+
+//+------------------------------------------------------------------+
+//| Get Hybrid Logic Status                                       |
+//+------------------------------------------------------------------+
+HybridOILogic GetHybridLogicStatus()
+{
+    return g_HybridLogic;
+}
+
+//+------------------------------------------------------------------+
+//| Get Call Chart Status                                         |
+//+------------------------------------------------------------------+
+SecondaryChart GetCallChartStatus()
+{
+    return g_CallChart;
+}
+
+//+------------------------------------------------------------------+
+//| Get Put Chart Status                                          |
+//+------------------------------------------------------------------+
+SecondaryChart GetPutChartStatus()
+{
+    return g_PutChart;
+}
+
+//+------------------------------------------------------------------+
+//| Update OI Data Tick                                           |
+//+------------------------------------------------------------------+
+void UpdateFnODataTick()
+{
+    // Called on every tick to update F&O specific data
+    if(!g_FnOSystemActive)
+        return;
+    
+    // Update current spot price
+    g_FnOMarket.currentSpotPrice = iClose(Symbol(), PERIOD_CURRENT, 0);
+    
+    // Recalculate ATM if price moved significantly
+    double priceDifference = MathAbs(g_FnOMarket.currentSpotPrice - g_FnOMarket.atmStrike);
+    if(priceDifference > g_FnOMarket.strikeInterval * 0.75)  // 75% of strike interval
+    {
+        CalculateATMStrike();
+        
+        if(EnableDetailedLogging)
+            Print("📍 ATM Strike updated due to price movement: ", DoubleToString(g_FnOMarket.atmStrike, 0));
+    }
+    
+    // Update chart P&L
+    if(g_CallChart.active)
+    {
+        g_CallChart.unrealizedPnL = CalculateChartPnL(g_CallChart.symbol);
+    }
+    
+    if(g_PutChart.active)
+    {
+        g_PutChart.unrealizedPnL = CalculateChartPnL(g_PutChart.symbol);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Monitor OI Changes                                            |
+//+------------------------------------------------------------------+
+void MonitorOIChanges()
+{
+    // Monitor significant OI changes that might affect strategy
+    if(!g_FnOSystemActive || g_ActiveSecondaryCharts == 0)
+        return;
+    
+    static double lastOIUpdate = 0;
+    
+    // Update OI data every 5 minutes
+    if(TimeCurrent() - lastOIUpdate > 300)
+    {
+        if(UpdateOptionChainData())
+        {
+            // Check for significant OI changes
+            DetectSignificantOIChanges();
+            lastOIUpdate = TimeCurrent();
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Detect Significant OI Changes                                 |
+//+------------------------------------------------------------------+
+void DetectSignificantOIChanges()
+{
+    // This would compare current OI with previous readings
+    // and detect significant changes that might warrant strategy adjustment
+    
+    // For now, just log major OI levels
+    if(EnableDetailedLogging)
+    {
+        double atmCallOI = g_OptionChain[5].callOI;
+        double atmPutOI = g_OptionChain[5].putOI;
+        
+        if(atmCallOI > 0 || atmPutOI > 0)
+        {
+            Print("📊 Current ATM OI - Call: ", DoubleToString(atmCallOI, 0), 
+                  ", Put: ", DoubleToString(atmPutOI, 0));
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Cleanup F&O System                                           |
+//+------------------------------------------------------------------+
+void CleanupFnOSystem()
+{
+    Print("🧹 Cleaning up F&O System...");
+    
+    // Close all secondary charts
+    if(g_CallChart.active)
+    {
+        CloseSecondaryChart(g_CallChart);
+    }
+    
+    if(g_PutChart.active)
+    {
+        CloseSecondaryChart(g_PutChart);
+    }
+    
+    // Reset all structures
+    InitializeFnOMarketInfo();
+    InitializeOptionChain();
+    InitializeHybridLogic();
+    InitializeSecondaryCharts();
+    
+    g_FnOSystemActive = false;
+    g_LastScanTime = 0;
+    g_ActiveSecondaryCharts = 0;
+    
+    Print("✅ F&O System cleanup complete");
+}
+
+//+------------------------------------------------------------------+

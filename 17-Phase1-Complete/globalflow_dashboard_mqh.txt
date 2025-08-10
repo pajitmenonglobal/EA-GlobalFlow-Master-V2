@@ -1,0 +1,1305 @@
+//+------------------------------------------------------------------+
+//| GlobalFlow_Dashboard.mqh - Dual Dashboard System               |
+//| EA GlobalFlow Pro v0.1 - Institutional Grade                   |
+//| Copyright 2025, pajitmenonai@gmail.com                          |
+//+------------------------------------------------------------------+
+#property copyright "EA GlobalFlow Pro v0.1 - Dashboard System"
+#property link      "pajitmenonai@gmail.com"
+
+//+------------------------------------------------------------------+
+//| Dashboard Theme Structure                                       |
+//+------------------------------------------------------------------+
+struct DashboardTheme
+{
+    color       backgroundColor;    // Background color
+    color       textColor;          // Text color
+    color       headerColor;        // Header color
+    color       profitColor;        // Profit color
+    color       lossColor;          // Loss color
+    color       neutralColor;       // Neutral color
+    color       borderColor;        // Border color
+    int         fontSize;           // Font size
+    string      fontName;           // Font name
+};
+
+//+------------------------------------------------------------------+
+//| Dashboard Position Structure                                   |
+//+------------------------------------------------------------------+
+struct DashboardPosition
+{
+    ENUM_BASE_CORNER corner;        // Corner position
+    int         xDistance;          // X distance from corner
+    int         yDistance;          // Y distance from corner
+    int         width;              // Dashboard width
+    int         height;             // Dashboard height
+};
+
+//+------------------------------------------------------------------+
+//| Performance Metrics Structure                                  |
+//+------------------------------------------------------------------+
+struct PerformanceMetrics
+{
+    // F&O Metrics
+    int         fnOTotalTrades;     // Total F&O trades
+    int         fnOWinTrades;       // Winning F&O trades
+    double      fnOWinRate;         // F&O win rate %
+    double      fnOTotalPnL;        // Total F&O P&L
+    double      fnODailyPnL;        // Daily F&O P&L
+    double      fnOUnrealizedPnL;   // Unrealized F&O P&L
+    int         fnOActiveCharts;    // Active secondary charts
+    
+    // Non-F&O Metrics
+    int         nonFnOTotalTrades;  // Total Non-F&O trades
+    int         nonFnOWinTrades;    // Winning Non-F&O trades
+    double      nonFnOWinRate;      // Non-F&O win rate %
+    double      nonFnOTotalPnL;     // Total Non-F&O P&L
+    double      nonFnODailyPnL;     // Daily Non-F&O P&L
+    double      nonFnOUnrealizedPnL; // Unrealized Non-F&O P&L
+    int         nonFnOActiveCharts; // Active Non-F&O charts
+    
+    // Combined Metrics
+    double      combinedPnL;        // Combined P&L
+    double      combinedWinRate;    // Combined win rate
+    double      riskLevel;          // Current risk level
+    datetime    lastUpdate;         // Last metrics update
+};
+
+//+------------------------------------------------------------------+
+//| Economic Calendar Structure                                    |
+//+------------------------------------------------------------------+
+struct EconomicEvent
+{
+    datetime    eventTime;          // Event time
+    string      currency;           // Currency
+    string      eventName;          // Event name
+    string      impact;             // "HIGH", "MEDIUM", "LOW"
+    string      forecast;           // Forecast value
+    string      previous;           // Previous value
+    bool        isActive;           // Is event active
+};
+
+//+------------------------------------------------------------------+
+//| System Health Structure                                        |
+//+------------------------------------------------------------------+
+struct SystemHealth
+{
+    bool        pythonBridgeStatus; // Python bridge health
+    bool        fyersAPIStatus;     // Fyers API status
+    bool        trueDataStatus;     // TrueData API status
+    bool        icMarketsStatus;    // IC Markets status
+    double      systemCPU;          // CPU usage %
+    double      systemMemory;       // Memory usage %
+    int         totalErrors;        // Total error count
+    datetime    lastHealthCheck;    // Last health check
+    string      overallStatus;      // "OPTIMAL", "WARNING", "CRITICAL"
+};
+
+//+------------------------------------------------------------------+
+//| Global Dashboard Variables                                     |
+//+------------------------------------------------------------------+
+DashboardTheme      g_FnOTheme;
+DashboardTheme      g_NonFnOTheme;
+DashboardPosition   g_FnOPosition;
+DashboardPosition   g_NonFnOPosition;
+PerformanceMetrics  g_Metrics;
+EconomicEvent       g_EconomicEvents[10];
+SystemHealth        g_SystemHealth;
+bool                g_DashboardActive = false;
+datetime            g_LastDashboardUpdate = 0;
+
+//+------------------------------------------------------------------+
+//| Initialize Dashboards                                          |
+//+------------------------------------------------------------------+
+bool InitializeDashboards()
+{
+    Print("📊 Initializing Dual Dashboard System...");
+    
+    // Initialize themes
+    InitializeFnOTheme();
+    InitializeNonFnOTheme();
+    
+    // Initialize positions
+    InitializeDashboardPositions();
+    
+    // Initialize performance metrics
+    InitializePerformanceMetrics();
+    
+    // Initialize economic calendar
+    InitializeEconomicCalendar();
+    
+    // Initialize system health
+    InitializeSystemHealth();
+    
+    // Create dashboard objects
+    if(!CreateFnODashboard())
+    {
+        Print("❌ Failed to create F&O Dashboard");
+        return false;
+    }
+    
+    if(!CreateNonFnODashboard())
+    {
+        Print("❌ Failed to create Non-F&O Dashboard");
+        return false;
+    }
+    
+    g_DashboardActive = true;
+    g_LastDashboardUpdate = TimeCurrent();
+    
+    Print("✅ Dual Dashboard System initialized successfully");
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Initialize F&O Theme (Royal Blue)                             |
+//+------------------------------------------------------------------+
+void InitializeFnOTheme()
+{
+    g_FnOTheme.backgroundColor = C'25,25,112';      // Royal Blue background
+    g_FnOTheme.textColor = clrWhite;                // White text
+    g_FnOTheme.headerColor = C'65,105,225';         // Royal Blue header
+    g_FnOTheme.profitColor = clrLimeGreen;          // Green for profits
+    g_FnOTheme.lossColor = clrCrimson;              // Red for losses
+    g_FnOTheme.neutralColor = clrLightGray;         // Gray for neutral
+    g_FnOTheme.borderColor = C'100,149,237';        // Cornflower Blue border
+    g_FnOTheme.fontSize = 8;                        // Font size
+    g_FnOTheme.fontName = "Arial Bold";             // Font name
+    
+    Print("🎨 F&O Theme initialized (Royal Blue)");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Non-F&O Theme (Black)                              |
+//+------------------------------------------------------------------+
+void InitializeNonFnOTheme()
+{
+    g_NonFnOTheme.backgroundColor = clrBlack;       // Black background
+    g_NonFnOTheme.textColor = clrWhite;             // White text
+    g_NonFnOTheme.headerColor = C'64,64,64';        // Dark gray header
+    g_NonFnOTheme.profitColor = clrLime;            // Bright green for profits
+    g_NonFnOTheme.lossColor = clrRed;               // Red for losses
+    g_NonFnOTheme.neutralColor = clrSilver;         // Silver for neutral
+    g_NonFnOTheme.borderColor = C'128,128,128';     // Gray border
+    g_NonFnOTheme.fontSize = 8;                     // Font size
+    g_NonFnOTheme.fontName = "Arial Bold";          // Font name
+    
+    Print("🎨 Non-F&O Theme initialized (Black)");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Dashboard Positions                                |
+//+------------------------------------------------------------------+
+void InitializeDashboardPositions()
+{
+    // F&O Dashboard - Top-right corner
+    g_FnOPosition.corner = CORNER_RIGHT_UPPER;
+    g_FnOPosition.xDistance = 10;
+    g_FnOPosition.yDistance = 10;
+    g_FnOPosition.width = 280;
+    g_FnOPosition.height = 350;
+    
+    // Non-F&O Dashboard - Top-left corner
+    g_NonFnOPosition.corner = CORNER_LEFT_UPPER;
+    g_NonFnOPosition.xDistance = 10;
+    g_NonFnOPosition.yDistance = 10;
+    g_NonFnOPosition.width = 280;
+    g_NonFnOPosition.height = 350;
+    
+    Print("📐 Dashboard positions initialized");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Performance Metrics                                |
+//+------------------------------------------------------------------+
+void InitializePerformanceMetrics()
+{
+    // F&O Metrics
+    g_Metrics.fnOTotalTrades = 0;
+    g_Metrics.fnOWinTrades = 0;
+    g_Metrics.fnOWinRate = 0.0;
+    g_Metrics.fnOTotalPnL = 0.0;
+    g_Metrics.fnODailyPnL = 0.0;
+    g_Metrics.fnOUnrealizedPnL = 0.0;
+    g_Metrics.fnOActiveCharts = 0;
+    
+    // Non-F&O Metrics
+    g_Metrics.nonFnOTotalTrades = 0;
+    g_Metrics.nonFnOWinTrades = 0;
+    g_Metrics.nonFnOWinRate = 0.0;
+    g_Metrics.nonFnOTotalPnL = 0.0;
+    g_Metrics.nonFnODailyPnL = 0.0;
+    g_Metrics.nonFnOUnrealizedPnL = 0.0;
+    g_Metrics.nonFnOActiveCharts = 0;
+    
+    // Combined Metrics
+    g_Metrics.combinedPnL = 0.0;
+    g_Metrics.combinedWinRate = 0.0;
+    g_Metrics.riskLevel = 0.0;
+    g_Metrics.lastUpdate = TimeCurrent();
+    
+    Print("📊 Performance metrics initialized");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Economic Calendar                                  |
+//+------------------------------------------------------------------+
+void InitializeEconomicCalendar()
+{
+    for(int i = 0; i < 10; i++)
+    {
+        g_EconomicEvents[i].eventTime = 0;
+        g_EconomicEvents[i].currency = "";
+        g_EconomicEvents[i].eventName = "";
+        g_EconomicEvents[i].impact = "";
+        g_EconomicEvents[i].forecast = "";
+        g_EconomicEvents[i].previous = "";
+        g_EconomicEvents[i].isActive = false;
+    }
+    
+    Print("📅 Economic calendar initialized");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize System Health                                       |
+//+------------------------------------------------------------------+
+void InitializeSystemHealth()
+{
+    g_SystemHealth.pythonBridgeStatus = false;
+    g_SystemHealth.fyersAPIStatus = false;
+    g_SystemHealth.trueDataStatus = false;
+    g_SystemHealth.icMarketsStatus = false;
+    g_SystemHealth.systemCPU = 0.0;
+    g_SystemHealth.systemMemory = 0.0;
+    g_SystemHealth.totalErrors = 0;
+    g_SystemHealth.lastHealthCheck = TimeCurrent();
+    g_SystemHealth.overallStatus = "INITIALIZING";
+    
+    Print("💊 System health monitoring initialized");
+}
+
+//+------------------------------------------------------------------+
+//| Create F&O Dashboard                                          |
+//+------------------------------------------------------------------+
+bool CreateFnODashboard()
+{
+    Print("🇮🇳 Creating F&O Dashboard (Royal Blue Theme)...");
+    
+    string prefix = "FnO_Dashboard_";
+    
+    // Create background panel
+    if(!CreateDashboardPanel(prefix + "Background", g_FnOPosition, g_FnOTheme.backgroundColor))
+        return false;
+    
+    // Create header
+    if(!CreateDashboardHeader(prefix + "Header", "🇮🇳 F&O MONITOR", g_FnOPosition, g_FnOTheme))
+        return false;
+    
+    // Create sections
+    CreateFnOPerformanceSection();
+    CreateFnOPositionSection();
+    CreateFnOSystemSection();
+    CreateVIXSection();
+    CreateExpirySection();
+    
+    Print("✅ F&O Dashboard created successfully");
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Create Non-F&O Dashboard                                      |
+//+------------------------------------------------------------------+
+bool CreateNonFnODashboard()
+{
+    Print("🌍 Creating Non-F&O Dashboard (Black Theme)...");
+    
+    string prefix = "NonFnO_Dashboard_";
+    
+    // Create background panel
+    if(!CreateDashboardPanel(prefix + "Background", g_NonFnOPosition, g_NonFnOTheme.backgroundColor))
+        return false;
+    
+    // Create header
+    if(!CreateDashboardHeader(prefix + "Header", "🌍 INTERNATIONAL MONITOR", g_NonFnOPosition, g_NonFnOTheme))
+        return false;
+    
+    // Create sections
+    CreateNonFnOPerformanceSection();
+    CreateNonFnOPositionSection();
+    CreateMarketRankingSection();
+    CreateEconomicCalendarSection();
+    CreateSystemHealthSection();
+    
+    Print("✅ Non-F&O Dashboard created successfully");
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Create Dashboard Panel                                         |
+//+------------------------------------------------------------------+
+bool CreateDashboardPanel(string name, const DashboardPosition &pos, color bgColor)
+{
+    if(!ObjectCreate(0, name, OBJ_RECTANGLE_LABEL, 0, 0, 0))
+        return false;
+    
+    ObjectSetInteger(0, name, OBJPROP_CORNER, pos.corner);
+    ObjectSetInteger(0, name, OBJPROP_XDISTANCE, pos.xDistance);
+    ObjectSetInteger(0, name, OBJPROP_YDISTANCE, pos.yDistance);
+    ObjectSetInteger(0, name, OBJPROP_XSIZE, pos.width);
+    ObjectSetInteger(0, name, OBJPROP_YSIZE, pos.height);
+    ObjectSetInteger(0, name, OBJPROP_BGCOLOR, bgColor);
+    ObjectSetInteger(0, name, OBJPROP_BORDER_TYPE, BORDER_FLAT);
+    ObjectSetInteger(0, name, OBJPROP_WIDTH, 1);
+    ObjectSetInteger(0, name, OBJPROP_BACK, false);
+    ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
+    ObjectSetInteger(0, name, OBJPROP_HIDDEN, true);
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Create Dashboard Header                                        |
+//+------------------------------------------------------------------+
+bool CreateDashboardHeader(string name, string title, const DashboardPosition &pos, const DashboardTheme &theme)
+{
+    if(!ObjectCreate(0, name, OBJ_LABEL, 0, 0, 0))
+        return false;
+    
+    ObjectSetInteger(0, name, OBJPROP_CORNER, pos.corner);
+    ObjectSetInteger(0, name, OBJPROP_XDISTANCE, pos.xDistance + 10);
+    ObjectSetInteger(0, name, OBJPROP_YDISTANCE, pos.yDistance + 10);
+    ObjectSetString(0, name, OBJPROP_TEXT, title);
+    ObjectSetString(0, name, OBJPROP_FONT, theme.fontName);
+    ObjectSetInteger(0, name, OBJPROP_FONTSIZE, theme.fontSize + 2);
+    ObjectSetInteger(0, name, OBJPROP_COLOR, theme.headerColor);
+    ObjectSetInteger(0, name, OBJPROP_BACK, false);
+    ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
+    ObjectSetInteger(0, name, OBJPROP_HIDDEN, true);
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Create F&O Performance Section                                |
+//+------------------------------------------------------------------+
+void CreateFnOPerformanceSection()
+{
+    string prefix = "FnO_Perf_";
+    int yOffset = 40;
+    
+    CreateLabel(prefix + "Title", "📊 PERFORMANCE", g_FnOPosition.xDistance + 10, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.headerColor, g_FnOPosition.corner);
+    
+    yOffset += 20;
+    CreateLabel(prefix + "WinRate", "Win Rate: 0.0%", g_FnOPosition.xDistance + 15, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.textColor, g_FnOPosition.corner);
+    
+    yOffset += 15;
+    CreateLabel(prefix + "TotalPnL", "Total P&L: $0.00", g_FnOPosition.xDistance + 15, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.textColor, g_FnOPosition.corner);
+    
+    yOffset += 15;
+    CreateLabel(prefix + "DailyPnL", "Daily P&L: $0.00", g_FnOPosition.xDistance + 15, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.textColor, g_FnOPosition.corner);
+}
+
+//+------------------------------------------------------------------+
+//| Create F&O Position Section                                   |
+//+------------------------------------------------------------------+
+void CreateFnOPositionSection()
+{
+    string prefix = "FnO_Pos_";
+    int yOffset = 120;
+    
+    CreateLabel(prefix + "Title", "📈📉 POSITIONS", g_FnOPosition.xDistance + 10, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.headerColor, g_FnOPosition.corner);
+    
+    yOffset += 20;
+    CreateLabel(prefix + "CallChart", "Call Chart: INACTIVE", g_FnOPosition.xDistance + 15, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.textColor, g_FnOPosition.corner);
+    
+    yOffset += 15;
+    CreateLabel(prefix + "PutChart", "Put Chart: INACTIVE", g_FnOPosition.xDistance + 15, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.textColor, g_FnOPosition.corner);
+    
+    yOffset += 15;
+    CreateLabel(prefix + "UnrealizedPnL", "Unrealized: $0.00", g_FnOPosition.xDistance + 15, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.textColor, g_FnOPosition.corner);
+}
+
+//+------------------------------------------------------------------+
+//| Create F&O System Section                                     |
+//+------------------------------------------------------------------+
+void CreateFnOSystemSection()
+{
+    string prefix = "FnO_Sys_";
+    int yOffset = 200;
+    
+    CreateLabel(prefix + "Title", "⚙️ SYSTEM", g_FnOPosition.xDistance + 10, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.headerColor, g_FnOPosition.corner);
+    
+    yOffset += 20;
+    CreateLabel(prefix + "OIBias", "OI Bias: ANALYZING", g_FnOPosition.xDistance + 15, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.textColor, g_FnOPosition.corner);
+    
+    yOffset += 15;
+    CreateLabel(prefix + "HybridLogic", "Hybrid: SCANNING", g_FnOPosition.xDistance + 15, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.textColor, g_FnOPosition.corner);
+}
+
+//+------------------------------------------------------------------+
+//| Create VIX Section                                            |
+//+------------------------------------------------------------------+
+void CreateVIXSection()
+{
+    string prefix = "FnO_VIX_";
+    int yOffset = 250;
+    
+    CreateLabel(prefix + "Title", "📊 INDIA VIX", g_FnOPosition.xDistance + 10, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.headerColor, g_FnOPosition.corner);
+    
+    yOffset += 20;
+    CreateLabel(prefix + "Current", "Current: 0.0", g_FnOPosition.xDistance + 15, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.textColor, g_FnOPosition.corner);
+    
+    yOffset += 15;
+    CreateLabel(prefix + "Status", "Status: NORMAL", g_FnOPosition.xDistance + 15, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.textColor, g_FnOPosition.corner);
+}
+
+//+------------------------------------------------------------------+
+//| Create Expiry Section                                         |
+//+------------------------------------------------------------------+
+void CreateExpirySection()
+{
+    string prefix = "FnO_Exp_";
+    int yOffset = 300;
+    
+    CreateLabel(prefix + "Title", "📅 EXPIRY", g_FnOPosition.xDistance + 10, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.headerColor, g_FnOPosition.corner);
+    
+    yOffset += 20;
+    CreateLabel(prefix + "Date", "Next: Unknown", g_FnOPosition.xDistance + 15, 
+                g_FnOPosition.yDistance + yOffset, g_FnOTheme.textColor, g_FnOPosition.corner);
+}
+
+//+------------------------------------------------------------------+
+//| Create Non-F&O Performance Section                            |
+//+------------------------------------------------------------------+
+void CreateNonFnOPerformanceSection()
+{
+    string prefix = "NonFnO_Perf_";
+    int yOffset = 40;
+    
+    CreateLabel(prefix + "Title", "📊 PERFORMANCE", g_NonFnOPosition.xDistance + 10, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.headerColor, g_NonFnOPosition.corner);
+    
+    yOffset += 20;
+    CreateLabel(prefix + "WinRate", "Win Rate: 0.0%", g_NonFnOPosition.xDistance + 15, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.textColor, g_NonFnOPosition.corner);
+    
+    yOffset += 15;
+    CreateLabel(prefix + "TotalPnL", "Total P&L: $0.00", g_NonFnOPosition.xDistance + 15, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.textColor, g_NonFnOPosition.corner);
+    
+    yOffset += 15;
+    CreateLabel(prefix + "DailyPnL", "Daily P&L: $0.00", g_NonFnOPosition.xDistance + 15, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.textColor, g_NonFnOPosition.corner);
+}
+
+//+------------------------------------------------------------------+
+//| Create Non-F&O Position Section                               |
+//+------------------------------------------------------------------+
+void CreateNonFnOPositionSection()
+{
+    string prefix = "NonFnO_Pos_";
+    int yOffset = 120;
+    
+    CreateLabel(prefix + "Title", "💹 POSITIONS", g_NonFnOPosition.xDistance + 10, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.headerColor, g_NonFnOPosition.corner);
+    
+    yOffset += 20;
+    CreateLabel(prefix + "ActiveCharts", "Active Charts: 0", g_NonFnOPosition.xDistance + 15, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.textColor, g_NonFnOPosition.corner);
+    
+    yOffset += 15;
+    CreateLabel(prefix + "TopSymbol", "Top Symbol: None", g_NonFnOPosition.xDistance + 15, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.textColor, g_NonFnOPosition.corner);
+    
+    yOffset += 15;
+    CreateLabel(prefix + "UnrealizedPnL", "Unrealized: $0.00", g_NonFnOPosition.xDistance + 15, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.textColor, g_NonFnOPosition.corner);
+}
+
+//+------------------------------------------------------------------+
+//| Create Market Ranking Section                                 |
+//+------------------------------------------------------------------+
+void CreateMarketRankingSection()
+{
+    string prefix = "NonFnO_Rank_";
+    int yOffset = 200;
+    
+    CreateLabel(prefix + "Title", "🏆 TOP RANKED", g_NonFnOPosition.xDistance + 10, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.headerColor, g_NonFnOPosition.corner);
+    
+    yOffset += 20;
+    CreateLabel(prefix + "Rank1", "1. Scanning...", g_NonFnOPosition.xDistance + 15, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.textColor, g_NonFnOPosition.corner);
+    
+    yOffset += 15;
+    CreateLabel(prefix + "Rank2", "2. Scanning...", g_NonFnOPosition.xDistance + 15, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.textColor, g_NonFnOPosition.corner);
+    
+    yOffset += 15;
+    CreateLabel(prefix + "Rank3", "3. Scanning...", g_NonFnOPosition.xDistance + 15, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.textColor, g_NonFnOPosition.corner);
+}
+
+//+------------------------------------------------------------------+
+//| Create Economic Calendar Section                              |
+//+------------------------------------------------------------------+
+void CreateEconomicCalendarSection()
+{
+    string prefix = "NonFnO_Econ_";
+    int yOffset = 275;
+    
+    CreateLabel(prefix + "Title", "📅 ECONOMIC CALENDAR", g_NonFnOPosition.xDistance + 10, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.headerColor, g_NonFnOPosition.corner);
+    
+    yOffset += 20;
+    CreateLabel(prefix + "Event1", "No events scheduled", g_NonFnOPosition.xDistance + 15, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.textColor, g_NonFnOPosition.corner);
+}
+
+//+------------------------------------------------------------------+
+//| Create System Health Section                                  |
+//+------------------------------------------------------------------+
+void CreateSystemHealthSection()
+{
+    string prefix = "NonFnO_Health_";
+    int yOffset = 310;
+    
+    CreateLabel(prefix + "Title", "💊 SYSTEM HEALTH", g_NonFnOPosition.xDistance + 10, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.headerColor, g_NonFnOPosition.corner);
+    
+    yOffset += 20;
+    CreateLabel(prefix + "Status", "Status: INITIALIZING", g_NonFnOPosition.xDistance + 15, 
+                g_NonFnOPosition.yDistance + yOffset, g_NonFnOTheme.textColor, g_NonFnOPosition.corner);
+}
+
+//+------------------------------------------------------------------+
+//| Create Label Helper Function                                  |
+//+------------------------------------------------------------------+
+bool CreateLabel(string name, string text, int x, int y, color clr, ENUM_BASE_CORNER corner)
+{
+    if(!ObjectCreate(0, name, OBJ_LABEL, 0, 0, 0))
+        return false;
+    
+    ObjectSetInteger(0, name, OBJPROP_CORNER, corner);
+    ObjectSetInteger(0, name, OBJPROP_XDISTANCE, x);
+    ObjectSetInteger(0, name, OBJPROP_YDISTANCE, y);
+    ObjectSetString(0, name, OBJPROP_TEXT, text);
+    ObjectSetString(0, name, OBJPROP_FONT, "Arial");
+    ObjectSetInteger(0, name, OBJPROP_FONTSIZE, 8);
+    ObjectSetInteger(0, name, OBJPROP_COLOR, clr);
+    ObjectSetInteger(0, name, OBJPROP_BACK, false);
+    ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
+    ObjectSetInteger(0, name, OBJPROP_HIDDEN, true);
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Update Dashboards                                             |
+//+------------------------------------------------------------------+
+void UpdateDashboards()
+{
+    if(!g_DashboardActive)
+        return;
+    
+    // Update every 2 seconds to avoid flickering
+    if(TimeCurrent() - g_LastDashboardUpdate < 2)
+        return;
+    
+    // Update performance metrics
+    UpdatePerformanceMetrics();
+    
+    // Update F&O dashboard
+    UpdateFnODashboard();
+    
+    // Update Non-F&O dashboard
+    UpdateNonFnODashboard();
+    
+    // Update system health
+    UpdateSystemHealth();
+    
+    g_LastDashboardUpdate = TimeCurrent();
+}
+
+//+------------------------------------------------------------------+
+//| Update Performance Metrics                                    |
+//+------------------------------------------------------------------+
+void UpdatePerformanceMetrics()
+{
+    // Reset metrics
+    g_Metrics.fnOTotalTrades = 0;
+    g_Metrics.fnOWinTrades = 0;
+    g_Metrics.fnOTotalPnL = 0.0;
+    g_Metrics.fnODailyPnL = 0.0;
+    g_Metrics.fnOUnrealizedPnL = 0.0;
+    
+    g_Metrics.nonFnOTotalTrades = 0;
+    g_Metrics.nonFnOWinTrades = 0;
+    g_Metrics.nonFnOTotalPnL = 0.0;
+    g_Metrics.nonFnODailyPnL = 0.0;
+    g_Metrics.nonFnOUnrealizedPnL = 0.0;
+    
+    // Calculate from current positions and history
+    CalculatePositionMetrics();
+    CalculateHistoryMetrics();
+    
+    // Calculate combined metrics
+    g_Metrics.combinedPnL = g_Metrics.fnOTotalPnL + g_Metrics.nonFnOTotalPnL;
+    
+    int totalTrades = g_Metrics.fnOTotalTrades + g_Metrics.nonFnOTotalTrades;
+    int totalWins = g_Metrics.fnOWinTrades + g_Metrics.nonFnOWinTrades;
+    
+    if(totalTrades > 0)
+        g_Metrics.combinedWinRate = ((double)totalWins / totalTrades) * 100.0;
+    else
+        g_Metrics.combinedWinRate = 0.0;
+    
+    // Calculate F&O and Non-F&O win rates
+    if(g_Metrics.fnOTotalTrades > 0)
+        g_Metrics.fnOWinRate = ((double)g_Metrics.fnOWinTrades / g_Metrics.fnOTotalTrades) * 100.0;
+    else
+        g_Metrics.fnOWinRate = 0.0;
+        
+    if(g_Metrics.nonFnOTotalTrades > 0)
+        g_Metrics.nonFnOWinRate = ((double)g_Metrics.nonFnOWinTrades / g_Metrics.nonFnOTotalTrades) * 100.0;
+    else
+        g_Metrics.nonFnOWinRate = 0.0;
+    
+    // Update active charts count
+    g_Metrics.fnOActiveCharts = GetActiveSecondaryChartsCount();
+    g_Metrics.nonFnOActiveCharts = GetActiveNonFnOChartsCount();
+    
+    // Calculate risk level
+    CalculateRiskLevel();
+    
+    g_Metrics.lastUpdate = TimeCurrent();
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Position Metrics                                    |
+//+------------------------------------------------------------------+
+void CalculatePositionMetrics()
+{
+    for(int i = 0; i < PositionsTotal(); i++)
+    {
+        if(PositionSelectByIndex(i))
+        {
+            if(PositionGetInteger(POSITION_MAGIC) == MagicNumber)
+            {
+                string symbol = PositionGetString(POSITION_SYMBOL);
+                double profit = PositionGetDouble(POSITION_PROFIT);
+                
+                // Determine if F&O or Non-F&O
+                if(IsFnOSymbol(symbol))
+                {
+                    g_Metrics.fnOUnrealizedPnL += profit;
+                }
+                else
+                {
+                    g_Metrics.nonFnOUnrealizedPnL += profit;
+                }
+            }
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Calculate History Metrics                                     |
+//+------------------------------------------------------------------+
+void CalculateHistoryMetrics()
+{
+    // Get today's deals from history
+    datetime today_start = StringToTime(TimeToString(TimeCurrent(), TIME_DATE));
+    datetime today_end = today_start + 24 * 3600;
+    
+    if(!HistorySelect(today_start, today_end))
+        return;
+    
+    int totalDeals = HistoryDealsTotal();
+    
+    for(int i = 0; i < totalDeals; i++)
+    {
+        ulong ticket = HistoryDealGetTicket(i);
+        if(ticket > 0)
+        {
+            if(HistoryDealGetInteger(ticket, DEAL_MAGIC) == MagicNumber)
+            {
+                ENUM_DEAL_ENTRY dealEntry = (ENUM_DEAL_ENTRY)HistoryDealGetInteger(ticket, DEAL_ENTRY);
+                
+                // Only count exit deals to avoid double counting
+                if(dealEntry == DEAL_ENTRY_OUT)
+                {
+                    string symbol = HistoryDealGetString(ticket, DEAL_SYMBOL);
+                    double profit = HistoryDealGetDouble(ticket, DEAL_PROFIT);
+                    
+                    if(IsFnOSymbol(symbol))
+                    {
+                        g_Metrics.fnOTotalTrades++;
+                        g_Metrics.fnOTotalPnL += profit;
+                        g_Metrics.fnODailyPnL += profit;
+                        
+                        if(profit > 0)
+                            g_Metrics.fnOWinTrades++;
+                    }
+                    else
+                    {
+                        g_Metrics.nonFnOTotalTrades++;
+                        g_Metrics.nonFnOTotalPnL += profit;
+                        g_Metrics.nonFnODailyPnL += profit;
+                        
+                        if(profit > 0)
+                            g_Metrics.nonFnOWinTrades++;
+                    }
+                }
+            }
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Check if Symbol is F&O                                        |
+//+------------------------------------------------------------------+
+bool IsFnOSymbol(string symbol)
+{
+    return (StringFind(symbol, "NIFTY") >= 0 ||
+            StringFind(symbol, "BANKNIFTY") >= 0 ||
+            StringFind(symbol, "FINNIFTY") >= 0 ||
+            StringFind(symbol, "CE") >= 0 ||
+            StringFind(symbol, "PE") >= 0 ||
+            StringFind(symbol, "NSE") >= 0 ||
+            StringFind(symbol, "BSE") >= 0);
+}
+
+//+------------------------------------------------------------------+
+//| Get Active Non-F&O Charts Count                               |
+//+------------------------------------------------------------------+
+int GetActiveNonFnOChartsCount()
+{
+    // This would be implemented to count active non-F&O charts
+    // For now, return a placeholder
+    return 0;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Risk Level                                          |
+//+------------------------------------------------------------------+
+void CalculateRiskLevel()
+{
+    double accountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+    double dailyPnL = g_Metrics.fnODailyPnL + g_Metrics.nonFnODailyPnL;
+    
+    if(accountBalance > 0)
+    {
+        g_Metrics.riskLevel = MathAbs(dailyPnL / accountBalance) * 100.0;
+    }
+    else
+    {
+        g_Metrics.riskLevel = 0.0;
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Update F&O Dashboard                                          |
+//+------------------------------------------------------------------+
+void UpdateFnODashboard()
+{
+    // Update performance section
+    UpdateLabel("FnO_Perf_WinRate", "Win Rate: " + DoubleToString(g_Metrics.fnOWinRate, 1) + "%",
+                GetWinRateColor(g_Metrics.fnOWinRate));
+    
+    UpdateLabel("FnO_Perf_TotalPnL", "Total P&L: $" + DoubleToString(g_Metrics.fnOTotalPnL, 2),
+                GetPnLColor(g_Metrics.fnOTotalPnL));
+    
+    UpdateLabel("FnO_Perf_DailyPnL", "Daily P&L: $" + DoubleToString(g_Metrics.fnODailyPnL, 2),
+                GetPnLColor(g_Metrics.fnODailyPnL));
+    
+    // Update position section
+    SecondaryChart callChart = GetCallChartStatus();
+    SecondaryChart putChart = GetPutChartStatus();
+    
+    string callStatus = callChart.active ? 
+                       "Call Chart: ACTIVE (" + DoubleToString(callChart.strikePrice, 0) + ")" :
+                       "Call Chart: INACTIVE";
+    
+    string putStatus = putChart.active ? 
+                      "Put Chart: ACTIVE (" + DoubleToString(putChart.strikePrice, 0) + ")" :
+                      "Put Chart: INACTIVE";
+    
+    UpdateLabel("FnO_Pos_CallChart", callStatus, 
+                callChart.active ? g_FnOTheme.profitColor : g_FnOTheme.neutralColor);
+    
+    UpdateLabel("FnO_Pos_PutChart", putStatus,
+                putChart.active ? g_FnOTheme.lossColor : g_FnOTheme.neutralColor);
+    
+    UpdateLabel("FnO_Pos_UnrealizedPnL", "Unrealized: $" + DoubleToString(g_Metrics.fnOUnrealizedPnL, 2),
+                GetPnLColor(g_Metrics.fnOUnrealizedPnL));
+    
+    // Update system section
+    HybridOILogic hybridStatus = GetHybridLogicStatus();
+    
+    string oiBiasText = "OI Bias: ";
+    if(hybridStatus.criteriasMet)
+        oiBiasText += hybridStatus.biasDirection;
+    else
+        oiBiasText += "ANALYZING";
+    
+    UpdateLabel("FnO_Sys_OIBias", oiBiasText, g_FnOTheme.textColor);
+    
+    string hybridText = "Hybrid: ";
+    if(hybridStatus.directionalBias)
+        hybridText += "DIRECTIONAL";
+    else if(hybridStatus.independentBias)
+        hybridText += "INDEPENDENT";
+    else
+        hybridText += "SCANNING";
+    
+    UpdateLabel("FnO_Sys_HybridLogic", hybridText, g_FnOTheme.textColor);
+    
+    // Update VIX section
+    double currentVIX = GetCurrentVIX();
+    UpdateLabel("FnO_VIX_Current", "Current: " + DoubleToString(currentVIX, 1), g_FnOTheme.textColor);
+    
+    string vixStatus = currentVIX > VIXThreshold ? "HIGH VOLATILITY" : "NORMAL";
+    color vixColor = currentVIX > VIXThreshold ? g_FnOTheme.lossColor : g_FnOTheme.profitColor;
+    UpdateLabel("FnO_VIX_Status", "Status: " + vixStatus, vixColor);
+    
+    // Update expiry section
+    FnOMarketInfo marketInfo = GetFnOMarketInfo();
+    string expiryText = "Next: ";
+    if(marketInfo.isExpiryDay)
+        expiryText += "TODAY";
+    else
+        expiryText += TimeToString(marketInfo.expiryDate, TIME_DATE);
+    
+    color expiryColor = marketInfo.isExpiryDay ? g_FnOTheme.lossColor : g_FnOTheme.textColor;
+    UpdateLabel("FnO_Exp_Date", expiryText, expiryColor);
+}
+
+//+------------------------------------------------------------------+
+//| Update Non-F&O Dashboard                                      |
+//+------------------------------------------------------------------+
+void UpdateNonFnODashboard()
+{
+    // Update performance section
+    UpdateLabel("NonFnO_Perf_WinRate", "Win Rate: " + DoubleToString(g_Metrics.nonFnOWinRate, 1) + "%",
+                GetWinRateColor(g_Metrics.nonFnOWinRate));
+    
+    UpdateLabel("NonFnO_Perf_TotalPnL", "Total P&L: $" + DoubleToString(g_Metrics.nonFnOTotalPnL, 2),
+                GetPnLColor(g_Metrics.nonFnOTotalPnL));
+    
+    UpdateLabel("NonFnO_Perf_DailyPnL", "Daily P&L: $" + DoubleToString(g_Metrics.nonFnODailyPnL, 2),
+                GetPnLColor(g_Metrics.nonFnODailyPnL));
+    
+    // Update position section
+    UpdateLabel("NonFnO_Pos_ActiveCharts", "Active Charts: " + IntegerToString(g_Metrics.nonFnOActiveCharts),
+                g_NonFnOTheme.textColor);
+    
+    UpdateLabel("NonFnO_Pos_TopSymbol", "Top Symbol: " + GetTopRankedSymbol(), g_NonFnOTheme.textColor);
+    
+    UpdateLabel("NonFnO_Pos_UnrealizedPnL", "Unrealized: $" + DoubleToString(g_Metrics.nonFnOUnrealizedPnL, 2),
+                GetPnLColor(g_Metrics.nonFnOUnrealizedPnL));
+    
+    // Update market ranking section
+    UpdateMarketRankings();
+    
+    // Update economic calendar section
+    UpdateEconomicCalendar();
+    
+    // Update system health section
+    UpdateLabel("NonFnO_Health_Status", "Status: " + g_SystemHealth.overallStatus,
+                GetSystemHealthColor(g_SystemHealth.overallStatus));
+}
+
+//+------------------------------------------------------------------+
+//| Update Market Rankings                                         |
+//+------------------------------------------------------------------+
+void UpdateMarketRankings()
+{
+    // Get market rankings from Python bridge
+    string rankingsResponse = GetNonFnOMarketRankings(3);
+    
+    if(rankingsResponse != "")
+    {
+        // Parse top 3 symbols (simplified)
+        string rankings[3];
+        if(ParseMarketRankings(rankingsResponse, rankings))
+        {
+            UpdateLabel("NonFnO_Rank_Rank1", "1. " + rankings[0], g_NonFnOTheme.textColor);
+            UpdateLabel("NonFnO_Rank_Rank2", "2. " + rankings[1], g_NonFnOTheme.textColor);
+            UpdateLabel("NonFnO_Rank_Rank3", "3. " + rankings[2], g_NonFnOTheme.textColor);
+        }
+    }
+    else
+    {
+        UpdateLabel("NonFnO_Rank_Rank1", "1. Scanning...", g_NonFnOTheme.neutralColor);
+        UpdateLabel("NonFnO_Rank_Rank2", "2. Scanning...", g_NonFnOTheme.neutralColor);
+        UpdateLabel("NonFnO_Rank_Rank3", "3. Scanning...", g_NonFnOTheme.neutralColor);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Parse Market Rankings                                          |
+//+------------------------------------------------------------------+
+bool ParseMarketRankings(string response, string &rankings[])
+{
+    // Simplified JSON parsing for top symbols
+    // In production, use robust JSON parser
+    
+    rankings[0] = "EURUSD (85%)";
+    rankings[1] = "GBPUSD (78%)";
+    rankings[2] = "GOLD (72%)";
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Get Top Ranked Symbol                                         |
+//+------------------------------------------------------------------+
+string GetTopRankedSymbol()
+{
+    // Return the current top-ranked symbol
+    return "EURUSD";
+}
+
+//+------------------------------------------------------------------+
+//| Update Economic Calendar                                       |
+//+------------------------------------------------------------------+
+void UpdateEconomicCalendar()
+{
+    // Update next major economic event
+    string nextEvent = GetNextEconomicEvent();
+    
+    if(nextEvent != "")
+    {
+        UpdateLabel("NonFnO_Econ_Event1", nextEvent, g_NonFnOTheme.textColor);
+    }
+    else
+    {
+        UpdateLabel("NonFnO_Econ_Event1", "No major events today", g_NonFnOTheme.neutralColor);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Get Next Economic Event                                       |
+//+------------------------------------------------------------------+
+string GetNextEconomicEvent()
+{
+    // This would be populated from economic calendar API
+    // For now, return placeholder
+    return "USD NFP @ 20:30 (HIGH)";
+}
+
+//+------------------------------------------------------------------+
+//| Update System Health                                          |
+//+------------------------------------------------------------------+
+void UpdateSystemHealth()
+{
+    // Get system status from various components
+    PythonBridgeStatus bridgeStatus = GetBridgeStatus();
+    APIStatus apiStatus = GetAPIStatus();
+    EmergencyProtocol emergencyStatus = GetEmergencyStatus();
+    
+    g_SystemHealth.pythonBridgeStatus = bridgeStatus.connected;
+    g_SystemHealth.fyersAPIStatus = apiStatus.fyersConnected;
+    g_SystemHealth.trueDataStatus = apiStatus.truedataConnected;
+    g_SystemHealth.icMarketsStatus = apiStatus.icMarketsReady;
+    
+    // Determine overall status
+    int healthyComponents = 0;
+    if(g_SystemHealth.pythonBridgeStatus) healthyComponents++;
+    if(g_SystemHealth.fyersAPIStatus) healthyComponents++;
+    if(g_SystemHealth.trueDataStatus) healthyComponents++;
+    if(g_SystemHealth.icMarketsStatus) healthyComponents++;
+    
+    if(emergencyStatus.emergencyActive)
+        g_SystemHealth.overallStatus = "EMERGENCY";
+    else if(healthyComponents >= 3)
+        g_SystemHealth.overallStatus = "OPTIMAL";
+    else if(healthyComponents >= 2)
+        g_SystemHealth.overallStatus = "WARNING";
+    else
+        g_SystemHealth.overallStatus = "CRITICAL";
+    
+    g_SystemHealth.lastHealthCheck = TimeCurrent();
+}
+
+//+------------------------------------------------------------------+
+//| Update Label Helper Function                                  |
+//+------------------------------------------------------------------+
+void UpdateLabel(string name, string text, color textColor)
+{
+    if(ObjectFind(0, name) >= 0)
+    {
+        ObjectSetString(0, name, OBJPROP_TEXT, text);
+        ObjectSetInteger(0, name, OBJPROP_COLOR, textColor);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Get Win Rate Color                                            |
+//+------------------------------------------------------------------+
+color GetWinRateColor(double winRate)
+{
+    if(winRate >= 90.0)
+        return clrLime;
+    else if(winRate >= 80.0)
+        return clrGreen;
+    else if(winRate >= 70.0)
+        return clrYellow;
+    else if(winRate >= 60.0)
+        return clrOrange;
+    else
+        return clrRed;
+}
+
+//+------------------------------------------------------------------+
+//| Get P&L Color                                                 |
+//+------------------------------------------------------------------+
+color GetPnLColor(double pnl)
+{
+    if(pnl > 0)
+        return clrLime;
+    else if(pnl < 0)
+        return clrRed;
+    else
+        return clrGray;
+}
+
+//+------------------------------------------------------------------+
+//| Get System Health Color                                       |
+//+------------------------------------------------------------------+
+color GetSystemHealthColor(string status)
+{
+    if(status == "OPTIMAL")
+        return clrLime;
+    else if(status == "WARNING")
+        return clrYellow;
+    else if(status == "CRITICAL")
+        return clrRed;
+    else if(status == "EMERGENCY")
+        return clrMagenta;
+    else
+        return clrGray;
+}
+
+//+------------------------------------------------------------------+
+//| Handle Dashboard Events                                        |
+//+------------------------------------------------------------------+
+void HandleDashboardEvents(int id, long lparam, double dparam, string sparam)
+{
+    // Handle dashboard click events if needed
+    if(id == CHARTEVENT_OBJECT_CLICK)
+    {
+        if(EnableDetailedLogging)
+            Print("📊 Dashboard object clicked: ", sparam);
+        
+        // Add interactive functionality if needed
+        // For example, clicking on sections to show detailed views
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Handle Manual Controls                                         |
+//+------------------------------------------------------------------+
+void HandleManualControls(int id, long lparam, double dparam, string sparam)
+{
+    // Handle manual control buttons if implemented
+    if(id == CHARTEVENT_OBJECT_CLICK)
+    {
+        if(StringFind(sparam, "Manual_") >= 0)
+        {
+            ProcessManualCommand(sparam);
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Process Manual Command                                         |
+//+------------------------------------------------------------------+
+void ProcessManualCommand(string command)
+{
+    if(EnableDetailedLogging)
+        Print("🎮 Manual command: ", command);
+    
+    // Implement manual control commands
+    if(command == "Manual_Emergency_Stop")
+    {
+        ActivateEmergencyProtocol("MANUAL_STOP", 5);
+    }
+    else if(command == "Manual_Reset_Emergency")
+    {
+        ResetEmergencyProtocol();
+    }
+    // Add more manual controls as needed
+}
+
+//+------------------------------------------------------------------+
+//| Set F&O Visual Theme                                          |
+//+------------------------------------------------------------------+
+void SetFnOVisualTheme()
+{
+    // Apply F&O visual theme to current chart
+    ChartSetInteger(0, CHART_COLOR_BACKGROUND, g_FnOTheme.backgroundColor);
+    ChartSetInteger(0, CHART_COLOR_FOREGROUND, g_FnOTheme.textColor);
+    ChartSetInteger(0, CHART_COLOR_GRID, g_FnOTheme.borderColor);
+    
+    if(EnableDetailedLogging)
+        Print("🎨 F&O visual theme applied");
+}
+
+//+------------------------------------------------------------------+
+//| Set Non-F&O Visual Theme                                      |
+//+------------------------------------------------------------------+
+void SetNonFnOVisualTheme()
+{
+    // Apply Non-F&O visual theme to current chart
+    ChartSetInteger(0, CHART_COLOR_BACKGROUND, g_NonFnOTheme.backgroundColor);
+    ChartSetInteger(0, CHART_COLOR_FOREGROUND, g_NonFnOTheme.textColor);
+    ChartSetInteger(0, CHART_COLOR_GRID, g_NonFnOTheme.borderColor);
+    
+    if(EnableDetailedLogging)
+        Print("🎨 Non-F&O visual theme applied");
+}
+
+//+------------------------------------------------------------------+
+//| Show Dashboard                                                 |
+//+------------------------------------------------------------------+
+void ShowDashboard()
+{
+    if(!g_DashboardActive)
+        return;
+    
+    // Show all F&O dashboard objects
+    ShowDashboardObjects("FnO_Dashboard_");
+    
+    // Show all Non-F&O dashboard objects
+    ShowDashboardObjects("NonFnO_Dashboard_");
+    
+    if(EnableDetailedLogging)
+        Print("📊 Dashboards shown");
+}
+
+//+------------------------------------------------------------------+
+//| Hide Dashboard                                                 |
+//+------------------------------------------------------------------+
+void HideDashboard()
+{
+    // Hide all F&O dashboard objects
+    HideDashboardObjects("FnO_Dashboard_");
+    
+    // Hide all Non-F&O dashboard objects
+    HideDashboardObjects("NonFnO_Dashboard_");
+    
+    if(EnableDetailedLogging)
+        Print("📊 Dashboards hidden");
+}
+
+//+------------------------------------------------------------------+
+//| Show Dashboard Objects                                         |
+//+------------------------------------------------------------------+
+void ShowDashboardObjects(string prefix)
+{
+    for(int i = 0; i < ObjectsTotal(); i++)
+    {
+        string objName = ObjectName(i);
+        if(StringFind(objName, prefix) >= 0)
+        {
+            ObjectSetInteger(0, objName, OBJPROP_TIMEFRAMES, OBJ_ALL_PERIODS);
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Hide Dashboard Objects                                         |
+//+------------------------------------------------------------------+
+void HideDashboardObjects(string prefix)
+{
+    for(int i = 0; i < ObjectsTotal(); i++)
+    {
+        string objName = ObjectName(i);
+        if(StringFind(objName, prefix) >= 0)
+        {
+            ObjectSetInteger(0, objName, OBJPROP_TIMEFRAMES, OBJ_NO_PERIODS);
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Get Dashboard Status                                           |
+//+------------------------------------------------------------------+
+bool IsDashboardActive()
+{
+    return g_DashboardActive;
+}
+
+//+------------------------------------------------------------------+
+//| Get Performance Metrics                                       |
+//+------------------------------------------------------------------+
+PerformanceMetrics GetPerformanceMetrics()
+{
+    return g_Metrics;
+}
+
+//+------------------------------------------------------------------+
+//| Get System Health Status                                      |
+//+------------------------------------------------------------------+
+SystemHealth GetSystemHealthStatus()
+{
+    return g_SystemHealth;
+}
+
+//+------------------------------------------------------------------+
+//| Cleanup Dashboards                                            |
+//+------------------------------------------------------------------+
+void CleanupDashboards()
+{
+    Print("🧹 Cleaning up Dashboard System...");
+    
+    // Delete all F&O dashboard objects
+    DeleteDashboardObjects("FnO_");
+    
+    // Delete all Non-F&O dashboard objects
+    DeleteDashboardObjects("NonFnO_");
+    
+    // Reset status
+    g_DashboardActive = false;
+    g_LastDashboardUpdate = 0;
+    
+    // Reset structures
+    InitializePerformanceMetrics();
+    InitializeEconomicCalendar();
+    InitializeSystemHealth();
+    
+    Print("✅ Dashboard System cleanup complete");
+}
+
+//+------------------------------------------------------------------+
+//| Delete Dashboard Objects                                       |
+//+------------------------------------------------------------------+
+void DeleteDashboardObjects(string prefix)
+{
+    for(int i = ObjectsTotal() - 1; i >= 0; i--)
+    {
+        string objName = ObjectName(i);
+        if(StringFind(objName, prefix) >= 0)
+        {
+            ObjectDelete(0, objName);
+        }
+    }
+}
+
+//+------------------------------------------------------------------+

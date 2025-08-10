@@ -1,0 +1,2266 @@
+//+------------------------------------------------------------------+
+//| GlobalFlow_Analytics.mqh - Complete Feedback & Learning System |
+//| EA GlobalFlow Pro v0.1 - Institutional Grade                   |
+//| Copyright 2025, pajitmenonai@gmail.com                          |
+//+------------------------------------------------------------------+
+#property copyright "EA GlobalFlow Pro v0.1 - Analytics System"
+#property link      "pajitmenonai@gmail.com"
+
+//+------------------------------------------------------------------+
+//| Trade Analysis Structure                                        |
+//+------------------------------------------------------------------+
+struct TradeAnalysis
+{
+    // Basic Trade Info
+    ulong       ticket;             // Trade ticket
+    string      symbol;             // Symbol traded
+    string      marketType;         // "F&O" or "NON-F&O"
+    string      direction;          // "BUY" or "SELL"
+    string      path;               // "CT" or "PB"
+    datetime    openTime;           // Trade open time
+    datetime    closeTime;          // Trade close time
+    double      openPrice;          // Entry price
+    double      closePrice;         // Exit price
+    double      volume;             // Trade volume
+    double      profit;             // Trade profit/loss
+    string      closeReason;        // Why trade was closed
+    
+    // Pre-Trade Conditions
+    int         triggeredConditions;    // Number of conditions triggered
+    double      enhancementScore;       // Triple enhancement score
+    double      mlConfidence;           // ML prediction confidence
+    string      mlPrediction;           // ML prediction direction
+    bool        mlFallback;             // Was ML fallback used
+    string      candlePattern;          // Candlestick pattern detected
+    double      volumeRatio;            // Volume vs average
+    double      vixLevel;               // VIX at trade time
+    double      trendStrength;          // Trend strength score
+    
+    // Market Conditions
+    double      spotPrice;              // Underlying spot price (F&O)
+    double      atmStrike;              // ATM strike (F&O)
+    string      oiBias;                 // OI bias direction (F&O)
+    double      impliedVolatility;      // Implied volatility (F&O)
+    bool        expiryDay;              // Was it expiry day
+    string      timeOfDay;              // "MORNING", "AFTERNOON", "EVENING"
+    string      dayOfWeek;              // Day of week
+    
+    // Technical Indicators (at entry)
+    double      ichimokuSignal;         // Ichimoku signal strength
+    double      tdiSignal;              // TDI signal strength
+    double      smmaSlope;              // SMMA slope
+    double      bbPosition;             // Position relative to BB
+    double      strEntryDistance;       // Distance from STR-ENTRY
+    double      strExitDistance;        // Distance from STR-EXIT
+    
+    // Risk Metrics
+    double      riskReward;             // Risk:Reward ratio
+    double      positionSize;           // Position size used
+    double      stopLoss;               // Stop loss level
+    double      takeProfit;             // Take profit level
+    double      maxDrawdown;            // Maximum adverse excursion
+    double      maxRunup;               // Maximum favorable excursion
+    
+    // Performance Metrics
+    bool        wasWinner;              // Was trade profitable
+    double      pipsGained;             // Pips gained/lost
+    int         barsHeld;               // Bars trade was held
+    double      efficiencyRatio;        // Profit efficiency
+    string      qualityGrade;           // "A", "B", "C", "D", "F"
+    
+    // External Factors
+    bool        newsImpact;             // Was there news impact
+    string      economicEvents;         // Economic events during trade
+    double      correlationImpact;      // Impact of correlated trades
+    double      marketVolatility;       // Market volatility during trade
+    
+    // Learning Flags
+    bool        needsReview;            // Flagged for manual review
+    string      learningNotes;          // Notes for improvement
+    int         confidenceLevel;        // 1-5 confidence in analysis
+};
+
+//+------------------------------------------------------------------+
+//| Pattern Analysis Structure                                      |
+//+------------------------------------------------------------------+
+struct PatternAnalysis
+{
+    string      patternName;            // Pattern identifier
+    int         occurrences;            // Times pattern occurred
+    int         winners;                // Winning trades
+    double      winRate;                // Pattern win rate
+    double      avgProfit;              // Average profit per trade
+    double      maxProfit;              // Maximum profit
+    double      maxLoss;                // Maximum loss
+    double      profitFactor;           // Profit factor
+    double      avgBarsHeld;            // Average holding period
+    datetime    lastOccurrence;         // Last time pattern occurred
+    bool        isReliable;             // Is pattern statistically significant
+    string      improvements;           // Suggested improvements
+};
+
+//+------------------------------------------------------------------+
+//| Condition Performance Structure                                 |
+//+------------------------------------------------------------------+
+struct ConditionPerformance
+{
+    string      conditionName;          // Condition name (B1, S1, etc.)
+    int         triggers;               // Times triggered
+    int         falseSignals;           // False signals
+    int         trueSignals;            // True signals
+    double      accuracy;               // Accuracy percentage
+    double      avgContribution;        // Average contribution to profit
+    double      reliability;            // Reliability score
+    bool        needsOptimization;      // Needs parameter optimization
+    string      marketBias;             // Works best in which market
+    string      timeBias;               // Works best at which time
+    datetime    lastCalibration;        // Last parameter update
+};
+
+//+------------------------------------------------------------------+
+//| ML Model Performance Structure                                  |
+//+------------------------------------------------------------------+
+struct MLModelPerformance
+{
+    string      modelName;              // Model identifier
+    int         predictions;            // Total predictions made
+    int         correctPredictions;     // Correct predictions
+    double      accuracy;               // Model accuracy
+    double      precision;              // Precision score
+    double      recall;                 // Recall score
+    double      f1Score;                // F1 score
+    double      avgConfidence;          // Average confidence
+    int         highConfidenceTrades;   // Trades with >75% confidence
+    double      highConfidenceAccuracy; // High confidence accuracy
+    datetime    lastTraining;           // Last model training
+    bool        needsRetraining;        // Needs retraining flag
+    string      performanceTrend;       // "IMPROVING", "STABLE", "DECLINING"
+};
+
+//+------------------------------------------------------------------+
+//| Global Analytics Variables                                      |
+//+------------------------------------------------------------------+
+TradeAnalysis       g_TradeHistory[1000];  // Store last 1000 trades
+PatternAnalysis     g_Patterns[50];        // Pattern performance
+ConditionPerformance g_Conditions[34];     // 34 condition performance
+MLModelPerformance  g_MLModels[5];         // ML model tracking
+int                 g_TradeCount = 0;
+int                 g_PatternCount = 0;
+bool                g_AnalyticsActive = false;
+datetime            g_LastAnalysis = 0;
+string              g_LogFileName = "";
+int                 g_LogHandle = INVALID_HANDLE;
+
+//+------------------------------------------------------------------+
+//| Initialize Analytics System                                     |
+//+------------------------------------------------------------------+
+bool InitializeAnalytics()
+{
+    Print("📊 Initializing Complete Analytics & Learning System...");
+    
+    // Initialize trade history array
+    for(int i = 0; i < 1000; i++)
+    {
+        ResetTradeAnalysis(g_TradeHistory[i]);
+    }
+    
+    // Initialize pattern analysis
+    InitializePatternAnalysis();
+    
+    // Initialize condition performance tracking
+    InitializeConditionPerformance();
+    
+    // Initialize ML model tracking
+    InitializeMLModelTracking();
+    
+    // Create log file
+    if(!CreateAnalyticsLogFile())
+    {
+        Print("❌ Failed to create analytics log file");
+        return false;
+    }
+    
+    // Load historical data if exists
+    LoadHistoricalAnalytics();
+    
+    g_AnalyticsActive = true;
+    g_LastAnalysis = TimeCurrent();
+    
+    Print("✅ Analytics System initialized successfully");
+    LogAnalyticsEvent("SYSTEM_INIT", "Analytics system initialized");
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Reset Trade Analysis Structure                                 |
+//+------------------------------------------------------------------+
+void ResetTradeAnalysis(TradeAnalysis &analysis)
+{
+    analysis.ticket = 0;
+    analysis.symbol = "";
+    analysis.marketType = "";
+    analysis.direction = "";
+    analysis.path = "";
+    analysis.openTime = 0;
+    analysis.closeTime = 0;
+    analysis.openPrice = 0.0;
+    analysis.closePrice = 0.0;
+    analysis.volume = 0.0;
+    analysis.profit = 0.0;
+    analysis.closeReason = "";
+    
+    analysis.triggeredConditions = 0;
+    analysis.enhancementScore = 0.0;
+    analysis.mlConfidence = 0.0;
+    analysis.mlPrediction = "";
+    analysis.mlFallback = false;
+    analysis.candlePattern = "";
+    analysis.volumeRatio = 0.0;
+    analysis.vixLevel = 0.0;
+    analysis.trendStrength = 0.0;
+    
+    analysis.spotPrice = 0.0;
+    analysis.atmStrike = 0.0;
+    analysis.oiBias = "";
+    analysis.impliedVolatility = 0.0;
+    analysis.expiryDay = false;
+    analysis.timeOfDay = "";
+    analysis.dayOfWeek = "";
+    
+    analysis.ichimokuSignal = 0.0;
+    analysis.tdiSignal = 0.0;
+    analysis.smmaSlope = 0.0;
+    analysis.bbPosition = 0.0;
+    analysis.strEntryDistance = 0.0;
+    analysis.strExitDistance = 0.0;
+    
+    analysis.riskReward = 0.0;
+    analysis.positionSize = 0.0;
+    analysis.stopLoss = 0.0;
+    analysis.takeProfit = 0.0;
+    analysis.maxDrawdown = 0.0;
+    analysis.maxRunup = 0.0;
+    
+    analysis.wasWinner = false;
+    analysis.pipsGained = 0.0;
+    analysis.barsHeld = 0;
+    analysis.efficiencyRatio = 0.0;
+    analysis.qualityGrade = "";
+    
+    analysis.newsImpact = false;
+    analysis.economicEvents = "";
+    analysis.correlationImpact = 0.0;
+    analysis.marketVolatility = 0.0;
+    
+    analysis.needsReview = false;
+    analysis.learningNotes = "";
+    analysis.confidenceLevel = 0;
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Pattern Analysis                                    |
+//+------------------------------------------------------------------+
+void InitializePatternAnalysis()
+{
+    string patterns[50] = {
+        "CT_BULLISH_HIGH_ENHANCEMENT", "CT_BEARISH_HIGH_ENHANCEMENT",
+        "PB_BULLISH_REVERSAL", "PB_BEARISH_REVERSAL",
+        "HIGH_VIX_ENTRY", "LOW_VIX_ENTRY",
+        "EXPIRY_DAY_TRADE", "NON_EXPIRY_TRADE",
+        "MORNING_BREAKOUT", "AFTERNOON_TREND", "EVENING_REVERSAL",
+        "BB_SQUEEZE_BREAKOUT", "KUMO_BREAKOUT", "TDI_MOMENTUM",
+        "ML_HIGH_CONFIDENCE", "ML_FALLBACK_TRADE",
+        "DIRECTIONAL_OI_BIAS", "INDEPENDENT_OI_BIAS",
+        "STRONG_VOLUME_CONFIRMATION", "WEAK_VOLUME_TRADE",
+        "TRENDING_MARKET", "SIDEWAYS_MARKET",
+        "HIGH_CORRELATION_TRADE", "LOW_CORRELATION_TRADE",
+        "NEWS_IMPACT_TRADE", "CLEAN_TECHNICAL_TRADE",
+        "FAST_SCALP", "SWING_TRADE", "POSITION_TRADE",
+        "PERFECT_SETUP", "MARGINAL_SETUP", "FORCED_ENTRY",
+        "EARLY_EXIT", "LATE_EXIT", "PERFECT_EXIT",
+        "STOP_LOSS_HIT", "TAKE_PROFIT_HIT", "MANUAL_CLOSE",
+        "EMERGENCY_CLOSE", "EXPIRY_CLOSE", "TIME_BASED_CLOSE",
+        "SYSTEM_ERROR_CLOSE", "CORRELATION_CLOSE", "VIX_SPIKE_CLOSE",
+        "TREND_CHANGE_CLOSE", "PATTERN_FAILURE", "PATTERN_SUCCESS",
+        "WEEKEND_HOLD", "OVERNIGHT_HOLD", "INTRADAY_TRADE",
+        "CUSTOM_PATTERN_1", "CUSTOM_PATTERN_2"
+    };
+    
+    for(int i = 0; i < 50; i++)
+    {
+        g_Patterns[i].patternName = patterns[i];
+        g_Patterns[i].occurrences = 0;
+        g_Patterns[i].winners = 0;
+        g_Patterns[i].winRate = 0.0;
+        g_Patterns[i].avgProfit = 0.0;
+        g_Patterns[i].maxProfit = 0.0;
+        g_Patterns[i].maxLoss = 0.0;
+        g_Patterns[i].profitFactor = 0.0;
+        g_Patterns[i].avgBarsHeld = 0.0;
+        g_Patterns[i].lastOccurrence = 0;
+        g_Patterns[i].isReliable = false;
+        g_Patterns[i].improvements = "";
+    }
+    
+    g_PatternCount = 50;
+    Print("📈 Pattern analysis initialized with ", g_PatternCount, " patterns");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Condition Performance                               |
+//+------------------------------------------------------------------+
+void InitializeConditionPerformance()
+{
+    string conditionNames[34] = {
+        "B1_CT_BBSqueeze_Bull", "B2_CT_BBBreak_Upper", "B3_CT_KumoBreak_Bull",
+        "B4_CT_SMMA_Bull", "B5_CT_TDI_Upper_1", "B6_CT_TDI_Upper_2",
+        "B7_CT_TDI_Upper_3", "B8_CT_TDI_Upper_4", "B9_CT_TDI_Lower_1",
+        "B10_CT_TDI_Lower_2", "B11_CT_TDI_Lower_3", "B12_CT_TDI_Lower_4",
+        "B13_CT_STR_Bull", "S1_CT_BBSqueeze_Bear", "S2_CT_BBBreak_Lower",
+        "S3_CT_KumoBreak_Bear", "S4_CT_SMMA_Bear", "S5_CT_TDI_Lower_1",
+        "S6_CT_TDI_Lower_2", "S7_CT_TDI_Lower_3", "S8_CT_TDI_Lower_4",
+        "S9_CT_TDI_Upper_1", "S10_CT_TDI_Upper_2", "S11_CT_TDI_Upper_3",
+        "S12_CT_TDI_Upper_4", "S13_CT_STR_Bear", "B14_PB_Reversal_Bull",
+        "B15_PB_Divergence_Bull", "B16_PB_Support_Bull", "B17_PB_Volume_Bull",
+        "S14_PB_Reversal_Bear", "S15_PB_Divergence_Bear", "S16_PB_Resistance_Bear",
+        "S17_PB_Volume_Bear"
+    };
+    
+    for(int i = 0; i < 34; i++)
+    {
+        g_Conditions[i].conditionName = conditionNames[i];
+        g_Conditions[i].triggers = 0;
+        g_Conditions[i].falseSignals = 0;
+        g_Conditions[i].trueSignals = 0;
+        g_Conditions[i].accuracy = 0.0;
+        g_Conditions[i].avgContribution = 0.0;
+        g_Conditions[i].reliability = 0.0;
+        g_Conditions[i].needsOptimization = false;
+        g_Conditions[i].marketBias = "";
+        g_Conditions[i].timeBias = "";
+        g_Conditions[i].lastCalibration = TimeCurrent();
+    }
+    
+    Print("🔧 Condition performance tracking initialized for 34 conditions");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize ML Model Tracking                                  |
+//+------------------------------------------------------------------+
+void InitializeMLModelTracking()
+{
+    string modelNames[5] = {
+        "PRIMARY_ENSEMBLE_MODEL",
+        "TREND_PREDICTION_MODEL", 
+        "REVERSAL_DETECTION_MODEL",
+        "VOLATILITY_MODEL",
+        "SENTIMENT_MODEL"
+    };
+    
+    for(int i = 0; i < 5; i++)
+    {
+        g_MLModels[i].modelName = modelNames[i];
+        g_MLModels[i].predictions = 0;
+        g_MLModels[i].correctPredictions = 0;
+        g_MLModels[i].accuracy = 0.0;
+        g_MLModels[i].precision = 0.0;
+        g_MLModels[i].recall = 0.0;
+        g_MLModels[i].f1Score = 0.0;
+        g_MLModels[i].avgConfidence = 0.0;
+        g_MLModels[i].highConfidenceTrades = 0;
+        g_MLModels[i].highConfidenceAccuracy = 0.0;
+        g_MLModels[i].lastTraining = TimeCurrent();
+        g_MLModels[i].needsRetraining = false;
+        g_MLModels[i].performanceTrend = "STABLE";
+    }
+    
+    Print("🤖 ML model performance tracking initialized for 5 models");
+}
+
+//+------------------------------------------------------------------+
+//| Create Analytics Log File                                     |
+//+------------------------------------------------------------------+
+bool CreateAnalyticsLogFile()
+{
+    MqlDateTime dt;
+    TimeToStruct(TimeCurrent(), dt);
+    
+    g_LogFileName = StringFormat("EA_GlobalFlow_Analytics_%04d%02d%02d.csv", 
+                                dt.year, dt.mon, dt.day);
+    
+    g_LogHandle = FileOpen(g_LogFileName, FILE_WRITE | FILE_CSV);
+    
+    if(g_LogHandle == INVALID_HANDLE)
+    {
+        Print("❌ Failed to create analytics log file: ", g_LogFileName);
+        return false;
+    }
+    
+    // Write CSV header
+    string headers = "Timestamp,EventType,Ticket,Symbol,MarketType,Direction,Path," +
+                    "OpenTime,CloseTime,OpenPrice,ClosePrice,Volume,Profit,CloseReason," +
+                    "TriggeredConditions,EnhancementScore,MLConfidence,MLPrediction," +
+                    "MLFallback,CandlePattern,VolumeRatio,VIXLevel,TrendStrength," +
+                    "SpotPrice,ATMStrike,OIBias,ImpliedVolatility,ExpiryDay," +
+                    "TimeOfDay,DayOfWeek,IchimokuSignal,TDISignal,SMMASlope," +
+                    "BBPosition,STREntryDistance,STRExitDistance,RiskReward," +
+                    "PositionSize,StopLoss,TakeProfit,MaxDrawdown,MaxRunup," +
+                    "WasWinner,PipsGained,BarsHeld,EfficiencyRatio,QualityGrade," +
+                    "NewsImpact,EconomicEvents,CorrelationImpact,MarketVolatility," +
+                    "NeedsReview,LearningNotes,ConfidenceLevel";
+    
+    FileWrite(g_LogHandle, headers);
+    FileFlush(g_LogHandle);
+    
+    Print("✅ Analytics log file created: ", g_LogFileName);
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Record Trade Analysis                                          |
+//+------------------------------------------------------------------+
+void RecordTradeAnalysis(ulong ticket, string closeReason = "")
+{
+    if(!g_AnalyticsActive)
+        return;
+    
+    Print("📝 Recording trade analysis for ticket: ", ticket);
+    
+    // Find next available slot
+    int index = g_TradeCount % 1000;
+    
+    // Reset the structure
+    ResetTradeAnalysis(g_TradeHistory[index]);
+    
+    // Get trade information from history
+    if(!HistoryDealSelect(ticket))
+    {
+        Print("❌ Failed to select deal: ", ticket);
+        return;
+    }
+    
+    // Fill basic trade information
+    FillBasicTradeInfo(g_TradeHistory[index], ticket, closeReason);
+    
+    // Fill pre-trade conditions
+    FillPreTradeConditions(g_TradeHistory[index]);
+    
+    // Fill market conditions
+    FillMarketConditions(g_TradeHistory[index]);
+    
+    // Fill technical indicators
+    FillTechnicalIndicators(g_TradeHistory[index]);
+    
+    // Fill risk metrics
+    FillRiskMetrics(g_TradeHistory[index]);
+    
+    // Fill performance metrics
+    FillPerformanceMetrics(g_TradeHistory[index]);
+    
+    // Fill external factors
+    FillExternalFactors(g_TradeHistory[index]);
+    
+    // Calculate quality grade
+    CalculateTradeQuality(g_TradeHistory[index]);
+    
+    // Write to log file
+    WriteTradeToLog(g_TradeHistory[index]);
+    
+    // Update pattern analysis
+    UpdatePatternAnalysis(g_TradeHistory[index]);
+    
+    // Update condition performance
+    UpdateConditionPerformance(g_TradeHistory[index]);
+    
+    // Update ML model performance
+    UpdateMLPerformance(g_TradeHistory[index]);
+    
+    g_TradeCount++;
+    
+    Print("✅ Trade analysis recorded successfully");
+}
+
+//+------------------------------------------------------------------+
+//| Fill Basic Trade Info                                         |
+//+------------------------------------------------------------------+
+void FillBasicTradeInfo(TradeAnalysis &analysis, ulong ticket, string closeReason)
+{
+    analysis.ticket = ticket;
+    analysis.symbol = HistoryDealGetString(ticket, DEAL_SYMBOL);
+    analysis.marketType = IsFnOSymbol(analysis.symbol) ? "F&O" : "NON-F&O";
+    
+    ENUM_DEAL_TYPE dealType = (ENUM_DEAL_TYPE)HistoryDealGetInteger(ticket, DEAL_TYPE);
+    analysis.direction = (dealType == DEAL_TYPE_BUY) ? "BUY" : "SELL";
+    
+    analysis.openTime = (datetime)HistoryDealGetInteger(ticket, DEAL_TIME);
+    analysis.closeTime = TimeCurrent();  // Current time as close time
+    analysis.openPrice = HistoryDealGetDouble(ticket, DEAL_PRICE);
+    analysis.closePrice = SymbolInfoDouble(analysis.symbol, SYMBOL_BID);
+    analysis.volume = HistoryDealGetDouble(ticket, DEAL_VOLUME);
+    analysis.profit = HistoryDealGetDouble(ticket, DEAL_PROFIT);
+    analysis.closeReason = (closeReason != "") ? closeReason : "UNKNOWN";
+    
+    // Determine path from current signal
+    TradeSignal currentSignal = GetCurrentTradeSignal();
+    analysis.path = currentSignal.path;
+}
+
+//+------------------------------------------------------------------+
+//| Fill Pre-Trade Conditions                                     |
+//+------------------------------------------------------------------+
+void FillPreTradeConditions(TradeAnalysis &analysis)
+{
+    // Get enhancement status
+    TripleEnhancement enhancement = GetEnhancementStatus();
+    
+    analysis.triggeredConditions = enhancement.triggeredCount;
+    analysis.enhancementScore = enhancement.finalScore;
+    analysis.mlConfidence = enhancement.mlConfidence;
+    analysis.mlPrediction = enhancement.mlPrediction;
+    analysis.mlFallback = enhancement.mlFallback;
+    analysis.candlePattern = enhancement.candlePattern;
+    analysis.volumeRatio = enhancement.volumeRatio;
+    
+    // Get VIX level
+    analysis.vixLevel = GetCurrentVIX();
+    
+    // Get trend strength from trend analysis
+    // This would be retrieved from global trend analysis
+    analysis.trendStrength = 75.0;  // Placeholder
+}
+
+//+------------------------------------------------------------------+
+//| Fill Market Conditions                                        |
+//+------------------------------------------------------------------+
+void FillMarketConditions(TradeAnalysis &analysis)
+{
+    if(analysis.marketType == "F&O")
+    {
+        FnOMarketInfo marketInfo = GetFnOMarketInfo();
+        HybridOILogic hybridLogic = GetHybridLogicStatus();
+        
+        analysis.spotPrice = marketInfo.currentSpotPrice;
+        analysis.atmStrike = marketInfo.atmStrike;
+        analysis.oiBias = hybridLogic.biasDirection;
+        analysis.impliedVolatility = CalculateImpliedVolatility(analysis.symbol);
+        analysis.expiryDay = marketInfo.isExpiryDay;
+    }
+    
+    // Determine time of day
+    MqlDateTime dt;
+    TimeToStruct(analysis.openTime, dt);
+    
+    if(dt.hour >= 9 && dt.hour < 12)
+        analysis.timeOfDay = "MORNING";
+    else if(dt.hour >= 12 && dt.hour < 16)
+        analysis.timeOfDay = "AFTERNOON";
+    else
+        analysis.timeOfDay = "EVENING";
+    
+    // Day of week
+    int dayOfWeek = TimeDayOfWeek(analysis.openTime);
+    string days[7] = {"SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"};
+    analysis.dayOfWeek = days[dayOfWeek];
+}
+
+//+------------------------------------------------------------------+
+//| Fill Technical Indicators                                     |
+//+------------------------------------------------------------------+
+void FillTechnicalIndicators(TradeAnalysis &analysis)
+{
+    IndicatorValues entryData = GetEntryTimeframeData();
+    
+    // Calculate indicator signals/positions
+    analysis.ichimokuSignal = CalculateIchimokuSignalStrength(entryData);
+    analysis.tdiSignal = CalculateTDISignalStrength(entryData);
+    analysis.smmaSlope = CalculateSMMASlope(entryData);
+    analysis.bbPosition = CalculateBBPosition(entryData, analysis.openPrice);
+    analysis.strEntryDistance = MathAbs(analysis.openPrice - entryData.str_entry_value);
+    analysis.strExitDistance = MathAbs(analysis.openPrice - entryData.str_exit_value);
+}
+
+//+------------------------------------------------------------------+
+//| Fill Risk Metrics                                             |
+//+------------------------------------------------------------------+
+void FillRiskMetrics(TradeAnalysis &analysis)
+{
+    TradeSignal signal = GetCurrentTradeSignal();
+    
+    analysis.riskReward = signal.riskReward;
+    analysis.positionSize = analysis.volume;
+    analysis.stopLoss = signal.stopLoss;
+    analysis.takeProfit = signal.takeProfit;
+    
+    // Calculate max drawdown and runup (simplified)
+    analysis.maxDrawdown = CalculateMaxDrawdown(analysis.ticket);
+    analysis.maxRunup = CalculateMaxRunup(analysis.ticket);
+}
+
+//+------------------------------------------------------------------+
+//| Fill Performance Metrics                                      |
+//+------------------------------------------------------------------+
+void FillPerformanceMetrics(TradeAnalysis &analysis)
+{
+    analysis.wasWinner = (analysis.profit > 0);
+    
+    // Calculate pips (simplified)
+    double pointValue = SymbolInfoDouble(analysis.symbol, SYMBOL_POINT);
+    analysis.pipsGained = (analysis.closePrice - analysis.openPrice) / pointValue;
+    if(analysis.direction == "SELL")
+        analysis.pipsGained = -analysis.pipsGained;
+    
+    // Calculate bars held
+    analysis.barsHeld = CalculateBarsHeld(analysis.openTime, analysis.closeTime);
+    
+    // Calculate efficiency ratio
+    if(analysis.barsHeld > 0)
+        analysis.efficiencyRatio = MathAbs(analysis.pipsGained) / analysis.barsHeld;
+    else
+        analysis.efficiencyRatio = 0.0;
+}
+
+//+------------------------------------------------------------------+
+//| Fill External Factors                                         |
+//+------------------------------------------------------------------+
+void FillExternalFactors(TradeAnalysis &analysis)
+{
+    // Check for news impact (simplified)
+    analysis.newsImpact = CheckNewsImpact(analysis.openTime, analysis.closeTime);
+    analysis.economicEvents = GetEconomicEventsDuringTrade(analysis.openTime, analysis.closeTime);
+    
+    // Calculate correlation impact
+    analysis.correlationImpact = CalculateCorrelationImpact(analysis.symbol, analysis.openTime);
+    
+    // Market volatility
+    analysis.marketVolatility = CalculateMarketVolatility(analysis.symbol, analysis.openTime);
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Trade Quality                                        |
+//+------------------------------------------------------------------+
+void CalculateTradeQuality(TradeAnalysis &analysis)
+{
+    double qualityScore = 50.0;  // Base score
+    
+    // Enhancement score contribution (30%)
+    qualityScore += (analysis.enhancementScore - 50.0) * 0.3;
+    
+    // ML confidence contribution (20%)
+    if(!analysis.mlFallback)
+        qualityScore += (analysis.mlConfidence - 50.0) * 0.2;
+    
+    // Risk-reward contribution (20%)
+    if(analysis.riskReward >= 2.0)
+        qualityScore += 10.0;
+    else if(analysis.riskReward >= 1.5)
+        qualityScore += 5.0;
+    
+    // Trend strength contribution (15%)
+    qualityScore += (analysis.trendStrength - 50.0) * 0.15;
+    
+    // VIX contribution (10%)
+    if(analysis.vixLevel < 20.0)
+        qualityScore += 5.0;
+    else if(analysis.vixLevel > 30.0)
+        qualityScore -= 5.0;
+    
+    // Volume confirmation (5%)
+    if(analysis.volumeRatio > 1.2)
+        qualityScore += 2.5;
+    
+    // Determine grade
+    if(qualityScore >= 85.0)
+        analysis.qualityGrade = "A";
+    else if(qualityScore >= 75.0)
+        analysis.qualityGrade = "B";
+    else if(qualityScore >= 65.0)
+        analysis.qualityGrade = "C";
+    else if(qualityScore >= 55.0)
+        analysis.qualityGrade = "D";
+    else
+        analysis.qualityGrade = "F";
+    
+    // Flag for review if low quality or unexpected result
+    if(qualityScore < 60.0 || (qualityScore > 80.0 && !analysis.wasWinner))
+    {
+        analysis.needsReview = true;
+        analysis.learningNotes = "Quality mismatch - requires analysis";
+    }
+    
+    // Set confidence level
+    analysis.confidenceLevel = (int)MathRound(qualityScore / 20.0);
+    analysis.confidenceLevel = MathMax(1, MathMin(5, analysis.confidenceLevel));
+}
+
+//+------------------------------------------------------------------+
+//| Helper Functions                                              |
+//+------------------------------------------------------------------+
+double CalculateImpliedVolatility(string symbol)
+{
+    // Simplified IV calculation - in production, use proper IV model
+    return 25.0;  // Placeholder
+}
+
+double CalculateIchimokuSignalStrength(const IndicatorValues &data)
+{
+    // Calculate Ichimoku signal strength
+    double strength = 50.0;
+    double currentPrice = iClose(Symbol(), PERIOD_CURRENT, 0);
+    
+    if(currentPrice > data.tenkanSen && data.tenkanSen > data.kijunSen)
+        strength += 20.0;
+    if(currentPrice > MathMax(data.senkou_A, data.senkou_B))
+        strength += 15.0;
+        
+    return MathMin(strength, 100.0);
+}
+
+double CalculateTDISignalStrength(const IndicatorValues &data)
+{
+    // Calculate TDI signal strength
+    double strength = 50.0;
+    
+    if(data.rsi_signal > data.market_base)
+        strength += 25.0;
+    if(data.rsi_signal > 50.0)
+        strength += 15.0;
+        
+    return MathMin(strength, 100.0);
+}
+
+double CalculateSMMASlope(const IndicatorValues &data)
+{
+    // Calculate SMMA slope
+    double current = data.smma_50;
+    double previous = iMA(Symbol(), PERIOD_CURRENT, 50, 0, MODE_SMMA, PRICE_CLOSE, 1);
+    
+    return (current - previous) / previous * 100.0;
+}
+
+double CalculateBBPosition(const IndicatorValues &data, double price)
+{
+    // Calculate position within Bollinger Bands (0-100%)
+    if(data.bb_upper - data.bb_lower == 0)
+        return 50.0;
+        
+    return ((price - data.bb_lower) / (data.bb_upper - data.bb_lower)) * 100.0;
+}
+
+double CalculateMaxDrawdown(ulong ticket)
+{
+    // Simplified max drawdown calculation
+    return 0.0;  // Would need to track during trade
+}
+
+double CalculateMaxRunup(ulong ticket)
+{
+    // Simplified max runup calculation
+    return 0.0;  // Would need to track during trade
+}
+
+int CalculateBarsHeld(datetime openTime, datetime closeTime)
+{
+    // Calculate bars held based on current timeframe
+    int timeframePeriod = PeriodSeconds(PERIOD_CURRENT);
+    return (int)((closeTime - openTime) / timeframePeriod);
+}
+
+bool CheckNewsImpact(datetime startTime, datetime endTime)
+{
+    // Check if major news occurred during trade
+    // This would integrate with economic calendar
+    return false;  // Placeholder
+}
+
+string GetEconomicEventsDuringTrade(datetime startTime, datetime endTime)
+{
+    // Get economic events during trade period
+    return "";  // Placeholder
+}
+
+double CalculateCorrelationImpact(string symbol, datetime tradeTime)
+{
+    // Calculate impact of correlated positions
+    return 0.0;  // Placeholder
+}
+
+double CalculateMarketVolatility(string symbol, datetime tradeTime)
+{
+    // Calculate market volatility at trade time
+    return 15.0;  // Placeholder
+}
+
+//+------------------------------------------------------------------+
+//| Write Trade to Log                                            |
+//+------------------------------------------------------------------+
+void WriteTradeToLog(const TradeAnalysis &analysis)
+{
+    if(g_LogHandle == INVALID_HANDLE)
+        return;
+    
+    string logLine = StringFormat("%s,TRADE_CLOSE,%d,%s,%s,%s,%s,%s,%s,%.5f,%.5f,%.2f,%.2f,%s," +
+                                 "%d,%.1f,%.1f,%s,%s,%s,%.2f,%.1f,%.1f," +
+                                 "%.2f,%.0f,%s,%.1f,%s,%s,%s,%.1f,%.1f,%.2f," +
+                                 "%.1f,%.5f,%.5f,%.2f,%.2f,%.5f,%.5f,%.2f,%.2f," +
+                                 "%s,%.1f,%d,%.2f,%s,%s,%s,%.2f,%.1f,%s,%s,%d",
+                                 TimeToString(TimeCurrent()),
+                                 analysis.ticket, analysis.symbol, analysis.marketType,
+                                 analysis.direction, analysis.path,
+                                 TimeToString(analysis.openTime), TimeToString(analysis.closeTime),
+                                 analysis.openPrice, analysis.closePrice, analysis.volume,
+                                 analysis.profit, analysis.closeReason,
+                                 analysis.triggeredConditions, analysis.enhancementScore,
+                                 analysis.mlConfidence, analysis.mlPrediction,
+                                 BoolToString(analysis.mlFallback), analysis.candlePattern,
+                                 analysis.volumeRatio, analysis.vixLevel, analysis.trendStrength,
+                                 analysis.spotPrice, analysis.atmStrike, analysis.oiBias,
+                                 analysis.impliedVolatility, BoolToString(analysis.expiryDay),
+                                 analysis.timeOfDay, analysis.dayOfWeek,
+                                 analysis.ichimokuSignal, analysis.tdiSignal, analysis.smmaSlope,
+                                 analysis.bbPosition, analysis.strEntryDistance, analysis.strExitDistance,
+                                 analysis.riskReward, analysis.positionSize, analysis.stopLoss,
+                                 analysis.takeProfit, analysis.maxDrawdown, analysis.maxRunup,
+                                 BoolToString(analysis.wasWinner), analysis.pipsGained,
+                                 analysis.barsHeld, analysis.efficiencyRatio, analysis.qualityGrade,
+                                 BoolToString(analysis.newsImpact), analysis.economicEvents,
+                                 analysis.correlationImpact, analysis.marketVolatility,
+                                 BoolToString(analysis.needsReview), analysis.learningNotes,
+                                 analysis.confidenceLevel);
+    
+    FileWrite(g_LogHandle, logLine);
+    FileFlush(g_LogHandle);
+}
+
+//+------------------------------------------------------------------+
+//| Update Pattern Analysis                                        |
+//+------------------------------------------------------------------+
+void UpdatePatternAnalysis(const TradeAnalysis &analysis)
+{
+    // Identify patterns from the trade
+    string identifiedPatterns[];
+    IdentifyTradePatterns(analysis, identifiedPatterns);
+    
+    // Update each identified pattern
+    for(int i = 0; i < ArraySize(identifiedPatterns); i++)
+    {
+        UpdateSinglePattern(identifiedPatterns[i], analysis);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Identify Trade Patterns                                       |
+//+------------------------------------------------------------------+
+void IdentifyTradePatterns(const TradeAnalysis &analysis, string &patterns[])
+{
+    ArrayResize(patterns, 0);
+    
+    // Pattern identification logic
+    if(analysis.path == "CT" && analysis.direction == "BUY" && analysis.enhancementScore > 85.0)
+        ArrayResize(patterns, ArraySize(patterns) + 1); patterns[ArraySize(patterns) - 1] = "CT_BULLISH_HIGH_ENHANCEMENT";
+    
+    if(analysis.path == "PB" && analysis.wasWinner)
+        ArrayResize(patterns, ArraySize(patterns) + 1); patterns[ArraySize(patterns) - 1] = "PB_REVERSAL_SUCCESS";
+    
+    if(analysis.vixLevel > 25.0)
+        ArrayResize(patterns, ArraySize(patterns) + 1); patterns[ArraySize(patterns) - 1] = "HIGH_VIX_ENTRY";
+    
+    if(analysis.expiryDay)
+        ArrayResize(patterns, ArraySize(patterns) + 1); patterns[ArraySize(patterns) - 1] = "EXPIRY_DAY_TRADE";
+    
+    if(analysis.timeOfDay == "MORNING")
+        ArrayResize(patterns, ArraySize(patterns) + 1); patterns[ArraySize(patterns) - 1] = "MORNING_BREAKOUT";
+    
+    if(analysis.mlConfidence > 80.0 && !analysis.mlFallback)
+        ArrayResize(patterns, ArraySize(patterns) + 1); patterns[ArraySize(patterns) - 1] = "ML_HIGH_CONFIDENCE";
+    
+    if(analysis.volumeRatio > 1.5)
+        ArrayResize(patterns, ArraySize(patterns) + 1); patterns[ArraySize(patterns) - 1] = "STRONG_VOLUME_CONFIRMATION";
+    
+    if(analysis.qualityGrade == "A")
+        ArrayResize(patterns, ArraySize(patterns) + 1); patterns[ArraySize(patterns) - 1] = "PERFECT_SETUP";
+    
+    // Add more pattern identification logic...
+}
+
+//+------------------------------------------------------------------+
+//| Update Single Pattern                                         |
+//+------------------------------------------------------------------+
+void UpdateSinglePattern(string patternName, const TradeAnalysis &analysis)
+{
+    // Find pattern in array
+    int patternIndex = -1;
+    for(int i = 0; i < g_PatternCount; i++)
+    {
+        if(g_Patterns[i].patternName == patternName)
+        {
+            patternIndex = i;
+            break;
+        }
+    }
+    
+    if(patternIndex < 0)
+        return;  // Pattern not found
+    
+    // Update pattern statistics
+    g_Patterns[patternIndex].occurrences++;
+    if(analysis.wasWinner)
+        g_Patterns[patternIndex].winners++;
+    
+    // Recalculate statistics
+    g_Patterns[patternIndex].winRate = ((double)g_Patterns[patternIndex].winners / g_Patterns[patternIndex].occurrences) * 100.0;
+    
+    // Update profit statistics
+    UpdatePatternProfitStats(patternIndex, analysis.profit);
+    
+    g_Patterns[patternIndex].lastOccurrence = analysis.closeTime;
+    
+    // Determine if pattern is reliable (minimum 10 occurrences, >60% win rate)
+    g_Patterns[patternIndex].isReliable = (g_Patterns[patternIndex].occurrences >= 10 && 
+                                          g_Patterns[patternIndex].winRate > 60.0);
+}
+
+//+------------------------------------------------------------------+
+//| Update Pattern Profit Stats                                   |
+//+------------------------------------------------------------------+
+void UpdatePatternProfitStats(int patternIndex, double profit)
+{
+    PatternAnalysis &pattern = g_Patterns[patternIndex];
+    
+    // Update max profit/loss
+    if(profit > pattern.maxProfit)
+        pattern.maxProfit = profit;
+    if(profit < pattern.maxLoss)
+        pattern.maxLoss = profit;
+    
+    // Recalculate average profit (simplified)
+    pattern.avgProfit = ((pattern.avgProfit * (pattern.occurrences - 1)) + profit) / pattern.occurrences;
+    
+    // Calculate profit factor
+    double grossProfit = 0.0, grossLoss = 0.0;
+    // This would require storing all trades for the pattern
+    // For now, use simplified calculation
+    if(pattern.maxLoss != 0.0)
+        pattern.profitFactor = MathAbs(pattern.maxProfit / pattern.maxLoss);
+}
+
+//+------------------------------------------------------------------+
+//| Update Condition Performance                                  |
+//+------------------------------------------------------------------+
+void UpdateConditionPerformance(const TradeAnalysis &analysis)
+{
+    // Get currently triggered conditions
+    for(int i = 0; i < 34; i++)
+    {
+        // Check if condition was triggered for this trade
+        bool wasTriggered = CheckConditionTriggered(g_Conditions[i].conditionName, analysis.openTime);
+        
+        if(wasTriggered)
+        {
+            g_Conditions[i].triggers++;
+            
+            if(analysis.wasWinner)
+                g_Conditions[i].trueSignals++;
+            else
+                g_Conditions[i].falseSignals++;
+            
+            // Recalculate accuracy
+            g_Conditions[i].accuracy = ((double)g_Conditions[i].trueSignals / g_Conditions[i].triggers) * 100.0;
+            
+            // Update average contribution
+            UpdateConditionContribution(i, analysis.profit);
+            
+            // Calculate reliability score
+            g_Conditions[i].reliability = CalculateConditionReliability(i);
+            
+            // Check if needs optimization
+            g_Conditions[i].needsOptimization = (g_Conditions[i].accuracy < 60.0 && g_Conditions[i].triggers > 20);
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Check Condition Triggered                                     |
+//+------------------------------------------------------------------+
+bool CheckConditionTriggered(string conditionName, datetime tradeTime)
+{
+    // This would check historical condition triggers
+    // For now, return simplified logic
+    return true;  // Placeholder
+}
+
+//+------------------------------------------------------------------+
+//| Update Condition Contribution                                 |
+//+------------------------------------------------------------------+
+void UpdateConditionContribution(int conditionIndex, double profit)
+{
+    ConditionPerformance &condition = g_Conditions[conditionIndex];
+    
+    // Recalculate average contribution
+    condition.avgContribution = ((condition.avgContribution * (condition.triggers - 1)) + profit) / condition.triggers;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Condition Reliability                               |
+//+------------------------------------------------------------------+
+double CalculateConditionReliability(int conditionIndex)
+{
+    ConditionPerformance &condition = g_Conditions[conditionIndex];
+    
+    double reliabilityScore = 50.0;  // Base score
+    
+    // Accuracy contribution (50%)
+    reliabilityScore += (condition.accuracy - 50.0) * 0.5;
+    
+    // Sample size contribution (30%)
+    if(condition.triggers >= 50)
+        reliabilityScore += 15.0;
+    else if(condition.triggers >= 20)
+        reliabilityScore += 10.0;
+    else if(condition.triggers >= 10)
+        reliabilityScore += 5.0;
+    
+    // Profit contribution (20%)
+    if(condition.avgContribution > 0)
+        reliabilityScore += 10.0;
+    
+    return MathMin(reliabilityScore, 100.0);
+}
+
+//+------------------------------------------------------------------+
+//| Update ML Performance                                         |
+//+------------------------------------------------------------------+
+void UpdateMLPerformance(const TradeAnalysis &analysis)
+{
+    if(analysis.mlFallback)
+        return;  // Skip if ML fallback was used
+    
+    // Update primary ensemble model
+    UpdateSingleMLModel(0, analysis);
+    
+    // Update specific models based on trade characteristics
+    if(analysis.path == "CT")
+        UpdateSingleMLModel(1, analysis);  // Trend prediction model
+    else if(analysis.path == "PB")
+        UpdateSingleMLModel(2, analysis);  // Reversal detection model
+    
+    if(analysis.vixLevel > 25.0)
+        UpdateSingleMLModel(3, analysis);  // Volatility model
+}
+
+//+------------------------------------------------------------------+
+//| Update Single ML Model                                        |
+//+------------------------------------------------------------------+
+void UpdateSingleMLModel(int modelIndex, const TradeAnalysis &analysis)
+{
+    MLModelPerformance &model = g_MLModels[modelIndex];
+    
+    model.predictions++;
+    
+    // Check if prediction was correct
+    bool correctPrediction = false;
+    if(analysis.mlPrediction == "BUY" && analysis.wasWinner && analysis.direction == "BUY")
+        correctPrediction = true;
+    else if(analysis.mlPrediction == "SELL" && analysis.wasWinner && analysis.direction == "SELL")
+        correctPrediction = true;
+    
+    if(correctPrediction)
+        model.correctPredictions++;
+    
+    // Recalculate accuracy
+    model.accuracy = ((double)model.correctPredictions / model.predictions) * 100.0;
+    
+    // Update average confidence
+    model.avgConfidence = ((model.avgConfidence * (model.predictions - 1)) + analysis.mlConfidence) / model.predictions;
+    
+    // Track high confidence trades
+    if(analysis.mlConfidence > 75.0)
+    {
+        model.highConfidenceTrades++;
+        if(correctPrediction)
+        {
+            model.highConfidenceAccuracy = ((model.highConfidenceAccuracy * (model.highConfidenceTrades - 1)) + 100.0) / model.highConfidenceTrades;
+        }
+        else
+        {
+            model.highConfidenceAccuracy = (model.highConfidenceAccuracy * (model.highConfidenceTrades - 1)) / model.highConfidenceTrades;
+        }
+    }
+    
+    // Determine performance trend
+    DetermineMLPerformanceTrend(modelIndex);
+    
+    // Check if needs retraining
+    model.needsRetraining = (model.accuracy < 70.0 && model.predictions > 100) ||
+                           (TimeCurrent() - model.lastTraining > 7 * 24 * 3600);  // Weekly retraining
+}
+
+//+------------------------------------------------------------------+
+//| Determine ML Performance Trend                                |
+//+------------------------------------------------------------------+
+void DetermineMLPerformanceTrend(int modelIndex)
+{
+    MLModelPerformance &model = g_MLModels[modelIndex];
+    
+    // Simplified trend calculation
+    // In production, would analyze recent performance vs historical
+    
+    if(model.accuracy > 85.0)
+        model.performanceTrend = "IMPROVING";
+    else if(model.accuracy > 75.0)
+        model.performanceTrend = "STABLE";
+    else
+        model.performanceTrend = "DECLINING";
+}
+
+//+------------------------------------------------------------------+
+//| Generate Analytics Report                                     |
+//+------------------------------------------------------------------+
+void GenerateAnalyticsReport()
+{
+    if(!g_AnalyticsActive)
+        return;
+    
+    Print("📊 ANALYTICS REPORT - EA GlobalFlow Pro v0.1");
+    Print("=================================================");
+    
+    // Trade statistics
+    PrintTradeStatistics();
+    
+    // Pattern analysis
+    PrintPatternAnalysis();
+    
+    // Condition performance
+    PrintConditionPerformance();
+    
+    // ML model performance
+    PrintMLPerformance();
+    
+    // Recommendations
+    PrintRecommendations();
+    
+    Print("=================================================");
+}
+
+//+------------------------------------------------------------------+
+//| Print Trade Statistics                                        |
+//+------------------------------------------------------------------+
+void PrintTradeStatistics()
+{
+    Print("📈 TRADE STATISTICS:");
+    Print("   Total Trades Analyzed: ", g_TradeCount);
+    
+    int winners = 0, losers = 0;
+    double totalProfit = 0.0;
+    
+    int limit = MathMin(g_TradeCount, 1000);
+    for(int i = 0; i < limit; i++)
+    {
+        if(g_TradeHistory[i].ticket > 0)
+        {
+            if(g_TradeHistory[i].wasWinner)
+                winners++;
+            else
+                losers++;
+            totalProfit += g_TradeHistory[i].profit;
+        }
+    }
+    
+    if(limit > 0)
+    {
+        double winRate = ((double)winners / limit) * 100.0;
+        Print("   Win Rate: ", DoubleToString(winRate, 1), "%");
+        Print("   Total Profit: $", DoubleToString(totalProfit, 2));
+        Print("   Average Profit per Trade: $", DoubleToString(totalProfit / limit, 2));
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Print Pattern Analysis                                        |
+//+------------------------------------------------------------------+
+void PrintPatternAnalysis()
+{
+    Print("🎯 TOP PERFORMING PATTERNS:");
+    
+    // Sort patterns by win rate
+    SortPatternsByWinRate();
+    
+    int printed = 0;
+    for(int i = 0; i < g_PatternCount && printed < 5; i++)
+    {
+        if(g_Patterns[i].occurrences >= 5)  // Minimum sample size
+        {
+            Print("   ", g_Patterns[i].patternName, ": ", 
+                  DoubleToString(g_Patterns[i].winRate, 1), "% (", 
+                  g_Patterns[i].occurrences, " trades)");
+            printed++;
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Print Condition Performance                                   |
+//+------------------------------------------------------------------+
+void PrintConditionPerformance()
+{
+    Print("🔧 CONDITION PERFORMANCE (Top 5):");
+    
+    // Sort conditions by reliability
+    SortConditionsByReliability();
+    
+    for(int i = 0; i < 5 && i < 34; i++)
+    {
+        if(g_Conditions[i].triggers > 0)
+        {
+            Print("   ", g_Conditions[i].conditionName, ": ", 
+                  DoubleToString(g_Conditions[i].accuracy, 1), "% accuracy (", 
+                  g_Conditions[i].triggers, " triggers)");
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Print ML Performance                                          |
+//+------------------------------------------------------------------+
+void PrintMLPerformance()
+{
+    Print("🤖 ML MODEL PERFORMANCE:");
+    
+    for(int i = 0; i < 5; i++)
+    {
+        if(g_MLModels[i].predictions > 0)
+        {
+            Print("   ", g_MLModels[i].modelName, ": ", 
+                  DoubleToString(g_MLModels[i].accuracy, 1), "% (", 
+                  g_MLModels[i].predictions, " predictions) - ", 
+                  g_MLModels[i].performanceTrend);
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Print Recommendations                                         |
+//+------------------------------------------------------------------+
+void PrintRecommendations()
+{
+    Print("💡 RECOMMENDATIONS:");
+    
+    // Check for patterns that need attention
+    for(int i = 0; i < g_PatternCount; i++)
+    {
+        if(g_Patterns[i].occurrences >= 10 && g_Patterns[i].winRate < 50.0)
+        {
+            Print("   ⚠️ Consider avoiding pattern: ", g_Patterns[i].patternName);
+        }
+    }
+    
+    // Check for conditions that need optimization
+    for(int i = 0; i < 34; i++)
+    {
+        if(g_Conditions[i].needsOptimization)
+        {
+            Print("   🔧 Optimize condition: ", g_Conditions[i].conditionName);
+        }
+    }
+    
+    // Check for ML models that need retraining
+    for(int i = 0; i < 5; i++)
+    {
+        if(g_MLModels[i].needsRetraining)
+        {
+            Print("   🤖 Retrain model: ", g_MLModels[i].modelName);
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Helper Sorting Functions                                      |
+//+------------------------------------------------------------------+
+void SortPatternsByWinRate()
+{
+    // Simple bubble sort by win rate (descending)
+    for(int i = 0; i < g_PatternCount - 1; i++)
+    {
+        for(int j = 0; j < g_PatternCount - i - 1; j++)
+        {
+            if(g_Patterns[j].winRate < g_Patterns[j + 1].winRate)
+            {
+                // Swap patterns
+                PatternAnalysis temp = g_Patterns[j];
+                g_Patterns[j] = g_Patterns[j + 1];
+                g_Patterns[j + 1] = temp;
+            }
+        }
+    }
+}
+
+void SortConditionsByReliability()
+{
+    // Simple bubble sort by reliability (descending)
+    for(int i = 0; i < 33; i++)
+    {
+        for(int j = 0; j < 33 - i; j++)
+        {
+            if(g_Conditions[j].reliability < g_Conditions[j + 1].reliability)
+            {
+                // Swap conditions
+                ConditionPerformance temp = g_Conditions[j];
+                g_Conditions[j] = g_Conditions[j + 1];
+                g_Conditions[j + 1] = temp;
+            }
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Load Historical Analytics                                     |
+//+------------------------------------------------------------------+
+void LoadHistoricalAnalytics()
+{
+    // Load previous analytics data if exists
+    // This would read from saved files
+    Print("📂 Loading historical analytics data...");
+    
+    // Placeholder for loading logic
+    
+    Print("✅ Historical data loaded");
+}
+
+//+------------------------------------------------------------------+
+//| Save Analytics Data                                           |
+//+------------------------------------------------------------------+
+void SaveAnalyticsData()
+{
+    // Save current analytics data
+    Print("💾 Saving analytics data...");
+    
+    // Save patterns
+    SavePatternData();
+    
+    // Save condition performance
+    SaveConditionData();
+    
+    // Save ML performance
+    SaveMLData();
+    
+    Print("✅ Analytics data saved");
+}
+
+//+------------------------------------------------------------------+
+//| Save Pattern Data                                             |
+//+------------------------------------------------------------------+
+void SavePatternData()
+{
+    string filename = "EA_GlobalFlow_Patterns.csv";
+    int handle = FileOpen(filename, FILE_WRITE | FILE_CSV);
+    
+    if(handle != INVALID_HANDLE)
+    {
+        FileWrite(handle, "PatternName,Occurrences,Winners,WinRate,AvgProfit,MaxProfit,MaxLoss,ProfitFactor,LastOccurrence,IsReliable");
+        
+        for(int i = 0; i < g_PatternCount; i++)
+        {
+            if(g_Patterns[i].occurrences > 0)
+            {
+                FileWrite(handle, g_Patterns[i].patternName, g_Patterns[i].occurrences,
+                         g_Patterns[i].winners, g_Patterns[i].winRate, g_Patterns[i].avgProfit,
+                         g_Patterns[i].maxProfit, g_Patterns[i].maxLoss, g_Patterns[i].profitFactor,
+                         TimeToString(g_Patterns[i].lastOccurrence), BoolToString(g_Patterns[i].isReliable));
+            }
+        }
+        
+        FileClose(handle);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Save Condition Data                                           |
+//+------------------------------------------------------------------+
+void SaveConditionData()
+{
+    string filename = "EA_GlobalFlow_Conditions.csv";
+    int handle = FileOpen(filename, FILE_WRITE | FILE_CSV);
+    
+    if(handle != INVALID_HANDLE)
+    {
+        FileWrite(handle, "ConditionName,Triggers,FalseSignals,TrueSignals,Accuracy,AvgContribution,Reliability,NeedsOptimization");
+        
+        for(int i = 0; i < 34; i++)
+        {
+            if(g_Conditions[i].triggers > 0)
+            {
+                FileWrite(handle, g_Conditions[i].conditionName, g_Conditions[i].triggers,
+                         g_Conditions[i].falseSignals, g_Conditions[i].trueSignals,
+                         g_Conditions[i].accuracy, g_Conditions[i].avgContribution,
+                         g_Conditions[i].reliability, BoolToString(g_Conditions[i].needsOptimization));
+            }
+        }
+        
+        FileClose(handle);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Save ML Data                                                  |
+//+------------------------------------------------------------------+
+void SaveMLData()
+{
+    string filename = "EA_GlobalFlow_ML_Performance.csv";
+    int handle = FileOpen(filename, FILE_WRITE | FILE_CSV);
+    
+    if(handle != INVALID_HANDLE)
+    {
+        FileWrite(handle, "ModelName,Predictions,CorrectPredictions,Accuracy,AvgConfidence,HighConfidenceTrades,HighConfidenceAccuracy,PerformanceTrend,NeedsRetraining");
+        
+        for(int i = 0; i < 5; i++)
+        {
+            if(g_MLModels[i].predictions > 0)
+            {
+                FileWrite(handle, g_MLModels[i].modelName, g_MLModels[i].predictions,
+                         g_MLModels[i].correctPredictions, g_MLModels[i].accuracy,
+                         g_MLModels[i].avgConfidence, g_MLModels[i].highConfidenceTrades,
+                         g_MLModels[i].highConfidenceAccuracy, g_MLModels[i].performanceTrend,
+                         BoolToString(g_MLModels[i].needsRetraining));
+            }
+        }
+        
+        FileClose(handle);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Log Analytics Event                                           |
+//+------------------------------------------------------------------+
+void LogAnalyticsEvent(string eventType, string description)
+{
+    if(g_LogHandle != INVALID_HANDLE)
+    {
+        string logLine = StringFormat("%s,%s,0,,,,,%s", 
+                                     TimeToString(TimeCurrent()), eventType, description);
+        FileWrite(g_LogHandle, logLine);
+        FileFlush(g_LogHandle);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Get Trade Analysis by Ticket                                 |
+//+------------------------------------------------------------------+
+TradeAnalysis GetTradeAnalysisByTicket(ulong ticket)
+{
+    TradeAnalysis empty;
+    ResetTradeAnalysis(empty);
+    
+    int limit = MathMin(g_TradeCount, 1000);
+    for(int i = 0; i < limit; i++)
+    {
+        if(g_TradeHistory[i].ticket == ticket)
+        {
+            return g_TradeHistory[i];
+        }
+    }
+    
+    return empty;
+}
+
+//+------------------------------------------------------------------+
+//| Get Pattern Performance                                       |
+//+------------------------------------------------------------------+
+PatternAnalysis GetPatternPerformance(string patternName)
+{
+    PatternAnalysis empty;
+    empty.patternName = patternName;
+    
+    for(int i = 0; i < g_PatternCount; i++)
+    {
+        if(g_Patterns[i].patternName == patternName)
+        {
+            return g_Patterns[i];
+        }
+    }
+    
+    return empty;
+}
+
+//+------------------------------------------------------------------+
+//| Cleanup Analytics System                                      |
+//+------------------------------------------------------------------+
+void CleanupAnalytics()
+{
+    Print("🧹 Cleaning up Analytics System...");
+    
+    // Save all current data before cleanup
+    SaveAnalyticsData();
+    
+    // Close log file
+    if(g_LogHandle != INVALID_HANDLE)
+    {
+        FileClose(g_LogHandle);
+        g_LogHandle = INVALID_HANDLE;
+    }
+    
+    // Reset all analytics data
+    for(int i = 0; i < 1000; i++)
+    {
+        ResetTradeAnalysis(g_TradeHistory[i]);
+    }
+    
+    InitializePatternAnalysis();
+    InitializeConditionPerformance();
+    InitializeMLModelTracking();
+    
+    g_TradeCount = 0;
+    g_AnalyticsActive = false;
+    g_LastAnalysis = 0;
+    
+    Print("✅ Analytics System cleanup complete");
+}
+
+//+------------------------------------------------------------------+
+//| Update Analytics Timer                                         |
+//+------------------------------------------------------------------+
+void UpdateAnalyticsTimer()
+{
+    if(!g_AnalyticsActive)
+        return;
+    
+    // Generate report every hour
+    if(TimeCurrent() - g_LastAnalysis > 3600)
+    {
+        GenerateAnalyticsReport();
+        SaveAnalyticsData();
+        g_LastAnalysis = TimeCurrent();
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Send Analytics to Python Bridge                               |
+//+------------------------------------------------------------------+
+void SendAnalyticsToPythonBridge()
+{
+    if(!g_AnalyticsActive)
+        return;
+    
+    // Prepare analytics data for ML training
+    string analyticsData = PrepareAnalyticsForML();
+    
+    // Send to Python bridge for ML model training
+    string command = "{\"service\":\"ml_trainer\",\"action\":\"update_training_data\"," +
+                     "\"data\":" + analyticsData + "}";
+    
+    string response = SendPythonCommand(command);
+    
+    if(StringFind(response, "success") >= 0)
+    {
+        Print("✅ Analytics data sent to ML training system");
+        LogAnalyticsEvent("ML_TRAINING_UPDATE", "Training data updated successfully");
+    }
+    else
+    {
+        Print("❌ Failed to send analytics to ML system");
+        LogAnalyticsEvent("ML_TRAINING_ERROR", "Failed to update training data");
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Prepare Analytics for ML                                      |
+//+------------------------------------------------------------------+
+string PrepareAnalyticsForML()
+{
+    string mlData = "{\"trades\":[";
+    
+    int limit = MathMin(g_TradeCount, 100);  // Send last 100 trades
+    bool first = true;
+    
+    for(int i = 0; i < limit; i++)
+    {
+        if(g_TradeHistory[i].ticket > 0)
+        {
+            if(!first) mlData += ",";
+            first = false;
+            
+            mlData += "{";
+            mlData += "\"profit\":" + DoubleToString(g_TradeHistory[i].profit, 2) + ",";
+            mlData += "\"enhancementScore\":" + DoubleToString(g_TradeHistory[i].enhancementScore, 1) + ",";
+            mlData += "\"mlConfidence\":" + DoubleToString(g_TradeHistory[i].mlConfidence, 1) + ",";
+            mlData += "\"triggeredConditions\":" + IntegerToString(g_TradeHistory[i].triggeredConditions) + ",";
+            mlData += "\"volumeRatio\":" + DoubleToString(g_TradeHistory[i].volumeRatio, 2) + ",";
+            mlData += "\"vixLevel\":" + DoubleToString(g_TradeHistory[i].vixLevel, 1) + ",";
+            mlData += "\"trendStrength\":" + DoubleToString(g_TradeHistory[i].trendStrength, 1) + ",";
+            mlData += "\"wasWinner\":" + BoolToString(g_TradeHistory[i].wasWinner);
+            mlData += "}";
+        }
+    }
+    
+    mlData += "]}";
+    return mlData;
+}
+
+//+------------------------------------------------------------------+
+//| Advanced Analytics Functions                                  |
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//| Calculate System Evolution Score                              |
+//+------------------------------------------------------------------+
+double CalculateSystemEvolutionScore()
+{
+    if(g_TradeCount < 50)
+        return 50.0;  // Insufficient data
+    
+    double evolutionScore = 50.0;
+    
+    // Analyze recent vs historical performance
+    double recentWinRate = CalculateRecentWinRate(50);  // Last 50 trades
+    double historicalWinRate = CalculateHistoricalWinRate();
+    
+    if(recentWinRate > historicalWinRate)
+        evolutionScore += (recentWinRate - historicalWinRate);
+    else
+        evolutionScore -= (historicalWinRate - recentWinRate);
+    
+    // ML model improvement contribution
+    double mlImprovement = CalculateMLImprovement();
+    evolutionScore += mlImprovement * 0.3;
+    
+    // Pattern recognition improvement
+    double patternImprovement = CalculatePatternImprovement();
+    evolutionScore += patternImprovement * 0.2;
+    
+    return MathMax(0.0, MathMin(100.0, evolutionScore));
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Recent Win Rate                                     |
+//+------------------------------------------------------------------+
+double CalculateRecentWinRate(int tradeCount)
+{
+    int winners = 0;
+    int totalTrades = 0;
+    
+    int startIndex = MathMax(0, g_TradeCount - tradeCount);
+    int limit = MathMin(g_TradeCount, 1000);
+    
+    for(int i = startIndex; i < limit; i++)
+    {
+        if(g_TradeHistory[i % 1000].ticket > 0)
+        {
+            totalTrades++;
+            if(g_TradeHistory[i % 1000].wasWinner)
+                winners++;
+        }
+    }
+    
+    if(totalTrades > 0)
+        return ((double)winners / totalTrades) * 100.0;
+    else
+        return 0.0;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Historical Win Rate                                 |
+//+------------------------------------------------------------------+
+double CalculateHistoricalWinRate()
+{
+    int winners = 0;
+    int totalTrades = 0;
+    
+    int limit = MathMin(g_TradeCount, 1000);
+    
+    for(int i = 0; i < limit; i++)
+    {
+        if(g_TradeHistory[i].ticket > 0)
+        {
+            totalTrades++;
+            if(g_TradeHistory[i].wasWinner)
+                winners++;
+        }
+    }
+    
+    if(totalTrades > 0)
+        return ((double)winners / totalTrades) * 100.0;
+    else
+        return 0.0;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate ML Improvement                                      |
+//+------------------------------------------------------------------+
+double CalculateMLImprovement()
+{
+    double improvementScore = 0.0;
+    
+    for(int i = 0; i < 5; i++)
+    {
+        if(g_MLModels[i].predictions > 20)  // Minimum sample size
+        {
+            if(g_MLModels[i].performanceTrend == "IMPROVING")
+                improvementScore += 5.0;
+            else if(g_MLModels[i].performanceTrend == "STABLE")
+                improvementScore += 2.0;
+            else if(g_MLModels[i].performanceTrend == "DECLINING")
+                improvementScore -= 3.0;
+        }
+    }
+    
+    return improvementScore;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Pattern Improvement                                 |
+//+------------------------------------------------------------------+
+double CalculatePatternImprovement()
+{
+    double improvementScore = 0.0;
+    int analyzedPatterns = 0;
+    
+    for(int i = 0; i < g_PatternCount; i++)
+    {
+        if(g_Patterns[i].occurrences >= 10)  // Statistically significant
+        {
+            analyzedPatterns++;
+            
+            if(g_Patterns[i].winRate > 80.0)
+                improvementScore += 3.0;
+            else if(g_Patterns[i].winRate > 70.0)
+                improvementScore += 2.0;
+            else if(g_Patterns[i].winRate > 60.0)
+                improvementScore += 1.0;
+            else
+                improvementScore -= 1.0;
+        }
+    }
+    
+    if(analyzedPatterns > 0)
+        return improvementScore / analyzedPatterns;
+    else
+        return 0.0;
+}
+
+//+------------------------------------------------------------------+
+//| Generate Improvement Recommendations                          |
+//+------------------------------------------------------------------+
+void GenerateImprovementRecommendations()
+{
+    Print("🚀 SYSTEM IMPROVEMENT RECOMMENDATIONS:");
+    Print("=====================================");
+    
+    // Analyze weak conditions
+    AnalyzeWeakConditions();
+    
+    // Analyze failing patterns
+    AnalyzeFailingPatterns();
+    
+    // Analyze ML model issues
+    AnalyzeMLModelIssues();
+    
+    // Market-specific recommendations
+    AnalyzeMarketSpecificIssues();
+    
+    // Time-based recommendations
+    AnalyzeTimeBasedIssues();
+    
+    Print("=====================================");
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Weak Conditions                                      |
+//+------------------------------------------------------------------+
+void AnalyzeWeakConditions()
+{
+    Print("🔧 WEAK CONDITIONS ANALYSIS:");
+    
+    int weakConditions = 0;
+    for(int i = 0; i < 34; i++)
+    {
+        if(g_Conditions[i].triggers >= 20 && g_Conditions[i].accuracy < 60.0)
+        {
+            weakConditions++;
+            Print("   ⚠️ ", g_Conditions[i].conditionName, 
+                  " - Accuracy: ", DoubleToString(g_Conditions[i].accuracy, 1), "%");
+            
+            // Suggest specific improvements
+            if(StringFind(g_Conditions[i].conditionName, "TDI") >= 0)
+                Print("      💡 Consider adjusting TDI parameters or levels");
+            else if(StringFind(g_Conditions[i].conditionName, "BB") >= 0)
+                Print("      💡 Consider modifying Bollinger Band periods or deviation");
+            else if(StringFind(g_Conditions[i].conditionName, "STR") >= 0)
+                Print("      💡 Consider optimizing SuperTrend ATR period or multiplier");
+        }
+    }
+    
+    if(weakConditions == 0)
+        Print("   ✅ All conditions performing adequately");
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Failing Patterns                                     |
+//+------------------------------------------------------------------+
+void AnalyzeFailingPatterns()
+{
+    Print("📉 FAILING PATTERNS ANALYSIS:");
+    
+    int failingPatterns = 0;
+    for(int i = 0; i < g_PatternCount; i++)
+    {
+        if(g_Patterns[i].occurrences >= 10 && g_Patterns[i].winRate < 50.0)
+        {
+            failingPatterns++;
+            Print("   ❌ ", g_Patterns[i].patternName, 
+                  " - Win Rate: ", DoubleToString(g_Patterns[i].winRate, 1), "% (", 
+                  g_Patterns[i].occurrences, " trades)");
+            Print("      💡 Consider avoiding this pattern or modifying entry criteria");
+        }
+    }
+    
+    if(failingPatterns == 0)
+        Print("   ✅ No consistently failing patterns identified");
+}
+
+//+------------------------------------------------------------------+
+//| Analyze ML Model Issues                                      |
+//+------------------------------------------------------------------+
+void AnalyzeMLModelIssues()
+{
+    Print("🤖 ML MODEL ANALYSIS:");
+    
+    int problematicModels = 0;
+    for(int i = 0; i < 5; i++)
+    {
+        if(g_MLModels[i].predictions >= 50)
+        {
+            if(g_MLModels[i].accuracy < 70.0)
+            {
+                problematicModels++;
+                Print("   ⚠️ ", g_MLModels[i].modelName, 
+                      " - Accuracy: ", DoubleToString(g_MLModels[i].accuracy, 1), "%");
+                Print("      💡 Requires retraining with more diverse data");
+            }
+            else if(g_MLModels[i].performanceTrend == "DECLINING")
+            {
+                problematicModels++;
+                Print("   📉 ", g_MLModels[i].modelName, " - Performance declining");
+                Print("      💡 Consider updating features or model architecture");
+            }
+        }
+    }
+    
+    if(problematicModels == 0)
+        Print("   ✅ All ML models performing within acceptable ranges");
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Market Specific Issues                               |
+//+------------------------------------------------------------------+
+void AnalyzeMarketSpecificIssues()
+{
+    Print("🌍 MARKET-SPECIFIC ANALYSIS:");
+    
+    // Analyze F&O vs Non-F&O performance
+    double fnOWinRate = 0.0, nonFnOWinRate = 0.0;
+    int fnOTrades = 0, nonFnOTrades = 0;
+    
+    int limit = MathMin(g_TradeCount, 1000);
+    for(int i = 0; i < limit; i++)
+    {
+        if(g_TradeHistory[i].ticket > 0)
+        {
+            if(g_TradeHistory[i].marketType == "F&O")
+            {
+                fnOTrades++;
+                if(g_TradeHistory[i].wasWinner) fnOWinRate += 1.0;
+            }
+            else
+            {
+                nonFnOTrades++;
+                if(g_TradeHistory[i].wasWinner) nonFnOWinRate += 1.0;
+            }
+        }
+    }
+    
+    if(fnOTrades > 0) fnOWinRate = (fnOWinRate / fnOTrades) * 100.0;
+    if(nonFnOTrades > 0) nonFnOWinRate = (nonFnOWinRate / nonFnOTrades) * 100.0;
+    
+    Print("   F&O Win Rate: ", DoubleToString(fnOWinRate, 1), "% (", fnOTrades, " trades)");
+    Print("   Non-F&O Win Rate: ", DoubleToString(nonFnOWinRate, 1), "% (", nonFnOTrades, " trades)");
+    
+    if(fnOWinRate < 65.0 && fnOTrades >= 20)
+        Print("      💡 F&O performance below target - review OI logic and strike selection");
+    
+    if(nonFnOWinRate < 65.0 && nonFnOTrades >= 20)
+        Print("      💡 Non-F&O performance below target - review market scanning and ranking");
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Time Based Issues                                    |
+//+------------------------------------------------------------------+
+void AnalyzeTimeBasedIssues()
+{
+    Print("⏰ TIME-BASED ANALYSIS:");
+    
+    // Analyze performance by time of day
+    int morningWins = 0, morningTotal = 0;
+    int afternoonWins = 0, afternoonTotal = 0;
+    int eveningWins = 0, eveningTotal = 0;
+    
+    int limit = MathMin(g_TradeCount, 1000);
+    for(int i = 0; i < limit; i++)
+    {
+        if(g_TradeHistory[i].ticket > 0)
+        {
+            if(g_TradeHistory[i].timeOfDay == "MORNING")
+            {
+                morningTotal++;
+                if(g_TradeHistory[i].wasWinner) morningWins++;
+            }
+            else if(g_TradeHistory[i].timeOfDay == "AFTERNOON")
+            {
+                afternoonTotal++;
+                if(g_TradeHistory[i].wasWinner) afternoonWins++;
+            }
+            else if(g_TradeHistory[i].timeOfDay == "EVENING")
+            {
+                eveningTotal++;
+                if(g_TradeHistory[i].wasWinner) eveningWins++;
+            }
+        }
+    }
+    
+    if(morningTotal > 0)
+    {
+        double morningWinRate = ((double)morningWins / morningTotal) * 100.0;
+        Print("   Morning Win Rate: ", DoubleToString(morningWinRate, 1), "% (", morningTotal, " trades)");
+        if(morningWinRate < 60.0 && morningTotal >= 10)
+            Print("      💡 Consider avoiding morning trades or adjusting morning parameters");
+    }
+    
+    if(afternoonTotal > 0)
+    {
+        double afternoonWinRate = ((double)afternoonWins / afternoonTotal) * 100.0;
+        Print("   Afternoon Win Rate: ", DoubleToString(afternoonWinRate, 1), "% (", afternoonTotal, " trades)");
+        if(afternoonWinRate < 60.0 && afternoonTotal >= 10)
+            Print("      💡 Review afternoon trading conditions and market volatility");
+    }
+    
+    if(eveningTotal > 0)
+    {
+        double eveningWinRate = ((double)eveningWins / eveningTotal) * 100.0;
+        Print("   Evening Win Rate: ", DoubleToString(eveningWinRate, 1), "% (", eveningTotal, " trades)");
+        if(eveningWinRate < 60.0 && eveningTotal >= 10)
+            Print("      💡 Evening trades may be affected by low liquidity");
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Generate Learning Insights                                   |
+//+------------------------------------------------------------------+
+void GenerateLearningInsights()
+{
+    Print("🧠 LEARNING INSIGHTS - EA GlobalFlow Pro v0.1:");
+    Print("===============================================");
+    
+    // System evolution score
+    double evolutionScore = CalculateSystemEvolutionScore();
+    Print("📈 System Evolution Score: ", DoubleToString(evolutionScore, 1), "/100");
+    
+    if(evolutionScore > 75.0)
+        Print("   ✅ System is evolving positively");
+    else if(evolutionScore > 50.0)
+        Print("   ⚖️ System evolution is stable");
+    else
+        Print("   ⚠️ System may need significant adjustments");
+    
+    // Best performing elements
+    Print("🏆 BEST PERFORMING ELEMENTS:");
+    IdentifyBestPerformers();
+    
+    // Areas for improvement
+    Print("🔧 PRIORITY IMPROVEMENT AREAS:");
+    IdentifyImprovementAreas();
+    
+    // Trading behavior insights
+    Print("💡 TRADING BEHAVIOR INSIGHTS:");
+    AnalyzeTradingBehavior();
+    
+    Print("===============================================");
+}
+
+//+------------------------------------------------------------------+
+//| Identify Best Performers                                     |
+//+------------------------------------------------------------------+
+void IdentifyBestPerformers()
+{
+    // Best conditions
+    double bestConditionReliability = 0.0;
+    string bestCondition = "";
+    
+    for(int i = 0; i < 34; i++)
+    {
+        if(g_Conditions[i].triggers >= 10 && g_Conditions[i].reliability > bestConditionReliability)
+        {
+            bestConditionReliability = g_Conditions[i].reliability;
+            bestCondition = g_Conditions[i].conditionName;
+        }
+    }
+    
+    if(bestCondition != "")
+        Print("   🥇 Best Condition: ", bestCondition, " (", DoubleToString(bestConditionReliability, 1), "% reliability)");
+    
+    // Best pattern
+    double bestPatternWinRate = 0.0;
+    string bestPattern = "";
+    
+    for(int i = 0; i < g_PatternCount; i++)
+    {
+        if(g_Patterns[i].occurrences >= 5 && g_Patterns[i].winRate > bestPatternWinRate)
+        {
+            bestPatternWinRate = g_Patterns[i].winRate;
+            bestPattern = g_Patterns[i].patternName;
+        }
+    }
+    
+    if(bestPattern != "")
+        Print("   🥇 Best Pattern: ", bestPattern, " (", DoubleToString(bestPatternWinRate, 1), "% win rate)");
+    
+    // Best ML model
+    double bestMLAccuracy = 0.0;
+    string bestMLModel = "";
+    
+    for(int i = 0; i < 5; i++)
+    {
+        if(g_MLModels[i].predictions >= 20 && g_MLModels[i].accuracy > bestMLAccuracy)
+        {
+            bestMLAccuracy = g_MLModels[i].accuracy;
+            bestMLModel = g_MLModels[i].modelName;
+        }
+    }
+    
+    if(bestMLModel != "")
+        Print("   🥇 Best ML Model: ", bestMLModel, " (", DoubleToString(bestMLAccuracy, 1), "% accuracy)");
+}
+
+//+------------------------------------------------------------------+
+//| Identify Improvement Areas                                    |
+//+------------------------------------------------------------------+
+void IdentifyImprovementAreas()
+{
+    // Count areas needing improvement
+    int weakConditions = 0;
+    int failingPatterns = 0;
+    int decliningMLModels = 0;
+    
+    for(int i = 0; i < 34; i++)
+    {
+        if(g_Conditions[i].triggers >= 20 && g_Conditions[i].accuracy < 60.0)
+            weakConditions++;
+    }
+    
+    for(int i = 0; i < g_PatternCount; i++)
+    {
+        if(g_Patterns[i].occurrences >= 10 && g_Patterns[i].winRate < 50.0)
+            failingPatterns++;
+    }
+    
+    for(int i = 0; i < 5; i++)
+    {
+        if(g_MLModels[i].predictions >= 20 && g_MLModels[i].performanceTrend == "DECLINING")
+            decliningMLModels++;
+    }
+    
+    if(weakConditions > 0)
+        Print("   🔧 ", weakConditions, " conditions need optimization");
+    if(failingPatterns > 0)
+        Print("   📉 ", failingPatterns, " patterns should be avoided or modified");
+    if(decliningMLModels > 0)
+        Print("   🤖 ", decliningMLModels, " ML models need retraining");
+    
+    if(weakConditions == 0 && failingPatterns == 0 && decliningMLModels == 0)
+        Print("   ✅ System is performing optimally across all components");
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Trading Behavior                                      |
+//+------------------------------------------------------------------+
+void AnalyzeTradingBehavior()
+{
+    if(g_TradeCount < 30)
+    {
+        Print("   ⏳ Insufficient data for behavior analysis (need 30+ trades)");
+        return;
+    }
+    
+    // Analyze risk-taking behavior
+    double avgEnhancementScore = 0.0;
+    int highRiskTrades = 0;
+    int conservativeTrades = 0;
+    
+    int limit = MathMin(g_TradeCount, 1000);
+    for(int i = 0; i < limit; i++)
+    {
+        if(g_TradeHistory[i].ticket > 0)
+        {
+            avgEnhancementScore += g_TradeHistory[i].enhancementScore;
+            
+            if(g_TradeHistory[i].enhancementScore < 70.0)
+                highRiskTrades++;
+            else if(g_TradeHistory[i].enhancementScore > 85.0)
+                conservativeTrades++;
+        }
+    }
+    
+    avgEnhancementScore /= limit;
+    
+    Print("   📊 Average Enhancement Score: ", DoubleToString(avgEnhancementScore, 1), "%");
+    Print("   ⚡ High Risk Trades: ", highRiskTrades, " (", DoubleToString(((double)highRiskTrades/limit)*100.0, 1), "%)");
+    Print("   🛡️ Conservative Trades: ", conservativeTrades, " (", DoubleToString(((double)conservativeTrades/limit)*100.0, 1), "%)");
+    
+    if(avgEnhancementScore < 75.0)
+        Print("      💡 Consider raising minimum enhancement threshold");
+    else if(avgEnhancementScore > 90.0)
+        Print("      💡 May be too conservative - missing good opportunities");
+}
+
+//+------------------------------------------------------------------+
+//| Export Analytics for External Analysis                        |
+//+------------------------------------------------------------------+
+void ExportAnalyticsForExternalAnalysis()
+{
+    Print("📤 Exporting analytics for external analysis...");
+    
+    // Export comprehensive dataset
+    string filename = "EA_GlobalFlow_Complete_Analytics_" + TimeToString(TimeCurrent(), TIME_DATE) + ".csv";
+    int handle = FileOpen(filename, FILE_WRITE | FILE_CSV);
+    
+    if(handle != INVALID_HANDLE)
+    {
+        // Write comprehensive header
+        WriteComprehensiveHeader(handle);
+        
+        // Write all trade data
+        int limit = MathMin(g_TradeCount, 1000);
+        for(int i = 0; i < limit; i++)
+        {
+            if(g_TradeHistory[i].ticket > 0)
+            {
+                WriteComprehensiveTradeData(handle, g_TradeHistory[i]);
+            }
+        }
+        
+        FileClose(handle);
+        Print("✅ Analytics exported to: ", filename);
+    }
+    else
+    {
+        Print("❌ Failed to create export file");
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Write Comprehensive Header                                    |
+//+------------------------------------------------------------------+
+void WriteComprehensiveHeader(int handle)
+{
+    string header = "Ticket,Symbol,MarketType,Direction,Path,OpenTime,CloseTime,OpenPrice,ClosePrice," +
+                   "Volume,Profit,CloseReason,TriggeredConditions,EnhancementScore,MLConfidence," +
+                   "MLPrediction,MLFallback,CandlePattern,VolumeRatio,VIXLevel,TrendStrength," +
+                   "SpotPrice,ATMStrike,OIBias,ImpliedVolatility,ExpiryDay,TimeOfDay,DayOfWeek," +
+                   "IchimokuSignal,TDISignal,SMMASlope,BBPosition,STREntryDistance,STRExitDistance," +
+                   "RiskReward,PositionSize,StopLoss,TakeProfit,MaxDrawdown,MaxRunup,WasWinner," +
+                   "PipsGained,BarsHeld,EfficiencyRatio,QualityGrade,NewsImpact,EconomicEvents," +
+                   "CorrelationImpact,MarketVolatility,NeedsReview,LearningNotes,ConfidenceLevel";
+    
+    FileWrite(handle, header);
+}
+
+//+------------------------------------------------------------------+
+//| Write Comprehensive Trade Data                               |
+//+------------------------------------------------------------------+
+void WriteComprehensiveTradeData(int handle, const TradeAnalysis &trade)
+{
+    FileWrite(handle, 
+             trade.ticket, trade.symbol, trade.marketType, trade.direction, trade.path,
+             TimeToString(trade.openTime), TimeToString(trade.closeTime),
+             trade.openPrice, trade.closePrice, trade.volume, trade.profit, trade.closeReason,
+             trade.triggeredConditions, trade.enhancementScore, trade.mlConfidence,
+             trade.mlPrediction, BoolToString(trade.mlFallback), trade.candlePattern,
+             trade.volumeRatio, trade.vixLevel, trade.trendStrength, trade.spotPrice,
+             trade.atmStrike, trade.oiBias, trade.impliedVolatility, BoolToString(trade.expiryDay),
+             trade.timeOfDay, trade.dayOfWeek, trade.ichimokuSignal, trade.tdiSignal,
+             trade.smmaSlope, trade.bbPosition, trade.strEntryDistance, trade.strExitDistance,
+             trade.riskReward, trade.positionSize, trade.stopLoss, trade.takeProfit,
+             trade.maxDrawdown, trade.maxRunup, BoolToString(trade.wasWinner),
+             trade.pipsGained, trade.barsHeld, trade.efficiencyRatio, trade.qualityGrade,
+             BoolToString(trade.newsImpact), trade.economicEvents, trade.correlationImpact,
+             trade.marketVolatility, BoolToString(trade.needsReview), trade.learningNotes,
+             trade.confidenceLevel);
+}
+
+//+------------------------------------------------------------------+
+//| Get Analytics Summary                                         |
+//+------------------------------------------------------------------+
+string GetAnalyticsSummary()
+{
+    string summary = "EA GlobalFlow Pro v0.1 Analytics Summary:\n";
+    summary += "==========================================\n";
+    summary += "Total Trades: " + IntegerToString(g_TradeCount) + "\n";
+    
+    if(g_TradeCount > 0)
+    {
+        double overallWinRate = CalculateHistoricalWinRate();
+        summary += "Overall Win Rate: " + DoubleToString(overallWinRate, 1) + "%\n";
+        
+        double evolutionScore = CalculateSystemEvolutionScore();
+        summary += "Evolution Score: " + DoubleToString(evolutionScore, 1) + "/100\n";
+        
+        // Add top performing pattern
+        SortPatternsByWinRate();
+        if(g_Patterns[0].occurrences >= 5)
+        {
+            summary += "Best Pattern: " + g_Patterns[0].patternName + 
+                      " (" + DoubleToString(g_Patterns[0].winRate, 1) + "%)\n";
+        }
+        
+        // Add best ML model
+        double bestMLAccuracy = 0.0;
+        string bestMLModel = "";
+        for(int i = 0; i < 5; i++)
+        {
+            if(g_MLModels[i].predictions >= 10 && g_MLModels[i].accuracy > bestMLAccuracy)
+            {
+                bestMLAccuracy = g_MLModels[i].accuracy;
+                bestMLModel = g_MLModels[i].modelName;
+            }
+        }
+        
+        if(bestMLModel != "")
+        {
+            summary += "Best ML Model: " + bestMLModel + 
+                      " (" + DoubleToString(bestMLAccuracy, 1) + "%)\n";
+        }
+    }
+    else
+    {
+        summary += "No trades recorded yet.\n";
+    }
+    
+    summary += "==========================================";
+    return summary;
+}
+
+//+------------------------------------------------------------------+
+//| Get Analytics Status                                          |
+//+------------------------------------------------------------------+
+bool IsAnalyticsActive()
+{
+    return g_AnalyticsActive;
+}
+
+//+------------------------------------------------------------------+
+//| Get Trade Count                                               |
+//+------------------------------------------------------------------+
+int GetTotalTradesAnalyzed()
+{
+    return g_TradeCount;
+}
+
+//+------------------------------------------------------------------+
+    

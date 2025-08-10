@@ -1,0 +1,679 @@
+//+------------------------------------------------------------------+
+//| GlobalFlow_Bridge.mqh - Python Integration System               |
+//| EA GlobalFlow Pro v0.1 - Institutional Grade                   |
+//| Copyright 2025, pajitmenonai@gmail.com                          |
+//+------------------------------------------------------------------+
+#property copyright "EA GlobalFlow Pro v0.1 - Python Bridge"
+#property link      "pajitmenonai@gmail.com"
+
+//--- Windows API for Named Pipes
+#import "kernel32.dll"
+   int CreateFileW(string lpFileName, int dwDesiredAccess, int dwShareMode, int lpSecurityAttributes, 
+                   int dwCreationDisposition, int dwFlagsAndAttributes, int hTemplateFile);
+   int WriteFile(int hFile, uchar &lpBuffer[], int nNumberOfBytesToWrite, int &lpNumberOfBytesWritten, int lpOverlapped);
+   int ReadFile(int hFile, uchar &lpBuffer[], int nNumberOfBytesToRead, int &lpNumberOfBytesRead, int lpOverlapped);
+   int CloseHandle(int hObject);
+   int WaitNamedPipeW(string lpNamedPipeName, int nTimeOut);
+   int GetLastError();
+#import
+
+//--- Named Pipe Constants
+#define GENERIC_READ                0x80000000
+#define GENERIC_WRITE               0x40000000
+#define OPEN_EXISTING               3
+#define PIPE_WAIT                   0x00000000
+#define INVALID_HANDLE_VALUE        -1
+
+//+------------------------------------------------------------------+
+//| Python Bridge Status Structure                                  |
+//+------------------------------------------------------------------+
+struct PythonBridgeStatus
+{
+    bool        connected;          // Bridge connection status
+    datetime    lastConnection;     // Last successful connection
+    datetime    lastHeartbeat;      // Last heartbeat from Python
+    int         errorCount;         // Consecutive error count
+    string      lastError;          // Last error message
+    bool        servicesRunning;    // Python services status
+    double      responseTime;       // Average response time (ms)
+};
+
+//+------------------------------------------------------------------+
+//| API Integration Structure                                        |
+//+------------------------------------------------------------------+
+struct APIStatus
+{
+    // Fyers API
+    bool        fyersConnected;     // Fyers API status
+    string      fyersToken;         // Current access token
+    datetime    fyersTokenExpiry;   // Token expiry time
+    bool        totpActive;         // TOTP service status
+    
+    // TrueData API
+    bool        truedataConnected;  // TrueData connection
+    datetime    lastDataUpdate;     // Last data update
+    int         symbolCount;        // Active symbols count
+    
+    // IC Markets
+    bool        icMarketsReady;     // IC Markets status
+    double      icSpread;           // Current spread
+    bool        tradingAllowed;     // Trading permission
+};
+
+//+------------------------------------------------------------------+
+//| Global Bridge Variables                                          |
+//+------------------------------------------------------------------+
+PythonBridgeStatus  g_BridgeStatus;
+APIStatus           g_APIStatus;
+int                 g_PipeHandle = INVALID_HANDLE_VALUE;
+string              g_PipeName = "\\\\.\\pipe\\EA_GlobalFlow_Bridge";
+
+//+------------------------------------------------------------------+
+//| Initialize Python Bridge                                         |
+//+------------------------------------------------------------------+
+bool InitializePythonBridge()
+{
+    Print("🐍 Initializing Python Bridge System...");
+    
+    // Initialize status structures
+    ResetBridgeStatus();
+    ResetAPIStatus();
+    
+    // Test Python bridge connection
+    if(!TestPythonConnection())
+    {
+        Print("❌ Python Bridge connection failed");
+        return false;
+    }
+    
+    // Initialize individual services
+    if(!InitializePythonServices())
+    {
+        Print("❌ Python services initialization failed");
+        return false;
+    }
+    
+    // Start heartbeat monitoring
+    StartHeartbeatMonitoring();
+    
+    Print("✅ Python Bridge initialized successfully");
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Reset Bridge Status                                             |
+//+------------------------------------------------------------------+
+void ResetBridgeStatus()
+{
+    g_BridgeStatus.connected = false;
+    g_BridgeStatus.lastConnection = 0;
+    g_BridgeStatus.lastHeartbeat = 0;
+    g_BridgeStatus.errorCount = 0;
+    g_BridgeStatus.lastError = "";
+    g_BridgeStatus.servicesRunning = false;
+    g_BridgeStatus.responseTime = 0.0;
+}
+
+//+------------------------------------------------------------------+
+//| Reset API Status                                                |
+//+------------------------------------------------------------------+
+void ResetAPIStatus()
+{
+    g_APIStatus.fyersConnected = false;
+    g_APIStatus.fyersToken = "";
+    g_APIStatus.fyersTokenExpiry = 0;
+    g_APIStatus.totpActive = false;
+    g_APIStatus.truedataConnected = false;
+    g_APIStatus.lastDataUpdate = 0;
+    g_APIStatus.symbolCount = 0;
+    g_APIStatus.icMarketsReady = false;
+    g_APIStatus.icSpread = 0.0;
+    g_APIStatus.tradingAllowed = false;
+}
+
+//+------------------------------------------------------------------+
+//| Test Python Connection                                          |
+//+------------------------------------------------------------------+
+bool TestPythonConnection()
+{
+    Print("🔗 Testing Python Bridge connection...");
+    
+    // Try to connect to named pipe
+    if(!ConnectToPipe())
+    {
+        Print("❌ Failed to connect to Python bridge pipe");
+        return false;
+    }
+    
+    // Send test command
+    string testCommand = "{\"command\":\"ping\",\"timestamp\":\"" + TimeToString(TimeCurrent()) + "\"}";
+    string response = SendPythonCommand(testCommand);
+    
+    if(StringFind(response, "pong") >= 0)
+    {
+        g_BridgeStatus.connected = true;
+        g_BridgeStatus.lastConnection = TimeCurrent();
+        Print("✅ Python Bridge connection successful");
+        return true;
+    }
+    
+    Print("❌ Python Bridge ping test failed");
+    return false;
+}
+
+//+------------------------------------------------------------------+
+//| Connect to Named Pipe                                           |
+//+------------------------------------------------------------------+
+bool ConnectToPipe()
+{
+    // Close existing connection
+    if(g_PipeHandle != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(g_PipeHandle);
+        g_PipeHandle = INVALID_HANDLE_VALUE;
+    }
+    
+    // Wait for pipe to be available
+    if(!WaitNamedPipeW(g_PipeName, 5000))  // 5 second timeout
+    {
+        Print("❌ Named pipe not available: ", g_PipeName);
+        return false;
+    }
+    
+    // Open the pipe
+    g_PipeHandle = CreateFileW(g_PipeName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, PIPE_WAIT, 0);
+    
+    if(g_PipeHandle == INVALID_HANDLE_VALUE)
+    {
+        int error = GetLastError();
+        Print("❌ Failed to open named pipe. Error: ", error);
+        return false;
+    }
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Send Command to Python Bridge                                   |
+//+------------------------------------------------------------------+
+string SendPythonCommand(string command)
+{
+    if(g_PipeHandle == INVALID_HANDLE_VALUE)
+    {
+        if(!ConnectToPipe())
+            return "";
+    }
+    
+    // Prepare command buffer
+    uchar commandBuffer[];
+    StringToCharArray(command + "\n", commandBuffer);
+    int commandSize = ArraySize(commandBuffer) - 1;  // Exclude null terminator
+    
+    // Send command
+    int bytesWritten = 0;
+    if(!WriteFile(g_PipeHandle, commandBuffer, commandSize, bytesWritten, 0))
+    {
+        int error = GetLastError();
+        Print("❌ Failed to write to pipe. Error: ", error);
+        g_BridgeStatus.errorCount++;
+        return "";
+    }
+    
+    // Read response
+    return ReadPythonResponse();
+}
+
+//+------------------------------------------------------------------+
+//| Read Python Response                                            |
+//+------------------------------------------------------------------+
+string ReadPythonResponse()
+{
+    uchar responseBuffer[4096];  // 4KB buffer
+    ArrayFill(responseBuffer, 0, ArraySize(responseBuffer), 0);
+    
+    int bytesRead = 0;
+    if(!ReadFile(g_PipeHandle, responseBuffer, ArraySize(responseBuffer) - 1, bytesRead, 0))
+    {
+        int error = GetLastError();
+        Print("❌ Failed to read from pipe. Error: ", error);
+        g_BridgeStatus.errorCount++;
+        return "";
+    }
+    
+    if(bytesRead > 0)
+    {
+        string response = CharArrayToString(responseBuffer, 0, bytesRead);
+        g_BridgeStatus.errorCount = 0;  // Reset error count on successful read
+        return response;
+    }
+    
+    return "";
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Python Services                                      |
+//+------------------------------------------------------------------+
+bool InitializePythonServices()
+{
+    Print("⚙️ Initializing Python services...");
+    
+    // Initialize Risk Manager
+    if(!InitializeRiskManager())
+    {
+        Print("❌ Risk Manager initialization failed");
+        return false;
+    }
+    
+    // Initialize TOTP Generator
+    if(!InitializeTOTPGenerator())
+    {
+        Print("❌ TOTP Generator initialization failed");
+        return false;
+    }
+    
+    // Initialize Market Scanner
+    if(!InitializeMarketScanner())
+    {
+        Print("❌ Market Scanner initialization failed");
+        return false;
+    }
+    
+    // Initialize Fyers Bridge
+    if(!InitializeFyersBridge())
+    {
+        Print("❌ Fyers Bridge initialization failed");
+        return false;
+    }
+    
+    // Initialize TrueData Bridge
+    if(!InitializeTrueDataBridge())
+    {
+        Print("❌ TrueData Bridge initialization failed");
+        return false;
+    }
+    
+    g_BridgeStatus.servicesRunning = true;
+    Print("✅ All Python services initialized");
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Risk Manager                                         |
+//+------------------------------------------------------------------+
+bool InitializeRiskManager()
+{
+    string command = "{\"service\":\"risk_manager\",\"action\":\"initialize\",\"account_balance\":" + 
+                     DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE), 2) + "}";
+    
+    string response = SendPythonCommand(command);
+    
+    if(StringFind(response, "\"status\":\"success\"") >= 0)
+    {
+        Print("✅ Risk Manager initialized");
+        return true;
+    }
+    
+    Print("❌ Risk Manager initialization failed: ", response);
+    return false;
+}
+
+//+------------------------------------------------------------------+
+//| Initialize TOTP Generator                                       |
+//+------------------------------------------------------------------+
+bool InitializeTOTPGenerator()
+{
+    string command = "{\"service\":\"totp_generator\",\"action\":\"initialize\"}";
+    string response = SendPythonCommand(command);
+    
+    if(StringFind(response, "\"status\":\"success\"") >= 0)
+    {
+        g_APIStatus.totpActive = true;
+        Print("✅ TOTP Generator initialized");
+        return true;
+    }
+    
+    Print("❌ TOTP Generator initialization failed: ", response);
+    return false;
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Market Scanner                                       |
+//+------------------------------------------------------------------+
+bool InitializeMarketScanner()
+{
+    string command = "{\"service\":\"market_scanner\",\"action\":\"initialize\"}";
+    string response = SendPythonCommand(command);
+    
+    if(StringFind(response, "\"status\":\"success\"") >= 0)
+    {
+        Print("✅ Market Scanner initialized");
+        return true;
+    }
+    
+    Print("❌ Market Scanner initialization failed: ", response);
+    return false;
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Fyers Bridge                                         |
+//+------------------------------------------------------------------+
+bool InitializeFyersBridge()
+{
+    string command = "{\"service\":\"fyers_bridge\",\"action\":\"login\"}";
+    string response = SendPythonCommand(command);
+    
+    if(StringFind(response, "\"status\":\"success\"") >= 0)
+    {
+        g_APIStatus.fyersConnected = true;
+        
+        // Extract access token from response
+        int tokenStart = StringFind(response, "\"access_token\":\"");
+        if(tokenStart >= 0)
+        {
+            tokenStart += 16;  // Length of "access_token":"
+            int tokenEnd = StringFind(response, "\"", tokenStart);
+            if(tokenEnd > tokenStart)
+            {
+                g_APIStatus.fyersToken = StringSubstr(response, tokenStart, tokenEnd - tokenStart);
+                g_APIStatus.fyersTokenExpiry = TimeCurrent() + 24 * 3600;  // 24 hours
+            }
+        }
+        
+        Print("✅ Fyers Bridge initialized");
+        return true;
+    }
+    
+    Print("❌ Fyers Bridge initialization failed: ", response);
+    return false;
+}
+
+//+------------------------------------------------------------------+
+//| Initialize TrueData Bridge                                      |
+//+------------------------------------------------------------------+
+bool InitializeTrueDataBridge()
+{
+    string command = "{\"service\":\"truedata_bridge\",\"action\":\"connect\"}";
+    string response = SendPythonCommand(command);
+    
+    if(StringFind(response, "\"status\":\"success\"") >= 0)
+    {
+        g_APIStatus.truedataConnected = true;
+        g_APIStatus.lastDataUpdate = TimeCurrent();
+        Print("✅ TrueData Bridge initialized");
+        return true;
+    }
+    
+    Print("❌ TrueData Bridge initialization failed: ", response);
+    return false;
+}
+
+//+------------------------------------------------------------------+
+//| Start Heartbeat Monitoring                                      |
+//+------------------------------------------------------------------+
+void StartHeartbeatMonitoring()
+{
+    g_BridgeStatus.lastHeartbeat = TimeCurrent();
+    Print("💓 Heartbeat monitoring started");
+}
+
+//+------------------------------------------------------------------+
+//| Check Python Bridge Health                                      |
+//+------------------------------------------------------------------+
+void CheckPythonBridgeHealth()
+{
+    datetime currentTime = TimeCurrent();
+    
+    // Check if heartbeat is overdue (more than 60 seconds)
+    if(currentTime - g_BridgeStatus.lastHeartbeat > 60)
+    {
+        Print("⚠️ Python Bridge heartbeat overdue");
+        
+        // Try to reconnect
+        if(!TestPythonConnection())
+        {
+            g_BridgeStatus.connected = false;
+            g_BridgeStatus.errorCount++;
+            
+            if(g_BridgeStatus.errorCount > 5)
+            {
+                Print("🚨 Python Bridge connection lost - multiple failures");
+                g_BridgeStatus.servicesRunning = false;
+            }
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Get Current VIX                                                 |
+//+------------------------------------------------------------------+
+double GetCurrentVIX()
+{
+    string command = "{\"service\":\"fyers_bridge\",\"action\":\"get_vix\"}";
+    string response = SendPythonCommand(command);
+    
+    // Parse VIX value from JSON response
+    int vixStart = StringFind(response, "\"vix\":");
+    if(vixStart >= 0)
+    {
+        vixStart += 6;  // Length of "vix":
+        int vixEnd = StringFind(response, ",", vixStart);
+        if(vixEnd < 0) vixEnd = StringFind(response, "}", vixStart);
+        
+        if(vixEnd > vixStart)
+        {
+            string vixStr = StringSubstr(response, vixStart, vixEnd - vixStart);
+            return StringToDouble(vixStr);
+        }
+    }
+    
+    // Return default VIX if unable to fetch
+    return 20.0;
+}
+
+//+------------------------------------------------------------------+
+//| Get Option Chain Data                                           |
+//+------------------------------------------------------------------+
+string GetOptionChainData(string underlying)
+{
+    string command = "{\"service\":\"truedata_bridge\",\"action\":\"get_option_chain\",\"underlying\":\"" + 
+                     underlying + "\"}";
+    
+    string response = SendPythonCommand(command);
+    
+    if(StringFind(response, "\"status\":\"success\"") >= 0)
+    {
+        g_APIStatus.lastDataUpdate = TimeCurrent();
+        return response;
+    }
+    
+    Print("❌ Failed to get option chain for ", underlying);
+    return "";
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Position Size                                         |
+//+------------------------------------------------------------------+
+double CalculatePositionSize(string symbol, double riskPercent, double stopLossPoints)
+{
+    string command = "{\"service\":\"risk_manager\",\"action\":\"calculate_position_size\"," +
+                     "\"symbol\":\"" + symbol + "\"," +
+                     "\"risk_percent\":" + DoubleToString(riskPercent, 2) + "," +
+                     "\"stop_loss_points\":" + DoubleToString(stopLossPoints, 5) + "," +
+                     "\"account_balance\":" + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE), 2) + "}";
+    
+    string response = SendPythonCommand(command);
+    
+    // Parse position size from response
+    int sizeStart = StringFind(response, "\"position_size\":");
+    if(sizeStart >= 0)
+    {
+        sizeStart += 16;  // Length of "position_size":
+        int sizeEnd = StringFind(response, ",", sizeStart);
+        if(sizeEnd < 0) sizeEnd = StringFind(response, "}", sizeStart);
+        
+        if(sizeEnd > sizeStart)
+        {
+            string sizeStr = StringSubstr(response, sizeStart, sizeEnd - sizeStart);
+            return StringToDouble(sizeStr);
+        }
+    }
+    
+    // Return minimum lot size if calculation fails
+    return SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+}
+
+//+------------------------------------------------------------------+
+//| Place Order via Fyers                                          |
+//+------------------------------------------------------------------+
+bool PlaceOrderViaFyers(string symbol, double quantity, string side, double price = 0.0)
+{
+    if(!g_APIStatus.fyersConnected)
+    {
+        Print("❌ Fyers not connected - cannot place order");
+        return false;
+    }
+    
+    string priceStr = (price > 0) ? DoubleToString(price, 5) : "0";
+    string command = "{\"service\":\"fyers_bridge\",\"action\":\"place_order\"," +
+                     "\"symbol\":\"" + symbol + "\"," +
+                     "\"quantity\":" + DoubleToString(quantity, 2) + "," +
+                     "\"side\":\"" + side + "\"," +
+                     "\"price\":" + priceStr + "}";
+    
+    string response = SendPythonCommand(command);
+    
+    if(StringFind(response, "\"status\":\"success\"") >= 0)
+    {
+        Print("✅ Order placed successfully: ", symbol, " ", side, " ", quantity);
+        return true;
+    }
+    
+    Print("❌ Order placement failed: ", response);
+    return false;
+}
+
+//+------------------------------------------------------------------+
+//| Get Non-F&O Market Rankings                                     |
+//+------------------------------------------------------------------+
+string GetNonFnOMarketRankings(int topCount = 20)
+{
+    string command = "{\"service\":\"market_scanner\",\"action\":\"scan_markets\"," +
+                     "\"top_count\":" + IntegerToString(topCount) + "}";
+    
+    string response = SendPythonCommand(command);
+    
+    if(StringFind(response, "\"status\":\"success\"") >= 0)
+    {
+        return response;
+    }
+    
+    Print("❌ Failed to get market rankings");
+    return "";
+}
+
+//+------------------------------------------------------------------+
+//| Request ML Prediction                                           |
+//+------------------------------------------------------------------+
+string RequestMLPrediction(string symbol, string timeframe)
+{
+    // Prepare market data for ML analysis
+    double prices[10];
+    for(int i = 0; i < 10; i++)
+    {
+        prices[i] = iClose(symbol, PERIOD_CURRENT, i);
+    }
+    
+    string pricesJson = "[";
+    for(int i = 0; i < 10; i++)
+    {
+        if(i > 0) pricesJson += ",";
+        pricesJson += DoubleToString(prices[i], 5);
+    }
+    pricesJson += "]";
+    
+    string command = "{\"service\":\"ml_predictor\",\"action\":\"predict\"," +
+                     "\"symbol\":\"" + symbol + "\"," +
+                     "\"timeframe\":\"" + timeframe + "\"," +
+                     "\"prices\":" + pricesJson + "}";
+    
+    string response = SendPythonCommand(command);
+    return response;
+}
+
+//+------------------------------------------------------------------+
+//| Cleanup Python Bridge                                          |
+//+------------------------------------------------------------------+
+void CleanupPythonBridge()
+{
+    Print("🧹 Cleaning up Python Bridge...");
+    
+    // Send shutdown command to Python services
+    string command = "{\"service\":\"all\",\"action\":\"shutdown\"}";
+    SendPythonCommand(command);
+    
+    // Close pipe handle
+    if(g_PipeHandle != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(g_PipeHandle);
+        g_PipeHandle = INVALID_HANDLE_VALUE;
+    }
+    
+    // Reset status
+    ResetBridgeStatus();
+    ResetAPIStatus();
+    
+    Print("✅ Python Bridge cleanup complete");
+}
+
+//+------------------------------------------------------------------+
+//| Get Bridge Status                                               |
+//+------------------------------------------------------------------+
+PythonBridgeStatus GetBridgeStatus()
+{
+    return g_BridgeStatus;
+}
+
+//+------------------------------------------------------------------+
+//| Get API Status                                                  |
+//+------------------------------------------------------------------+
+APIStatus GetAPIStatus()
+{
+    return g_APIStatus;
+}
+
+//+------------------------------------------------------------------+
+//| Check if Bridge is Healthy                                      |
+//+------------------------------------------------------------------+
+bool IsBridgeHealthy()
+{
+    return (g_BridgeStatus.connected && 
+            g_BridgeStatus.servicesRunning && 
+            g_BridgeStatus.errorCount < 5 &&
+            (TimeCurrent() - g_BridgeStatus.lastHeartbeat) < 120);  // 2 minutes tolerance
+}
+
+//+------------------------------------------------------------------+
+//| Emergency Bridge Reset                                          |
+//+------------------------------------------------------------------+
+bool EmergencyBridgeReset()
+{
+    Print("🚨 Emergency Python Bridge reset initiated");
+    
+    // Cleanup current connection
+    CleanupPythonBridge();
+    
+    // Wait 2 seconds
+    Sleep(2000);
+    
+    // Reinitialize
+    bool result = InitializePythonBridge();
+    
+    if(result)
+        Print("✅ Emergency bridge reset successful");
+    else
+        Print("❌ Emergency bridge reset failed");
+        
+    return result;
+}
+
+//+------------------------------------------------------------------+

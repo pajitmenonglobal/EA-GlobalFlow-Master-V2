@@ -1,0 +1,324 @@
+{
+  "ea_info": {
+    "name": "EA GlobalFlow Pro",
+    "version": "v0.1",
+    "strategy": "Ichimoku-TDI-PA-BBsqueeze-Kumocross",
+    "author": "EA GlobalFlow Pro Team",
+    "build_date": "2025-01-01",
+    "build_number": "001"
+  },
+  
+  "system_settings": {
+    "enable_live_trading": true,
+    "enable_dll_imports": true,
+    "allow_auto_trading": true,
+    "max_spread": 3.0,
+    "magic_number_base": 20250101,
+    "comment_prefix": "GFP_v01",
+    "max_concurrent_trades": 10,
+    "max_daily_trades": 50
+  },
+  
+  "market_support": {
+    "indian_fno": {
+      "enabled": true,
+      "trading_hours": {
+        "start": "09:30",
+        "end": "15:29",
+        "timezone": "IST",
+        "trading_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+      },
+      "strike_intervals": {
+        "nifty_index": 50,
+        "bank_nifty": 100,
+        "other_indices": 100,
+        "stock_options": "variable"
+      }
+    },
+    "forex": {
+      "enabled": true,
+      "trading_hours": {
+        "start": "01:00",
+        "end": "23:00",
+        "timezone": "Server",
+        "trading_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+      }
+    },
+    "commodities": {
+      "enabled": true,
+      "trading_hours": {
+        "start": "01:00", 
+        "end": "23:00",
+        "timezone": "Server",
+        "trading_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+      }
+    }
+  },
+  
+  "trading_strategy": {
+    "main_strategy": "Ichimoku-TDI-PA-BBsqueeze-Kumocross",
+    "trade_paths": {
+      "continuation": {
+        "enabled": true,
+        "description": "Trade with trend continuation"
+      },
+      "pullback": {
+        "enabled": true,
+        "description": "Trade market reversals"
+      }
+    },
+    "timeframe_analysis": {
+      "major_trend": ["D1", "H4"],
+      "middle_trend": ["H1", "M30"],
+      "entry_timeframes": ["M15", "M5"]
+    },
+    "exit_strategy": {
+      "method": "STR-EXIT",
+      "timeframe": "H1",
+      "atr_multiplier": 1.5,
+      "atr_period": 20
+    }
+  },
+  
+  "indicators": {
+    "ichimoku": {
+      "enabled": true,
+      "tenkan_sen": 9,
+      "kijun_sen": 26,
+      "senkou_span_b": 52
+    },
+    "tdi": {
+      "enabled": true,
+      "rsi_period": 13,
+      "volatility_band": 34,
+      "trade_signal_line": 2,
+      "market_base_line": 7
+    },
+    "smma": {
+      "enabled": true,
+      "period": 50
+    },
+    "bollinger_bands": {
+      "enabled": true,
+      "period": 20,
+      "deviation": 2.0,
+      "squeeze_threshold": 0.1
+    },
+    "supertrend_entry": {
+      "enabled": true,
+      "atr_period": 20,
+      "atr_multiplier": 1.0
+    },
+    "supertrend_exit": {
+      "enabled": true,
+      "atr_period": 20,
+      "atr_multiplier": 1.5
+    }
+  },
+  
+  "entry_conditions": {
+    "total_conditions": 34,
+    "buy_conditions": 17,
+    "sell_conditions": 17,
+    "validation_layers": {
+      "technical_analysis": true,
+      "ml_enhancement": true,
+      "risk_validation": true
+    }
+  },
+  
+  "fno_settings": {
+    "scanner_enabled": true,
+    "dynamic_charts": true,
+    "atm_selection": {
+      "method": "hybrid",
+      "oi_bias_threshold": 30.0,
+      "study_levels": 5
+    },
+    "hybrid_logic": {
+      "directional_bias": {
+        "enabled": true,
+        "atm_oi_threshold": 30.0,
+        "otm_oi_threshold": 30.0
+      },
+      "independent_bias": {
+        "enabled": true,
+        "otm_difference_threshold": 30.0
+      }
+    },
+    "chart_management": {
+      "max_call_charts": 10,
+      "max_put_charts": 10,
+      "auto_close_conditions": ["stop_loss", "take_profit", "expiry_time"],
+      "expiry_close_time": "15:29"
+    }
+  },
+  
+  "non_fno_settings": {
+    "scanner_enabled": true,
+    "max_charts": 20,
+    "ranking_criteria": ["success_probability", "risk_reward", "ml_confidence"],
+    "account_balance_integration": true,
+    "dynamic_lot_sizing": true
+  },
+  
+  "ml_enhancement": {
+    "enabled": true,
+    "models": {
+      "signal_validation": {
+        "enabled": true,
+        "model_type": "random_forest",
+        "confidence_threshold": 0.75
+      },
+      "market_regime": {
+        "enabled": true,
+        "model_type": "xgboost",
+        "regimes": ["trending", "ranging", "volatile"]
+      },
+      "risk_optimization": {
+        "enabled": true,
+        "model_type": "lstm",
+        "dynamic_sl_tp": true
+      }
+    },
+    "win_rate_target": 95.0,
+    "filter_chain": {
+      "entry_conditions_filter": 40.0,
+      "ml_validation_filter": 42.0,
+      "candlestick_volume_filter": 29.0
+    }
+  },
+  
+  "risk_management": {
+    "enabled": true,
+    "vix_based_sizing": true,
+    "correlation_limits": {
+      "max_correlation": 0.7,
+      "max_correlated_positions": 3
+    },
+    "emergency_protocols": {
+      "enabled": true,
+      "max_drawdown": 10.0,
+      "daily_loss_limit": 5.0,
+      "portfolio_heat": 20.0
+    },
+    "position_sizing": {
+      "method": "vix_adaptive",
+      "base_risk_percent": 1.0,
+      "max_risk_per_trade": 2.0,
+      "account_currency": "INR"
+    }
+  },
+  
+  "api_integrations": {
+    "fyers": {
+      "enabled": true,
+      "rate_limits": {
+        "orders_per_second": 10,
+        "data_requests_per_minute": 100
+      },
+      "reconnect_attempts": 3,
+      "timeout_seconds": 30
+    },
+    "truedata": {
+      "enabled": true,
+      "rate_limits": {
+        "data_requests_per_second": 5,
+        "option_chain_requests_per_minute": 20
+      },
+      "reconnect_attempts": 5,
+      "timeout_seconds": 15
+    }
+  },
+  
+  "alerts_notifications": {
+    "sound_alerts": {
+      "enabled": false,
+      "volume": 0.5
+    },
+    "email_alerts": {
+      "enabled": true,
+      "smtp_server": "smtp.gmail.com",
+      "smtp_port": 587
+    },
+    "phone_alerts": {
+      "enabled": true,
+      "whatsapp": {
+        "enabled": true,
+        "number": "+971507423656"
+      },
+      "sms": {
+        "enabled": false
+      }
+    },
+    "telegram": {
+      "enabled": true,
+      "bot_token": "TO_BE_CONFIGURED",
+      "chat_id": "TO_BE_CONFIGURED"
+    }
+  },
+  
+  "logging": {
+    "level": "INFO",
+    "file_rotation": true,
+    "max_file_size_mb": 10,
+    "backup_count": 5,
+    "log_components": {
+      "system": true,
+      "trading": true,
+      "api": true,
+      "ml": true,
+      "risk": true,
+      "errors": true
+    }
+  },
+  
+  "performance": {
+    "optimization_enabled": true,
+    "cache_enabled": true,
+    "parallel_processing": true,
+    "max_threads": 8,
+    "memory_limit_mb": 1024,
+    "cpu_usage_limit": 80.0
+  },
+  
+  "security": {
+    "encryption_enabled": true,
+    "totp_enabled": true,
+    "api_key_rotation": true,
+    "session_timeout": 3600,
+    "max_login_attempts": 3,
+    "lockout_duration": 300
+  },
+  
+  "backup_recovery": {
+    "auto_backup": true,
+    "backup_interval_hours": 6,
+    "max_backups": 24,
+    "backup_location": "Backups/",
+    "recovery_enabled": true
+  },
+  
+  "economic_calendar": {
+    "enabled": true,
+    "news_impact_filter": true,
+    "high_impact_pause": true,
+    "pause_minutes_before": 15,
+    "pause_minutes_after": 15,
+    "news_sources": ["investing.com", "forexfactory.com"]
+  },
+  
+  "testing_validation": {
+    "paper_trading": false,
+    "backtesting_enabled": true,
+    "forward_testing": true,
+    "validation_period_days": 30,
+    "performance_metrics": {
+      "win_rate": true,
+      "profit_factor": true,
+      "sharpe_ratio": true,
+      "max_drawdown": true,
+      "calmar_ratio": true
+    }
+  }
+}

@@ -1,0 +1,871 @@
+//+------------------------------------------------------------------+
+//| GlobalFlow_Risk.mqh - Advanced Risk Management System           |
+//| EA GlobalFlow Pro v0.1 - Institutional Grade                   |
+//| Copyright 2025, pajitmenonai@gmail.com                          |
+//+------------------------------------------------------------------+
+#property copyright "EA GlobalFlow Pro v0.1 - Risk Management"
+#property link      "pajitmenonai@gmail.com"
+
+//+------------------------------------------------------------------+
+//| Risk Management Structure                                       |
+//+------------------------------------------------------------------+
+struct RiskParameters
+{
+    double      maxDailyLoss;       // Maximum daily loss (account %)
+    double      maxRiskPerTrade;    // Maximum risk per trade (account %)
+    double      currentDailyPnL;    // Current daily P&L
+    double      accountBalance;     // Current account balance
+    double      accountEquity;      // Current account equity
+    double      freeMargin;         // Available free margin
+    int         maxPositions;       // Maximum open positions
+    int         currentPositions;   // Current open positions
+    bool        emergencyMode;      // Emergency risk mode active
+    datetime    lastRiskCheck;      // Last risk assessment time
+};
+
+//+------------------------------------------------------------------+
+//| VIX-Based Position Sizing Structure                            |
+//+------------------------------------------------------------------+
+struct VIXPositionSizing
+{
+    double      currentVIX;         // Current VIX level
+    double      vixThreshold;       // VIX threshold for adjustment
+    double      basePositionSize;   // Base position size (%)
+    double      vixAdjustedSize;    // VIX-adjusted position size
+    double      volatilityMultiplier; // Volatility adjustment multiplier
+    bool        highVolatilityMode; // High volatility mode active
+    datetime    lastVIXUpdate;      // Last VIX update time
+};
+
+//+------------------------------------------------------------------+
+//| Correlation Limits Structure                                   |
+//+------------------------------------------------------------------+
+struct CorrelationLimits
+{
+    double      maxCorrelationRisk; // Maximum correlation exposure (%)
+    double      currentCorrelationRisk; // Current correlation exposure
+    string      correlatedPairs[10]; // Highly correlated pairs
+    double      correlationMatrix[10][10]; // Correlation matrix
+    bool        correlationLimitBreached; // Correlation limit status
+    datetime    lastCorrelationCheck; // Last correlation check
+};
+
+//+------------------------------------------------------------------+
+//| Emergency Protocol Structure                                   |
+//+------------------------------------------------------------------+
+struct EmergencyProtocol
+{
+    bool        emergencyActive;    // Emergency protocol active
+    string      emergencyReason;    // Reason for emergency
+    datetime    emergencyStartTime; // Emergency start time
+    double      emergencyThreshold; // Emergency activation threshold
+    bool        closeAllPositions;  // Close all positions flag
+    bool        stopNewTrades;      // Stop new trades flag
+    int         emergencyLevel;     // Emergency level (1-5)
+};
+
+//+------------------------------------------------------------------+
+//| Global Risk Variables                                          |
+//+------------------------------------------------------------------+
+RiskParameters      g_RiskParams;
+VIXPositionSizing   g_VIXSizing;
+CorrelationLimits   g_CorrelationLimits;
+EmergencyProtocol   g_Emergency;
+
+//+------------------------------------------------------------------+
+//| Initialize Risk Management System                              |
+//+------------------------------------------------------------------+
+bool InitializeRiskManagement()
+{
+    Print("🛡️ Initializing Advanced Risk Management System...");
+    
+    // Initialize risk parameters
+    InitializeRiskParameters();
+    
+    // Initialize VIX-based sizing
+    InitializeVIXPositionSizing();
+    
+    // Initialize correlation limits
+    InitializeCorrelationLimits();
+    
+    // Initialize emergency protocols
+    InitializeEmergencyProtocol();
+    
+    // Perform initial risk assessment
+    if(!PerformInitialRiskAssessment())
+    {
+        Print("❌ Initial risk assessment failed");
+        return false;
+    }
+    
+    Print("✅ Risk Management System initialized successfully");
+    PrintRiskParameters();
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Risk Parameters                                     |
+//+------------------------------------------------------------------+
+void InitializeRiskParameters()
+{
+    g_RiskParams.maxDailyLoss = MaxDailyLoss_Percent;
+    g_RiskParams.maxRiskPerTrade = MaxRiskPerTrade_Percent;
+    g_RiskParams.currentDailyPnL = 0.0;
+    g_RiskParams.accountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+    g_RiskParams.accountEquity = AccountInfoDouble(ACCOUNT_EQUITY);
+    g_RiskParams.freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+    g_RiskParams.maxPositions = (g_SystemStatus.marketType == "F&O") ? MaxSecondaryCharts : NonFnO_MaxCharts;
+    g_RiskParams.currentPositions = PositionsTotal();
+    g_RiskParams.emergencyMode = false;
+    g_RiskParams.lastRiskCheck = TimeCurrent();
+    
+    Print("💰 Risk Parameters initialized:");
+    Print("   Account Balance: $", DoubleToString(g_RiskParams.accountBalance, 2));
+    Print("   Max Daily Loss: ", DoubleToString(g_RiskParams.maxDailyLoss, 2), "%");
+    Print("   Max Risk Per Trade: ", DoubleToString(g_RiskParams.maxRiskPerTrade, 2), "%");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize VIX Position Sizing                                |
+//+------------------------------------------------------------------+
+void InitializeVIXPositionSizing()
+{
+    g_VIXSizing.currentVIX = GetCurrentVIX();
+    g_VIXSizing.vixThreshold = VIXThreshold;
+    g_VIXSizing.basePositionSize = MaxRiskPerTrade_Percent;
+    g_VIXSizing.vixAdjustedSize = g_VIXSizing.basePositionSize;
+    g_VIXSizing.volatilityMultiplier = 1.0;
+    g_VIXSizing.highVolatilityMode = (g_VIXSizing.currentVIX > g_VIXSizing.vixThreshold);
+    g_VIXSizing.lastVIXUpdate = TimeCurrent();
+    
+    // Calculate initial VIX adjustment
+    CalculateVIXAdjustment();
+    
+    Print("📊 VIX Position Sizing initialized:");
+    Print("   Current VIX: ", DoubleToString(g_VIXSizing.currentVIX, 1));
+    Print("   VIX Threshold: ", DoubleToString(g_VIXSizing.vixThreshold, 1));
+    Print("   Adjusted Position Size: ", DoubleToString(g_VIXSizing.vixAdjustedSize, 2), "%");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Correlation Limits                                 |
+//+------------------------------------------------------------------+
+void InitializeCorrelationLimits()
+{
+    g_CorrelationLimits.maxCorrelationRisk = 15.0;  // 15% max correlation exposure
+    g_CorrelationLimits.currentCorrelationRisk = 0.0;
+    g_CorrelationLimits.correlationLimitBreached = false;
+    g_CorrelationLimits.lastCorrelationCheck = TimeCurrent();
+    
+    // Initialize correlation matrix
+    for(int i = 0; i < 10; i++)
+    {
+        g_CorrelationLimits.correlatedPairs[i] = "";
+        for(int j = 0; j < 10; j++)
+        {
+            g_CorrelationLimits.correlationMatrix[i][j] = 0.0;
+        }
+    }
+    
+    // Set up known high correlation pairs
+    SetupCorrelationPairs();
+    
+    Print("🔗 Correlation Limits initialized:");
+    Print("   Max Correlation Risk: ", DoubleToString(g_CorrelationLimits.maxCorrelationRisk, 1), "%");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Emergency Protocol                                  |
+//+------------------------------------------------------------------+
+void InitializeEmergencyProtocol()
+{
+    g_Emergency.emergencyActive = false;
+    g_Emergency.emergencyReason = "";
+    g_Emergency.emergencyStartTime = 0;
+    g_Emergency.emergencyThreshold = g_RiskParams.maxDailyLoss * 0.8;  // 80% of max loss
+    g_Emergency.closeAllPositions = false;
+    g_Emergency.stopNewTrades = false;
+    g_Emergency.emergencyLevel = 0;
+    
+    Print("🚨 Emergency Protocol initialized:");
+    Print("   Emergency Threshold: ", DoubleToString(g_Emergency.emergencyThreshold, 2), "%");
+}
+
+//+------------------------------------------------------------------+
+//| Setup Correlation Pairs                                       |
+//+------------------------------------------------------------------+
+void SetupCorrelationPairs()
+{
+    // Set up major correlation groups
+    g_CorrelationLimits.correlatedPairs[0] = "EURUSD";
+    g_CorrelationLimits.correlatedPairs[1] = "GBPUSD";
+    g_CorrelationLimits.correlatedPairs[2] = "AUDUSD";
+    g_CorrelationLimits.correlatedPairs[3] = "NZDUSD";
+    g_CorrelationLimits.correlatedPairs[4] = "USDCHF";
+    g_CorrelationLimits.correlatedPairs[5] = "USDJPY";
+    g_CorrelationLimits.correlatedPairs[6] = "USDCAD";
+    g_CorrelationLimits.correlatedPairs[7] = "GOLD";
+    g_CorrelationLimits.correlatedPairs[8] = "SILVER";
+    g_CorrelationLimits.correlatedPairs[9] = "OIL";
+    
+    // Set correlation coefficients (simplified - in production, use dynamic calculation)
+    g_CorrelationLimits.correlationMatrix[0][1] = 0.85;  // EURUSD-GBPUSD
+    g_CorrelationLimits.correlationMatrix[0][2] = 0.75;  // EURUSD-AUDUSD
+    g_CorrelationLimits.correlationMatrix[1][2] = 0.70;  // GBPUSD-AUDUSD
+    g_CorrelationLimits.correlationMatrix[7][8] = 0.80;  // GOLD-SILVER
+    
+    // Make matrix symmetric
+    for(int i = 0; i < 10; i++)
+    {
+        for(int j = i + 1; j < 10; j++)
+        {
+            g_CorrelationLimits.correlationMatrix[j][i] = g_CorrelationLimits.correlationMatrix[i][j];
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Perform Initial Risk Assessment                                |
+//+------------------------------------------------------------------+
+bool PerformInitialRiskAssessment()
+{
+    Print("🔍 Performing initial risk assessment...");
+    
+    // Check account health
+    if(g_RiskParams.accountBalance <= 0)
+    {
+        Print("❌ Invalid account balance: ", g_RiskParams.accountBalance);
+        return false;
+    }
+    
+    // Check free margin
+    if(g_RiskParams.freeMargin < g_RiskParams.accountBalance * 0.1)
+    {
+        Print("⚠️ WARNING: Low free margin - ", DoubleToString(g_RiskParams.freeMargin, 2));
+    }
+    
+    // Check spread
+    double spread = SymbolInfoInteger(Symbol(), SYMBOL_SPREAD) * SymbolInfoDouble(Symbol(), SYMBOL_POINT);
+    if(spread > SymbolInfoDouble(Symbol(), SYMBOL_ASK) * 0.001)  // More than 0.1%
+    {
+        Print("⚠️ WARNING: High spread detected - ", DoubleToString(spread, 5));
+    }
+    
+    // Update current positions
+    UpdateCurrentPositions();
+    
+    // Calculate current daily P&L
+    CalculateCurrentDailyPnL();
+    
+    Print("✅ Initial risk assessment completed");
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Update Current Positions                                       |
+//+------------------------------------------------------------------+
+void UpdateCurrentPositions()
+{
+    g_RiskParams.currentPositions = 0;
+    
+    for(int i = 0; i < PositionsTotal(); i++)
+    {
+        if(PositionSelectByIndex(i))
+        {
+            if(PositionGetInteger(POSITION_MAGIC) == MagicNumber)
+            {
+                g_RiskParams.currentPositions++;
+            }
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Current Daily P&L                                   |
+//+------------------------------------------------------------------+
+void CalculateCurrentDailyPnL()
+{
+    g_RiskParams.currentDailyPnL = 0.0;
+    
+    // Calculate from open positions
+    for(int i = 0; i < PositionsTotal(); i++)
+    {
+        if(PositionSelectByIndex(i))
+        {
+            if(PositionGetInteger(POSITION_MAGIC) == MagicNumber)
+            {
+                g_RiskParams.currentDailyPnL += PositionGetDouble(POSITION_PROFIT);
+            }
+        }
+    }
+    
+    // Add closed trades for today (simplified - in production, analyze history)
+    // This would require analyzing deal history for the current day
+    
+    // Update account info
+    g_RiskParams.accountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+    g_RiskParams.accountEquity = AccountInfoDouble(ACCOUNT_EQUITY);
+    g_RiskParams.freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+}
+
+//+------------------------------------------------------------------+
+//| Calculate VIX Adjustment                                       |
+//+------------------------------------------------------------------+
+void CalculateVIXAdjustment()
+{
+    if(!EnableVIXBasedSizing)
+    {
+        g_VIXSizing.vixAdjustedSize = g_VIXSizing.basePositionSize;
+        g_VIXSizing.volatilityMultiplier = 1.0;
+        return;
+    }
+    
+    // VIX-based position sizing formula
+    if(g_VIXSizing.currentVIX > g_VIXSizing.vixThreshold)
+    {
+        // High VIX - reduce position size
+        g_VIXSizing.volatilityMultiplier = g_VIXSizing.vixThreshold / g_VIXSizing.currentVIX;
+        g_VIXSizing.highVolatilityMode = true;
+    }
+    else
+    {
+        // Normal/Low VIX - use base size or slight increase
+        g_VIXSizing.volatilityMultiplier = MathMin(1.2, g_VIXSizing.vixThreshold / MathMax(g_VIXSizing.currentVIX, 10.0));
+        g_VIXSizing.highVolatilityMode = false;
+    }
+    
+    // Apply multiplier with limits
+    g_VIXSizing.vixAdjustedSize = g_VIXSizing.basePositionSize * g_VIXSizing.volatilityMultiplier;
+    g_VIXSizing.vixAdjustedSize = MathMax(g_VIXSizing.vixAdjustedSize, 0.1);  // Minimum 0.1%
+    g_VIXSizing.vixAdjustedSize = MathMin(g_VIXSizing.vixAdjustedSize, g_VIXSizing.basePositionSize * 1.5);  // Maximum 1.5x base
+    
+    if(EnableDetailedLogging)
+    {
+        Print("📊 VIX Adjustment calculated:");
+        Print("   VIX: ", DoubleToString(g_VIXSizing.currentVIX, 1));
+        Print("   Multiplier: ", DoubleToString(g_VIXSizing.volatilityMultiplier, 3));
+        Print("   Adjusted Size: ", DoubleToString(g_VIXSizing.vixAdjustedSize, 2), "%");
+        Print("   High Vol Mode: ", g_VIXSizing.highVolatilityMode);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Position Size                                        |
+//+------------------------------------------------------------------+
+double CalculatePositionSize(string symbol, double stopLossPrice, double entryPrice)
+{
+    // Update VIX if stale
+    if(TimeCurrent() - g_VIXSizing.lastVIXUpdate > 3600)  // 1 hour
+    {
+        g_VIXSizing.currentVIX = GetCurrentVIX();
+        g_VIXSizing.lastVIXUpdate = TimeCurrent();
+        CalculateVIXAdjustment();
+    }
+    
+    // Calculate risk per trade in account currency
+    double riskAmount = g_RiskParams.accountBalance * g_VIXSizing.vixAdjustedSize / 100.0;
+    
+    // Calculate stop loss in points
+    double stopLossPoints = MathAbs(entryPrice - stopLossPrice);
+    if(stopLossPoints <= 0)
+    {
+        Print("❌ Invalid stop loss distance");
+        return SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+    }
+    
+    // Calculate position size
+    double tickValue = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE);
+    double tickSize = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_SIZE);
+    
+    if(tickValue <= 0 || tickSize <= 0)
+    {
+        Print("❌ Invalid symbol tick values");
+        return SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+    }
+    
+    // Position size calculation
+    double positionSize = (riskAmount * tickSize) / (stopLossPoints * tickValue);
+    
+    // Apply symbol constraints
+    double minLot = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+    double maxLot = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX);
+    double lotStep = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
+    
+    // Normalize to lot step
+    positionSize = NormalizeDouble(positionSize / lotStep, 0) * lotStep;
+    
+    // Ensure within bounds
+    positionSize = MathMax(positionSize, minLot);
+    positionSize = MathMin(positionSize, maxLot);
+    
+    // Apply correlation limits
+    positionSize = ApplyCorrelationLimits(symbol, positionSize);
+    
+    if(EnableDetailedLogging)
+    {
+        Print("💰 Position Size Calculated:");
+        Print("   Symbol: ", symbol);
+        Print("   Risk Amount: $", DoubleToString(riskAmount, 2));
+        Print("   Stop Loss Points: ", DoubleToString(stopLossPoints, 5));
+        Print("   Raw Size: ", DoubleToString(positionSize, 2));
+        Print("   Final Size: ", DoubleToString(positionSize, 2));
+    }
+    
+    return positionSize;
+}
+
+//+------------------------------------------------------------------+
+//| Apply Correlation Limits                                       |
+//+------------------------------------------------------------------+
+double ApplyCorrelationLimits(string symbol, double requestedSize)
+{
+    if(!EnableCorrelationLimits)
+        return requestedSize;
+    
+    // Find symbol in correlation pairs
+    int symbolIndex = -1;
+    for(int i = 0; i < 10; i++)
+    {
+        if(StringFind(symbol, g_CorrelationLimits.correlatedPairs[i]) >= 0)
+        {
+            symbolIndex = i;
+            break;
+        }
+    }
+    
+    if(symbolIndex < 0)
+        return requestedSize;  // Not in correlation matrix
+    
+    // Calculate current correlation exposure
+    double correlationExposure = 0.0;
+    
+    for(int i = 0; i < PositionsTotal(); i++)
+    {
+        if(PositionSelectByIndex(i))
+        {
+            string posSymbol = PositionGetString(POSITION_SYMBOL);
+            double posSize = PositionGetDouble(POSITION_VOLUME);
+            
+            // Find correlation coefficient
+            for(int j = 0; j < 10; j++)
+            {
+                if(StringFind(posSymbol, g_CorrelationLimits.correlatedPairs[j]) >= 0)
+                {
+                    double correlation = g_CorrelationLimits.correlationMatrix[symbolIndex][j];
+                    if(correlation > 0.5)  // Only consider significant correlations
+                    {
+                        correlationExposure += posSize * correlation;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    
+    // Check if adding this position would breach limits
+    double maxAllowedExposure = g_RiskParams.accountBalance * g_CorrelationLimits.maxCorrelationRisk / 100.0;
+    double projectedExposure = correlationExposure + requestedSize;
+    
+    if(projectedExposure > maxAllowedExposure)
+    {
+        double reducedSize = maxAllowedExposure - correlationExposure;
+        reducedSize = MathMax(reducedSize, 0.0);
+        
+        if(EnableDetailedLogging)
+        {
+            Print("⚠️ Correlation limit applied:");
+            Print("   Requested: ", DoubleToString(requestedSize, 2));
+            Print("   Reduced to: ", DoubleToString(reducedSize, 2));
+            Print("   Correlation exposure: ", DoubleToString(correlationExposure, 2));
+        }
+        
+        return reducedSize;
+    }
+    
+    return requestedSize;
+}
+
+//+------------------------------------------------------------------+
+//| Check Risk Limits                                             |
+//+------------------------------------------------------------------+
+bool CheckRiskLimits()
+{
+    Print("🔍 Checking risk limits...");
+    
+    // Update current P&L
+    CalculateCurrentDailyPnL();
+    
+    // Check daily loss limit
+    double dailyLossPercent = (g_RiskParams.currentDailyPnL / g_RiskParams.accountBalance) * 100.0;
+    
+    if(dailyLossPercent < -g_RiskParams.maxDailyLoss)
+    {
+        Print("🚨 DAILY LOSS LIMIT BREACHED: ", DoubleToString(dailyLossPercent, 2), "%");
+        ActivateEmergencyProtocol("DAILY_LOSS_LIMIT", 4);
+        return false;
+    }
+    
+    // Check position limits
+    if(g_RiskParams.currentPositions >= g_RiskParams.maxPositions)
+    {
+        Print("⚠️ Maximum position limit reached: ", g_RiskParams.currentPositions, "/", g_RiskParams.maxPositions);
+        return false;
+    }
+    
+    // Check margin level
+    double marginLevel = AccountInfoDouble(ACCOUNT_MARGIN_LEVEL);
+    if(marginLevel < 200.0 && marginLevel > 0)  // Below 200%
+    {
+        Print("⚠️ WARNING: Low margin level - ", DoubleToString(marginLevel, 1), "%");
+        if(marginLevel < 150.0)
+        {
+            ActivateEmergencyProtocol("LOW_MARGIN", 3);
+            return false;
+        }
+    }
+    
+    // Check account equity vs balance
+    double drawdownPercent = ((g_RiskParams.accountBalance - g_RiskParams.accountEquity) / g_RiskParams.accountBalance) * 100.0;
+    if(drawdownPercent > g_RiskParams.maxDailyLoss * 0.9)
+    {
+        Print("⚠️ High drawdown detected: ", DoubleToString(drawdownPercent, 2), "%");
+        ActivateEmergencyProtocol("HIGH_DRAWDOWN", 2);
+    }
+    
+    g_RiskParams.lastRiskCheck = TimeCurrent();
+    
+    if(EnableDetailedLogging)
+    {
+        Print("📊 Risk Check Results:");
+        Print("   Daily P&L: ", DoubleToString(dailyLossPercent, 2), "%");
+        Print("   Positions: ", g_RiskParams.currentPositions, "/", g_RiskParams.maxPositions);
+        Print("   Margin Level: ", DoubleToString(marginLevel, 1), "%");
+        Print("   Drawdown: ", DoubleToString(drawdownPercent, 2), "%");
+    }
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Activate Emergency Protocol                                    |
+//+------------------------------------------------------------------+
+void ActivateEmergencyProtocol(string reason, int level)
+{
+    Print("🚨 EMERGENCY PROTOCOL ACTIVATED: ", reason, " (Level ", level, ")");
+    
+    g_Emergency.emergencyActive = true;
+    g_Emergency.emergencyReason = reason;
+    g_Emergency.emergencyStartTime = TimeCurrent();
+    g_Emergency.emergencyLevel = level;
+    
+    // Set actions based on emergency level
+    switch(level)
+    {
+        case 1:  // Minor - Just monitoring
+            g_Emergency.stopNewTrades = false;
+            g_Emergency.closeAllPositions = false;
+            break;
+            
+        case 2:  // Moderate - Stop new trades
+            g_Emergency.stopNewTrades = true;
+            g_Emergency.closeAllPositions = false;
+            break;
+            
+        case 3:  // Serious - Close losing positions
+            g_Emergency.stopNewTrades = true;
+            g_Emergency.closeAllPositions = false;
+            CloseLosingPositions();
+            break;
+            
+        case 4:  // Critical - Close all positions
+            g_Emergency.stopNewTrades = true;
+            g_Emergency.closeAllPositions = true;
+            CloseAllPositions();
+            break;
+            
+        case 5:  // Severe - Complete shutdown
+            g_Emergency.stopNewTrades = true;
+            g_Emergency.closeAllPositions = true;
+            CloseAllPositions();
+            g_RiskParams.emergencyMode = true;
+            break;
+    }
+    
+    // Send alerts
+    SendEmergencyAlert(reason, level);
+}
+
+//+------------------------------------------------------------------+
+//| Close Losing Positions                                         |
+//+------------------------------------------------------------------+
+void CloseLosingPositions()
+{
+    Print("🔄 Closing losing positions...");
+    
+    int closedCount = 0;
+    for(int i = PositionsTotal() - 1; i >= 0; i--)
+    {
+        if(PositionSelectByIndex(i))
+        {
+            if(PositionGetInteger(POSITION_MAGIC) == MagicNumber)
+            {
+                double profit = PositionGetDouble(POSITION_PROFIT);
+                if(profit < 0)
+                {
+                    ulong ticket = PositionGetInteger(POSITION_TICKET);
+                    if(PositionCloseByTicket(ticket))
+                    {
+                        closedCount++;
+                        Print("✅ Closed losing position: ", ticket, " (Loss: $", DoubleToString(profit, 2), ")");
+                    }
+                }
+            }
+        }
+    }
+    
+    Print("📊 Emergency closure complete: ", closedCount, " positions closed");
+}
+
+//+------------------------------------------------------------------+
+//| Close All Positions                                           |
+//+------------------------------------------------------------------+
+void CloseAllPositions()
+{
+    Print("🔄 EMERGENCY: Closing ALL positions...");
+    
+    int closedCount = 0;
+    for(int i = PositionsTotal() - 1; i >= 0; i--)
+    {
+        if(PositionSelectByIndex(i))
+        {
+            if(PositionGetInteger(POSITION_MAGIC) == MagicNumber)
+            {
+                ulong ticket = PositionGetInteger(POSITION_TICKET);
+                double profit = PositionGetDouble(POSITION_PROFIT);
+                
+                if(PositionCloseByTicket(ticket))
+                {
+                    closedCount++;
+                    Print("✅ Emergency closed position: ", ticket, " (P&L: $", DoubleToString(profit, 2), ")");
+                }
+            }
+        }
+    }
+    
+    Print("🚨 EMERGENCY CLOSURE COMPLETE: ", closedCount, " positions closed");
+}
+
+//+------------------------------------------------------------------+
+//| Position Close by Ticket                                      |
+//+------------------------------------------------------------------+
+bool PositionCloseByTicket(ulong ticket)
+{
+    if(!PositionSelectByTicket(ticket))
+        return false;
+    
+    string symbol = PositionGetString(POSITION_SYMBOL);
+    ENUM_POSITION_TYPE type = (ENUM_POSITION_TYPE)PositionGetInteger(POSITION_TYPE);
+    double volume = PositionGetDouble(POSITION_VOLUME);
+    
+    MqlTradeRequest request = {};
+    MqlTradeResult result = {};
+    
+    request.action = TRADE_ACTION_DEAL;
+    request.position = ticket;
+    request.symbol = symbol;
+    request.volume = volume;
+    request.type = (type == POSITION_TYPE_BUY) ? ORDER_TYPE_SELL : ORDER_TYPE_BUY;
+    request.price = (type == POSITION_TYPE_BUY) ? SymbolInfoDouble(symbol, SYMBOL_BID) : SymbolInfoDouble(symbol, SYMBOL_ASK);
+    request.deviation = 10;
+    request.magic = MagicNumber;
+    request.comment = "Emergency Close";
+    
+    bool success = OrderSend(request, result);
+    
+    if(!success)
+    {
+        Print("❌ Failed to close position ", ticket, ". Error: ", GetLastError());
+    }
+    
+    return success;
+}
+
+//+------------------------------------------------------------------+
+//| Send Emergency Alert                                           |
+//+------------------------------------------------------------------+
+void SendEmergencyAlert(string reason, int level)
+{
+    string alertMessage = StringFormat("🚨 EA GlobalFlow Pro EMERGENCY ALERT\n" +
+                                     "Reason: %s\n" +
+                                     "Level: %d/5\n" +
+                                     "Time: %s\n" +
+                                     "Account: %s\n" +
+                                     "Balance: $%.2f",
+                                     reason, level, TimeToString(TimeCurrent()),
+                                     AccountInfoString(ACCOUNT_NAME),
+                                     g_RiskParams.accountBalance);
+    
+    // Send different types of alerts based on settings
+    if(EnableSoundAlerts)
+        Alert(alertMessage);
+    
+    if(EnableEmailAlerts)
+        SendMail("EA GlobalFlow Emergency Alert", alertMessage);
+    
+    // Log to file for record keeping
+    Print("🚨 EMERGENCY LOGGED: ", alertMessage);
+}
+
+//+------------------------------------------------------------------+
+//| Check if Trading is Allowed                                   |
+//+------------------------------------------------------------------+
+bool IsTradingAllowed()
+{
+    // Check emergency mode
+    if(g_Emergency.emergencyActive && g_Emergency.stopNewTrades)
+    {
+        if(EnableDetailedLogging)
+            Print("❌ Trading blocked - Emergency protocol active: ", g_Emergency.emergencyReason);
+        return false;
+    }
+    
+    // Check daily limits
+    if(!CheckRiskLimits())
+    {
+        return false;
+    }
+    
+    // Check position limits
+    if(g_RiskParams.currentPositions >= g_RiskParams.maxPositions)
+    {
+        if(EnableDetailedLogging)
+            Print("❌ Trading blocked - Maximum positions reached");
+        return false;
+    }
+    
+    // Check margin requirements
+    double marginLevel = AccountInfoDouble(ACCOUNT_MARGIN_LEVEL);
+    if(marginLevel < 200.0 && marginLevel > 0)
+    {
+        if(EnableDetailedLogging)
+            Print("❌ Trading blocked - Insufficient margin: ", DoubleToString(marginLevel, 1), "%");
+        return false;
+    }
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Reset Emergency Protocol                                       |
+//+------------------------------------------------------------------+
+void ResetEmergencyProtocol()
+{
+    if(g_Emergency.emergencyActive)
+    {
+        Print("🔄 Resetting emergency protocol...");
+        
+        g_Emergency.emergencyActive = false;
+        g_Emergency.emergencyReason = "";
+        g_Emergency.emergencyStartTime = 0;
+        g_Emergency.closeAllPositions = false;
+        g_Emergency.stopNewTrades = false;
+        g_Emergency.emergencyLevel = 0;
+        g_RiskParams.emergencyMode = false;
+        
+        Print("✅ Emergency protocol reset - Normal trading resumed");
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Print Risk Parameters                                          |
+//+------------------------------------------------------------------+
+void PrintRiskParameters()
+{
+    Print("🛡️ Risk Management Status:");
+    Print("   Max Daily Loss: ", DoubleToString(g_RiskParams.maxDailyLoss, 2), "%");
+    Print("   Max Risk Per Trade: ", DoubleToString(g_VIXSizing.vixAdjustedSize, 2), "%");
+    Print("   Current Positions: ", g_RiskParams.currentPositions, "/", g_RiskParams.maxPositions);
+    Print("   VIX Level: ", DoubleToString(g_VIXSizing.currentVIX, 1));
+    Print("   High Volatility Mode: ", g_VIXSizing.highVolatilityMode);
+    Print("   Emergency Active: ", g_Emergency.emergencyActive);
+    Print("   Correlation Limits: ", EnableCorrelationLimits ? "ENABLED" : "DISABLED");
+}
+
+//+------------------------------------------------------------------+
+//| Get Risk Status                                               |
+//+------------------------------------------------------------------+
+RiskParameters GetRiskStatus()
+{
+    return g_RiskParams;
+}
+
+//+------------------------------------------------------------------+
+//| Get VIX Sizing Status                                         |
+//+------------------------------------------------------------------+
+VIXPositionSizing GetVIXSizingStatus()
+{
+    return g_VIXSizing;
+}
+
+//+------------------------------------------------------------------+
+//| Get Emergency Status                                          |
+//+------------------------------------------------------------------+
+EmergencyProtocol GetEmergencyStatus()
+{
+    return g_Emergency;
+}
+
+//+------------------------------------------------------------------+
+//| Update Risk Management (Called on Timer)                      |
+//+------------------------------------------------------------------+
+void UpdateRiskManagement()
+{
+    // Update every 5 minutes
+    if(TimeCurrent() - g_RiskParams.lastRiskCheck < 300)
+        return;
+    
+    // Update current data
+    UpdateCurrentPositions();
+    CalculateCurrentDailyPnL();
+    
+    // Update VIX if needed
+    if(TimeCurrent() - g_VIXSizing.lastVIXUpdate > 3600)  // Every hour
+    {
+        g_VIXSizing.currentVIX = GetCurrentVIX();
+        g_VIXSizing.lastVIXUpdate = TimeCurrent();
+        CalculateVIXAdjustment();
+    }
+    
+    // Check all risk limits
+    CheckRiskLimits();
+    
+    // Auto-reset emergency if conditions improved
+    if(g_Emergency.emergencyActive && g_Emergency.emergencyLevel <= 2)
+    {
+        // Check if conditions have improved
+        double currentLossPercent = (g_RiskParams.currentDailyPnL / g_RiskParams.accountBalance) * 100.0;
+        if(currentLossPercent > -g_RiskParams.maxDailyLoss * 0.5)  // Less than 50% of max loss
+        {
+            ResetEmergencyProtocol();
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Cleanup Risk Management                                        |
+//+------------------------------------------------------------------+
+void CleanupRiskManagement()
+{
+    Print("🧹 Cleaning up Risk Management System...");
+    
+    // Reset all structures
+    InitializeRiskParameters();
+    InitializeVIXPositionSizing();
+    InitializeCorrelationLimits();
+    InitializeEmergencyProtocol();
+    
+    Print("✅ Risk Management cleanup complete");
+}
+
+//+------------------------------------------------------------------+

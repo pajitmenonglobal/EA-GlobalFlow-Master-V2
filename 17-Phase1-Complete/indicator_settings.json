@@ -1,0 +1,611 @@
+{
+  "metadata": {
+    "config_name": "EA GlobalFlow Pro v0.1 - Technical Indicators Settings",
+    "version": "1.0",
+    "created_date": "2025-08-05",
+    "description": "Comprehensive configuration for all technical indicators used in the strategy",
+    "strategy": "Ichimoku-TDI-PA-BBsqueeze-Kumocross",
+    "total_indicators": 6,
+    "author": "EA GlobalFlow Pro Development Team"
+  },
+  "indicator_list": {
+    "primary_indicators": [
+      "Ichimoku Kinko Hyo",
+      "Ichi-Trader Dynamic Index (TDI)",
+      "SMMA 50",
+      "Bollinger Bands",
+      "SuperTrend Entry (STR-ENTRY)",
+      "SuperTrend Exit (STR-EXIT)"
+    ],
+    "supporting_indicators": [
+      "ATR",
+      "Volume Analysis",
+      "Price Action Patterns"
+    ]
+  },
+  "ichimoku_kinko_hyo": {
+    "indicator_name": "Ichimoku Kinko Hyo",
+    "category": "TREND_MOMENTUM",
+    "priority": "PRIMARY",
+    "timeframes": ["DAILY", "4H", "1H", "30M", "15M", "5M"],
+    "parameters": {
+      "tenkan_sen_period": 9,
+      "kijun_sen_period": 26,
+      "senkou_span_b_period": 52,
+      "chikou_span_displacement": 26,
+      "senkou_span_displacement": 26
+    },
+    "calculation_methods": {
+      "tenkan_sen": "(Highest_High_9 + Lowest_Low_9) / 2",
+      "kijun_sen": "(Highest_High_26 + Lowest_Low_26) / 2",
+      "senkou_span_a": "(Tenkan_Sen + Kijun_Sen) / 2, displaced +26",
+      "senkou_span_b": "(Highest_High_52 + Lowest_Low_52) / 2, displaced +26",
+      "chikou_span": "Close, displaced -26"
+    },
+    "signal_interpretation": {
+      "bullish_signals": [
+        "Price above Kumo (cloud)",
+        "Tenkan-Sen above Kijun-Sen",
+        "Chikou Span above price 26 periods ago",
+        "Green cloud (Senkou Span A above Senkou Span B)"
+      ],
+      "bearish_signals": [
+        "Price below Kumo (cloud)",
+        "Tenkan-Sen below Kijun-Sen", 
+        "Chikou Span below price 26 periods ago",
+        "Red cloud (Senkou Span A below Senkou Span B)"
+      ]
+    },
+    "usage_in_strategy": {
+      "major_trend_identification": "Daily and 4H timeframes",
+      "middle_trend_confirmation": "1H and 30M timeframes",
+      "entry_timing": "15M and 5M timeframes",
+      "cloud_breakout_signals": true,
+      "trend_strength_assessment": true,
+      "support_resistance_levels": true
+    },
+    "optimization_settings": {
+      "adaptive_periods": false,
+      "multi_timeframe_sync": true,
+      "alert_on_signal_change": true,
+      "color_coding": {
+        "bullish_cloud": "green",
+        "bearish_cloud": "red",
+        "tenkan_sen": "blue",
+        "kijun_sen": "red",
+        "chikou_span": "yellow"
+      }
+    }
+  },
+  "ichi_trader_dynamic_index": {
+    "indicator_name": "Ichi-Trader Dynamic Index (TDI)",
+    "category": "MOMENTUM_OSCILLATOR",
+    "priority": "PRIMARY",
+    "timeframes": ["1H", "30M", "15M", "5M"],
+    "parameters": {
+      "rsi_period": 13,
+      "volatility_band": 34,
+      "price_smooth": 2,
+      "signal_smooth": 7,
+      "overbought_level": 68,
+      "oversold_level": 32,
+      "middle_upper": 60,
+      "middle_lower": 40
+    },
+    "components": {
+      "rsi_line": {
+        "description": "RSI smoothed with volatility bands",
+        "calculation": "RSI(13) smoothed",
+        "color": "yellow",
+        "line_width": 1
+      },
+      "trade_signal_line": {
+        "description": "Trade signal line (red line)",
+        "calculation": "SMA of RSI(2)",
+        "color": "red",
+        "line_width": 2
+      },
+      "market_base_line": {
+        "description": "Market base line (green line)",
+        "calculation": "SMA of RSI(7)",
+        "color": "green", 
+        "line_width": 1
+      },
+      "volatility_bands": {
+        "description": "Upper and lower volatility bands",
+        "upper_band": "BB_Upper(34)",
+        "lower_band": "BB_Lower(34)",
+        "color": "blue",
+        "line_style": "dotted"
+      }
+    },
+    "signal_interpretation": {
+      "buy_signals": [
+        "Trade signal line crosses above market base line",
+        "RSI line above 32 and rising",
+        "Price breaks above upper volatility band",
+        "All lines trending upward"
+      ],
+      "sell_signals": [
+        "Trade signal line crosses below market base line",
+        "RSI line below 68 and falling", 
+        "Price breaks below lower volatility band",
+        "All lines trending downward"
+      ],
+      "filter_conditions": [
+        "Avoid trades when RSI is in extreme zones (>80 or <20)",
+        "Wait for line crossovers to be confirmed",
+        "Use higher timeframe TDI for trend direction"
+      ]
+    },
+    "usage_in_strategy": {
+      "momentum_confirmation": "Primary momentum filter",
+      "entry_timing": "Signal line crossovers",
+      "trend_strength": "Line separation analysis",
+      "overbought_oversold": "Extreme level identification",
+      "divergence_detection": true
+    },
+    "optimization_settings": {
+      "auto_adjust_levels": false,
+      "multi_timeframe_analysis": true,
+      "alert_on_crossover": true,
+      "smoothing_factor": 1.0
+    }
+  },
+  "smma_50": {
+    "indicator_name": "Smoothed Moving Average 50",
+    "category": "MOVING_AVERAGE",
+    "priority": "PRIMARY", 
+    "timeframes": ["DAILY", "4H", "1H", "30M", "15M", "5M"],
+    "parameters": {
+      "period": 50,
+      "smoothing_method": "SMMA",
+      "price_applied": "CLOSE"
+    },
+    "calculation_method": {
+      "formula": "SMMA = (SMMA_prev * (n-1) + Current_Price) / n",
+      "where": "n = 50 periods",
+      "initial_value": "SMA of first 50 periods"
+    },
+    "signal_interpretation": {
+      "trend_direction": {
+        "bullish": "Price above SMMA 50 and SMMA rising",
+        "bearish": "Price below SMMA 50 and SMMA falling",
+        "sideways": "Price around SMMA with flat slope"
+      },
+      "support_resistance": {
+        "dynamic_support": "SMMA acts as support in uptrend",
+        "dynamic_resistance": "SMMA acts as resistance in downtrend",
+        "breakout_confirmation": "Clean break with volume"
+      }
+    },
+    "usage_in_strategy": {
+      "trend_filter": "Major trend direction filter",
+      "entry_confirmation": "Price position relative to SMMA",
+      "exit_signals": "Price crossing back through SMMA",
+      "slope_analysis": "SMMA slope for trend strength",
+      "distance_measurement": "Price distance from SMMA for momentum"
+    },
+    "optimization_settings": {
+      "adaptive_period": false,
+      "slope_threshold": 0.0001,
+      "distance_alerts": true,
+      "color_coding": {
+        "rising_smma": "blue",
+        "falling_smma": "red",
+        "flat_smma": "gray"
+      }
+    }
+  },
+  "bollinger_bands": {
+    "indicator_name": "Bollinger Bands",
+    "category": "VOLATILITY",
+    "priority": "PRIMARY",
+    "timeframes": ["1H", "30M", "15M", "5M"],
+    "parameters": {
+      "period": 20,
+      "standard_deviation": 2.0,
+      "price_applied": "CLOSE",
+      "bands_shift": 0
+    },
+    "components": {
+      "upper_band": {
+        "calculation": "SMA(20) + (2 * StdDev(20))",
+        "description": "Upper volatility boundary",
+        "color": "blue",
+        "line_style": "solid"
+      },
+      "middle_band": {
+        "calculation": "SMA(20)",
+        "description": "Middle line (moving average)",
+        "color": "yellow",
+        "line_style": "solid"
+      },
+      "lower_band": {
+        "calculation": "SMA(20) - (2 * StdDev(20))",
+        "description": "Lower volatility boundary", 
+        "color": "blue",
+        "line_style": "solid"
+      }
+    },
+    "squeeze_detection": {
+      "enabled": true,
+      "squeeze_threshold": 0.1,
+      "calculation": "(Upper_Band - Lower_Band) / Middle_Band",
+      "squeeze_alert": true,
+      "expansion_alert": true
+    },
+    "signal_interpretation": {
+      "band_squeeze": {
+        "description": "Low volatility period before breakout",
+        "condition": "Band width < historical average * 0.5",
+        "expectation": "Significant move expected"
+      },
+      "band_expansion": {
+        "description": "High volatility trending move",
+        "condition": "Band width > historical average * 1.5",
+        "expectation": "Strong trend continuation"
+      },
+      "band_walk": {
+        "description": "Price walking along upper/lower band",
+        "bullish_walk": "Price consistently near upper band",
+        "bearish_walk": "Price consistently near lower band"
+      },
+      "mean_reversion": {
+        "description": "Price return to middle band",
+        "overbought_bounce": "Price rejection from upper band",
+        "oversold_bounce": "Price rejection from lower band"
+      }
+    },
+    "usage_in_strategy": {
+      "volatility_filter": "Trade only during appropriate volatility",
+      "breakout_confirmation": "Squeeze release for breakout trades",
+      "trend_continuation": "Band walk for trend following",
+      "reversal_signals": "Band rejection for counter-trend",
+      "profit_targets": "Opposite band as profit target"
+    },
+    "optimization_settings": {
+      "adaptive_deviation": false,
+      "multi_timeframe_squeeze": true,
+      "alert_settings": {
+        "squeeze_formation": true,
+        "squeeze_release": true,
+        "band_touch": true,
+        "band_break": true
+      }
+    }
+  },
+  "supertrend_entry": {
+    "indicator_name": "SuperTrend Entry (STR-ENTRY)",
+    "category": "TREND_FOLLOWING",
+    "priority": "PRIMARY",
+    "timeframes": ["15M", "5M"],
+    "parameters": {
+      "atr_period": 20,
+      "atr_multiplier": 1.0,
+      "price_source": "HL2"
+    },
+    "calculation_method": {
+      "basic_calculation": {
+        "hl2": "(High + Low) / 2",
+        "atr": "ATR(20)",
+        "upper_band": "HL2 + (ATR * 1.0)",
+        "lower_band": "HL2 - (ATR * 1.0)"
+      },
+      "trend_determination": {
+        "uptrend": "Close > Lower_Band_Previous",
+        "downtrend": "Close < Upper_Band_Previous",
+        "trend_change": "Price crosses SuperTrend line"
+      }
+    },
+    "signal_interpretation": {
+      "trend_signals": {
+        "buy_signal": "SuperTrend changes to green (uptrend)",
+        "sell_signal": "SuperTrend changes to red (downtrend)",
+        "no_signal": "Price whipsawing around SuperTrend line"
+      },
+      "strength_indicators": {
+        "strong_trend": "Price well above/below SuperTrend line",
+        "weak_trend": "Price close to SuperTrend line",
+        "trend_exhaustion": "Price touching SuperTrend repeatedly"
+      }
+    },
+    "usage_in_strategy": {
+      "primary_trend_filter": "Main trend direction determination",
+      "entry_confirmation": "Trend change signals for entry",
+      "trade_direction": "Only trade in SuperTrend direction",
+      "exit_warning": "Trend weakening signals",
+      "stop_loss_trail": "Dynamic stop loss positioning"
+    },
+    "optimization_settings": {
+      "sensitivity_adjustment": {
+        "high_volatility": "Increase multiplier to 1.2",
+        "low_volatility": "Decrease multiplier to 0.8",
+        "adaptive_mode": false
+      },
+      "alert_settings": {
+        "trend_change": true,
+        "trend_strength": true,
+        "signal_confirmation": 1
+      },
+      "visual_settings": {
+        "uptrend_color": "green",
+        "downtrend_color": "red",
+        "line_width": 2,
+        "show_arrows": true
+      }
+    }
+  },
+  "supertrend_exit": {
+    "indicator_name": "SuperTrend Exit (STR-EXIT)",
+    "category": "EXIT_SYSTEM",
+    "priority": "PRIMARY",
+    "timeframes": ["1H"],
+    "parameters": {
+      "atr_period": 20,
+      "atr_multiplier": 1.5,
+      "price_source": "HL2"
+    },
+    "calculation_method": {
+      "basic_calculation": {
+        "hl2": "(High + Low) / 2",
+        "atr": "ATR(20)",
+        "upper_band": "HL2 + (ATR * 1.5)",
+        "lower_band": "HL2 - (ATR * 1.5)"
+      },
+      "exit_determination": {
+        "exit_long": "1H STR-EXIT changes to red",
+        "exit_short": "1H STR-EXIT changes to green",
+        "trend_reversal": "Clear trend direction change"
+      }
+    },
+    "signal_interpretation": {
+      "exit_signals": {
+        "immediate_exit": "STR-EXIT trend change on 1H timeframe",
+        "warning_signals": "Price approaching STR-EXIT line",
+        "false_signals": "Quick reversals back to original trend"
+      },
+      "confirmation_requirements": {
+        "bar_close_confirmation": true,
+        "minimum_distance": "Price must be beyond ATR distance",
+        "time_filter": "Avoid exits in first 30 minutes of signal"
+      }
+    },
+    "usage_in_strategy": {
+      "primary_exit_rule": "Main exit signal for all trades",
+      "override_conditions": "Risk management exits take precedence",
+      "partial_exit": "50% position on warning signals",
+      "re_entry": "Look for re-entry after false exit signals",
+      "stop_loss_adjustment": "Move stops to breakeven on exit warnings"
+    },
+    "optimization_settings": {
+      "sensitivity_levels": {
+        "conservative": 2.0,
+        "standard": 1.5,
+        "aggressive": 1.0
+      },
+      "timeframe_specific": {
+        "forex": "1H timeframe mandatory",
+        "fno": "1H timeframe mandatory",
+        "stocks": "1H or 30M acceptable"
+      },
+      "alert_settings": {
+        "exit_signal": true,
+        "warning_signal": true,
+        "signal_priority": "HIGH"
+      }
+    }
+  },
+  "supporting_indicators": {
+    "atr": {
+      "indicator_name": "Average True Range",
+      "category": "VOLATILITY",
+      "priority": "SUPPORTING",
+      "timeframes": ["ALL"],
+      "parameters": {
+        "period": 14,
+        "calculation_method": "SMMA"
+      },
+      "usage": [
+        "Position sizing calculation",
+        "Stop loss placement",
+        "Profit target setting",
+        "Volatility filtering",
+        "SuperTrend calculations"
+      ]
+    },
+    "volume_analysis": {
+      "indicator_name": "Volume Analysis",
+      "category": "VOLUME",
+      "priority": "SUPPORTING",
+      "timeframes": ["ALL"],
+      "parameters": {
+        "volume_sma_period": 20,
+        "surge_multiplier": 1.5,
+        "trend_period": 10
+      },
+      "components": [
+        "Volume SMA",
+        "Volume surge detection",
+        "Volume trend analysis",
+        "Volume-price divergence"
+      ]
+    },
+    "price_action_patterns": {
+      "indicator_name": "Price Action Pattern Recognition",
+      "category": "PATTERN",
+      "priority": "SUPPORTING",
+      "timeframes": ["15M", "5M"],
+      "patterns": [
+        "Hammer/Doji",
+        "Engulfing patterns",
+        "Pin bars",
+        "Inside bars",
+        "Strong directional candles"
+      ]
+    }
+  },
+  "multi_timeframe_settings": {
+    "timeframe_hierarchy": {
+      "major_trend": ["DAILY", "4H"],
+      "middle_trend": ["1H", "30M"],
+      "entry_execution": ["15M", "5M"],
+      "exit_monitoring": ["1H"]
+    },
+    "synchronization": {
+      "enabled": true,
+      "alignment_required": ["MAJOR", "MIDDLE"],
+      "tolerance_minutes": 5,
+      "update_frequency": "ON_BAR_CLOSE"
+    },
+    "indicator_timeframe_mapping": {
+      "ichimoku": ["DAILY", "4H", "1H", "30M", "15M", "5M"],
+      "tdi": ["1H", "30M", "15M", "5M"],
+      "smma_50": ["DAILY", "4H", "1H", "30M", "15M", "5M"],
+      "bollinger_bands": ["1H", "30M", "15M", "5M"],
+      "str_entry": ["15M", "5M"],
+      "str_exit": ["1H"]
+    }
+  },
+  "performance_optimization": {
+    "calculation_efficiency": {
+      "cache_results": true,
+      "cache_duration_seconds": 30,
+      "parallel_calculation": true,
+      "lazy_loading": true
+    },
+    "adaptive_parameters": {
+      "enabled": false,
+      "optimization_frequency": "WEEKLY",
+      "lookback_period_days": 30,
+      "minimum_trades_for_optimization": 50
+    },
+    "resource_management": {
+      "max_concurrent_calculations": 10,
+      "memory_cleanup_frequency": "HOURLY",
+      "error_handling": "GRACEFUL_DEGRADATION"
+    }
+  },
+  "alert_and_notification_settings": {
+    "indicator_alerts": {
+      "ichimoku_cloud_break": {
+        "enabled": true,
+        "priority": "HIGH",
+        "message": "Ichimoku Cloud Breakout - {SYMBOL} {TIMEFRAME}"
+      },
+      "tdi_crossover": {
+        "enabled": true,
+        "priority": "MEDIUM",
+        "message": "TDI Signal Crossover - {SYMBOL} {TIMEFRAME}"
+      },
+      "bollinger_squeeze": {
+        "enabled": true,
+        "priority": "HIGH",
+        "message": "Bollinger Band Squeeze Release - {SYMBOL} {TIMEFRAME}"
+      },
+      "supertrend_change": {
+        "enabled": true,
+        "priority": "HIGH",
+        "message": "SuperTrend Direction Change - {SYMBOL} {TIMEFRAME}"
+      }
+    },
+    "delivery_methods": {
+      "sound_alert": true,
+      "email_alert": true,
+      "phone_alert": true,
+      "dashboard_notification": true
+    }
+  },
+  "quality_control": {
+    "data_validation": {
+      "enabled": true,
+      "check_data_gaps": true,
+      "validate_calculations": true,
+      "error_threshold": 0.01
+    },
+    "signal_quality": {
+      "minimum_bar_count": 100,
+      "data_freshness_seconds": 60,
+      "calculation_accuracy_check": true
+    },
+    "performance_monitoring": {
+      "track_calculation_time": true,
+      "monitor_memory_usage": true,
+      "log_performance_metrics": true
+    }
+  },
+  "integration_settings": {
+    "mt5_integration": {
+      "custom_indicator_path": "Indicators/EA_GlobalFlow/",
+      "indicator_buffers": 8,
+      "drawing_style": "LINE",
+      "color_scheme": "PROFESSIONAL"
+    },
+    "python_bridge": {
+      "data_export_format": "JSON",
+      "calculation_validation": true,
+      "real_time_sync": true,
+      "error_reporting": true
+    },
+    "database_storage": {
+      "store_indicator_values": true,
+      "historical_data_retention_days": 90,
+      "compression_enabled": true
+    }
+  },
+  "market_specific_adjustments": {
+    "forex_markets": {
+      "currency_pair_adjustments": {
+        "major_pairs": "Standard settings",
+        "minor_pairs": "Increase ATR multiplier by 10%",
+        "exotic_pairs": "Increase all periods by 20%"
+      },
+      "session_adjustments": {
+        "london_session": "Standard sensitivity",
+        "new_york_session": "Increase sensitivity 10%",
+        "asian_session": "Decrease sensitivity 15%"
+      }
+    },
+    "indian_fno_markets": {
+      "index_options": {
+        "nifty": "Standard settings",
+        "banknifty": "Increase volatility thresholds 15%",
+        "finnifty": "Decrease period by 10%"
+      },
+      "stock_options": {
+        "high_volume_stocks": "Standard settings",
+        "medium_volume_stocks": "Increase confirmation requirements",
+        "low_volume_stocks": "Use higher timeframes only"
+      }
+    },
+    "commodity_markets": {
+      "precious_metals": "Increase ATR multiplier 20%",
+      "energy_markets": "Standard settings",
+      "agricultural": "Decrease sensitivity 10%"
+    }
+  },
+  "testing_and_validation": {
+    "backtesting_settings": {
+      "historical_data_years": 2,
+      "minimum_trades_per_test": 100,
+      "walk_forward_analysis": true,
+      "out_of_sample_percentage": 20
+    },
+    "forward_testing": {
+      "paper_trading_period_days": 30,
+      "micro_lot_testing_period_days": 30,
+      "performance_benchmarks": {
+        "win_rate_target": 0.70,
+        "profit_factor_minimum": 1.5,
+        "maximum_drawdown": 0.15
+      }
+    }
+  },
+  "system_requirements": {
+    "minimum_data_points": 100,
+    "required_timeframes": ["1H", "15M", "5M"],
+    "memory_requirements_mb": 50,
+    "cpu_requirements": "Medium",
+    "real_time_data_required": true
+  }
+}
