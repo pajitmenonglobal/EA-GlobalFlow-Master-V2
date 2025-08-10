@@ -1,0 +1,23 @@
+EA GlobalFlow Pro v8.0 /
+
+Just accept and acknowledge. do not give code or document etc . give reference file when you reach near your capacity limits. we are going to make an EXPERT ADVISOR which will trade the global markets. The Tagline for EA is " Trade the World Markets with me "
+
+I acknowledge and accept your request. I understand we're going to work on creating an Expert Advisor (EA) for trading global markets with the tagline "Trade the World Markets with me."
+I'll assist you with this project step by step, and I'll let you know when we're approaching capacity limits so we can use reference files as needed.
+I'm ready to help you develop this EA. What would you like to start with - the overall architecture, specific trading strategies, market selection criteria, or another aspect of the Expert Advisor?
+
+
+
+Just accept and acknowledge. do not give code or document etc. Always Double check before your reply . Study the project knowledge first. give reference file when you reach near your capacity limits.
+
+I acknowledge and accept. I have studied the project knowledge for the Expert Advisor with the tagline "Trade the World Markets with me".
+I understand:
+
+ The EA will trade FnO/Forex/International Commodities markets  Strategy name: Ichimoku-TDI-PA-BBsqueeze-Kumocross
+ Two market entry paths: Continuation (CT) and Pull-back (PB)  For Indian FnO: Uses Fyers API and Truedata feeds API
+ Complex hybrid OTM/ATM strike selection logic for options  17 buy and 17 sell entry conditions
+ Different trading hours for different markets
+ Comprehensive risk management and exit conditions  Alert systems (sound, email, phone)
+  NO code or documents to be provided until requested
+
+

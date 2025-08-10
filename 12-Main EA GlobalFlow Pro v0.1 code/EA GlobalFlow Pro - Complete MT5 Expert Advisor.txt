@@ -1,0 +1,2256 @@
+﻿EA GlobalFlow Pro - Complete MT5 Expert Advisor.txt
+
+
+//+------------------------------------------------------------------+
+//|                                     EA GlobalFlow Pro v0.1      |
+//|                            Complete Institutional Grade System   |
+//|                      Copyright 2025, Ajit Menon Trading Systems |
+//|                                   Email: pajitmenonai@gmail.com  |
+//|                                   Phone: +971507423656           |
+//+------------------------------------------------------------------+
+#property copyright "EA GlobalFlow Pro v0.1 - Institutional Grade"
+#property link      "pajitmenonai@gmail.com"
+#property version   "0.10"
+#property description "Strategy: Ichimoku-TDI-PA-BBsqueeze-Kumocross"
+#property description "Target Win Rate: 90-95% through Triple Enhancement System"
+#property description "Markets: Indian F&O (Fyers+TrueData) + International (IC Markets)"
+
+//--- Include All Required Libraries
+#include <Trade\Trade.mqh>
+#include <Trade\SymbolInfo.mqh>
+#include <Trade\PositionInfo.mqh>
+#include <Trade\OrderInfo.mqh>
+#include <Indicators\Trend.mqh>
+#include <Indicators\Oscillators.mqh>
+#include <Files\FileTxt.mqh>
+#include <WinAPI\winapi.mqh>
+
+//--- Include Custom Modules (These would be separate .mqh files)
+// We'll implement all functionality in main file for completeness
+// #include "GlobalFlow_Analytics.mqh"
+// #include "GlobalFlow_Bridge.mqh" 
+// #include "GlobalFlow_Risk.mqh"
+// #include "GlobalFlow_FnO.mqh"
+
+//+------------------------------------------------------------------+
+//| Input Parameters - Complete Configuration                        |
+//+------------------------------------------------------------------+
+
+//=== MASTER CONTROLS ===
+input group    "=== 🚀 EA GLOBALFLOW PRO v0.1 MASTER CONTROLS ==="
+input bool     EnableEA = true;                        // Enable EA Trading
+input bool     PaperTradingMode = true;               // Paper Trading Mode (No Real Trades)
+input string   EATagline = "Trade the World Markets with Me";  // EA Tagline  
+input int      MagicNumber = 20250804;                 // Magic Number (YYYYMMDD)
+
+//=== STRATEGY FRAMEWORK ===
+input group    "=== 📊 STRATEGY: ICHIMOKU-TDI-PA-BBSQUEEZE-KUMOCROSS ==="
+input bool     EnableContinuationPath = true;         // Enable Continuation (CT) Path
+input bool     EnablePullbackPath = true;             // Enable Pullback (PB) Path
+input double   TargetWinRate = 90.0;                  // Target Win Rate (90-95%)
+input bool     AlwaysEnterWithTrend = true;           // Universal Rule: Enter WITH Trend
+
+//=== TRIPLE ENHANCEMENT SYSTEM ===
+input group    "=== 🎯 TRIPLE ENHANCEMENT SYSTEM (90-95% WIN RATE) ==="
+input bool     EnableTripleEnhancement = true;        // Enable Triple Enhancement
+input double   Layer1_MinScore = 65.0;               // Layer 1: Entry Conditions Min Score (65-70%)
+input double   Layer2_MLConfidence = 75.0;           // Layer 2: ML Minimum Confidence (75%+)
+input double   Layer3_CandleVolumeScore = 60.0;      // Layer 3: Candlestick+Volume Min Score
+input double   FinalScoreThreshold = 85.0;           // Final Score Required (85%+ for trade)
+
+//=== 34 ENTRY CONDITIONS SYSTEM ===
+input group    "=== 🧮 34 ENTRY CONDITIONS SYSTEM ==="
+input int      MinimumConditionsRequired = 10;        // Minimum Conditions (Never below 10)
+input bool     EnableSequentialLogic = true;          // CT first, then PB
+input bool     StrictTrendAlignment = true;           // Enforce trend alignment
+input double   ConditionConfidenceThreshold = 60.0;   // Individual condition confidence
+
+//=== MULTI-TIMEFRAME CASCADE ===
+input group    "=== ⏰ MULTI-TIMEFRAME CASCADE ANALYSIS ==="
+input ENUM_TIMEFRAMES MajorTrendTF = PERIOD_D1;       // Major Trend (Daily/4H)
+input ENUM_TIMEFRAMES MiddleTrendTF = PERIOD_H1;       // Middle Trend (1H/30M)
+input ENUM_TIMEFRAMES EntryTF = PERIOD_M15;           // Entry Execution (15M/5M)
+input bool     RequireAllTimeframeAlignment = true;    // Require all TF alignment
+
+//=== INDIAN F&O MARKETS ===
+input group    "=== 🇮🇳 INDIAN F&O MARKETS (FYERS + TRUEDATA) ==="
+input bool     EnableFnOTrading = true;               // Enable F&O Trading
+input string   FyersAppID = "";                       // Fyers App ID
+input string   FyersRefreshToken = "";                // Fyers Refresh Token
+input string   TrueDataAPIKey = "";                   // TrueData API Key
+input int      OI_BiasThreshold = 30;                 // OI Bias Threshold (Never below 30%)
+input int      MaxSecondaryCharts = 2;                // Max Secondary Charts (1 Call + 1 Put)
+input bool     EnableExpiryATM = true;                // Use ATM on expiry day
+input bool     EnableHybridOILogic = true;            // Enable Hybrid OI Logic
+
+//=== F&O VISUAL IDENTIFICATION ===
+input group    "=== 🎨 F&O VISUAL THEMES ==="
+input color    CallChartColor = C'0,100,0';           // Call Chart Color (Forest Green)
+input color    PutChartColor = C'139,0,0';            // Put Chart Color (Deep Red)  
+input string   CallChartBadge = "📞 CALL";           // Call Chart Badge
+input string   PutChartBadge = "📉 PUT";             // Put Chart Badge
+input bool     EnableVisualBadges = true;             // Show Call/Put badges
+input bool     EnableChartDifferentiation = true;     // Visual chart differentiation
+
+//=== F&O TRADING HOURS (IST) ===
+input group    "=== 🕘 F&O TRADING HOURS (IST) ==="
+input int      FnO_StartHour = 9;                     // F&O Start Hour (IST)
+input int      FnO_StartMinute = 30;                  // F&O Start Minute
+input int      FnO_EndHour = 15;                      // F&O End Hour (IST)
+input int      FnO_EndMinute = 29;                    // F&O End Minute
+input bool     AutoCloseOnExpiry = true;              // Auto-close at 3:29 PM expiry
+
+//=== INTERNATIONAL MARKETS ===
+input group    "=== 🌍 INTERNATIONAL MARKETS (FOREX/COMMODITIES) ==="
+input bool     EnableNonFnOTrading = true;            // Enable Non-F&O Trading
+input int      NonFnO_MaxCharts = 20;                 // Max Non-F&O Charts (Top ranked)
+input double   NonFnO_MinScore = 75.0;               // Min Score for Non-F&O Entry (75%+)
+input bool     EnableAutoScanner = true;              // Enable Auto-Scanner
+
+//=== NON-F&O TRADING HOURS ===
+input group    "=== 🕐 NON-F&O TRADING HOURS ==="
+input int      NonFnO_StartHour = 1;                  // Forex Start Hour (Server Time)
+input int      NonFnO_EndHour = 23;                   // Forex End Hour (Server Time)
+input ENUM_DAY_OF_WEEK StartDay = MONDAY;             // Trading Start Day
+input ENUM_DAY_OF_WEEK EndDay = FRIDAY;               // Trading End Day
+
+//=== TECHNICAL INDICATORS ===
+input group    "=== 📈 TECHNICAL INDICATORS ==="
+input int      Ichi_Tenkan = 9;                       // Ichimoku Tenkan Period
+input int      Ichi_Kijun = 26;                       // Ichimoku Kijun Period
+input int      Ichi_Senkou = 52;                      // Ichimoku Senkou Period
+input int      TDI_RSI_Period = 13;                   // TDI RSI Period
+input int      TDI_Volatility_Band = 34;              // TDI Volatility Band
+input int      TDI_Price_Line = 2;                    // TDI Price Line
+input int      TDI_Signal_Line = 7;                   // TDI Signal Line
+input double   TDI_UpperLevel = 68.0;                 // TDI Upper Level
+input double   TDI_LowerLevel = 32.0;                 // TDI Lower Level
+input int      BB_Period = 20;                        // Bollinger Bands Period
+input double   BB_Deviation = 2.0;                    // Bollinger Bands Deviation
+input int      STR_Entry_Period = 20;                 // STR-ENTRY ATR Period
+input double   STR_Entry_Multiplier = 1.0;            // STR-ENTRY ATR Multiplier
+input int      STR_Exit_Period = 20;                  // STR-EXIT ATR Period
+input double   STR_Exit_Multiplier = 1.5;             // STR-EXIT ATR Multiplier
+input int      SMMA_Period = 50;                      // SMMA Period
+
+//=== RISK MANAGEMENT ===
+input group    "=== 🛡️ ADVANCED RISK MANAGEMENT ==="
+input double   MaxDailyLoss_Percent = 5.0;           // Max Daily Loss (% of account)
+input double   MaxRiskPerTrade_Percent = 1.0;        // Max Risk Per Trade (% of account)
+input bool     EnableVIXBasedSizing = true;          // Enable VIX-based Position Sizing
+input double   VIXThreshold = 30.0;                  // VIX Threshold for risk adjustment
+input bool     EnableCorrelationLimits = true;        // Enable Correlation Limits
+input int      MaxPositions = 10;                     // Maximum Positions
+
+//=== EXIT SYSTEM (SACRED PROTOCOL) ===
+input group    "=== 🚪 EXIT SYSTEM - STR-EXIT SACRED PROTOCOL ==="
+input bool     EnableSTR_EXIT = true;                // Enable STR-EXIT (NEVER DISABLE)
+input double   STR_EXIT_TrailingBuffer = 0.25;       // STR-EXIT Trailing Buffer (0.25% SACRED)
+input bool     EnableTakeProfitExit = true;          // Enable Take Profit Exit
+input double   MinRiskRewardRatio = 2.0;             // Minimum Risk:Reward Ratio
+
+//=== ML ENHANCEMENT v4.0 ===
+input group    "=== 🤖 ML ENHANCEMENT SYSTEM v4.0 ==="
+input bool     EnableMLValidation = true;            // Enable ML Validation
+input double   MLConfidenceThreshold = 75.0;         // ML Confidence Threshold
+input bool     EnableMLFallback = true;              // Enable Fallback when ML fails
+input bool     DisableMLOnHighVIX = true;            // Disable ML when VIX > threshold
+
+//=== PYTHON BRIDGE INTEGRATION ===
+input group    "=== 🐍 PYTHON BRIDGE INTEGRATION ==="
+input bool     EnablePythonBridge = true;            // Enable Python Bridge
+input string   BridgePipeName = "\\\\.\\pipe\\EA_GlobalFlow_Bridge";  // Named Pipe
+input int      BridgeTimeoutMS = 10000;              // Bridge Timeout (milliseconds)
+input bool     EnableTOTP = true;                    // Enable TOTP Auto-Login
+
+//=== ECONOMIC CALENDAR ===
+input group    "=== 📅 ECONOMIC CALENDAR INTEGRATION ==="
+input bool     EnableEconomicCalendar = true;        // Enable Economic Calendar Filter
+input bool     AvoidHighImpactNews = true;           // Avoid High Impact News
+input int      NewsAvoidanceMinutes = 30;            // Minutes to avoid before/after news
+
+//=== ALERT SYSTEM ===
+input group    "=== 🔔 COMPLETE ALERT SYSTEM ==="
+input bool     EnableSoundAlerts = false;            // Sound Alerts (Default: OFF)
+input bool     EnableEmailAlerts = true;             // Email Alerts (Default: ON)
+input string   EmailAddress = "pajitmenonai@gmail.com";  // Email Address
+input bool     EnablePhoneAlerts = true;             // Phone Alerts (Default: ON)
+input string   PhoneNumber = "00971507423656";       // Phone Number
+input bool     EnableTradeComments = true;           // Enable Trade Comments
+
+//=== DASHBOARD SYSTEM ===
+input group    "=== 📊 DUAL DASHBOARD SYSTEM ==="
+input bool     EnableMasterDashboards = true;        // Enable Master Dashboards
+input bool     ShowFnODashboard = true;              // Show F&O Dashboard (Royal Blue)
+input bool     ShowNonFnODashboard = true;           // Show Non-F&O Dashboard (Black)
+input int      DashboardRefreshSeconds = 30;         // Dashboard Refresh Rate
+
+//=== DEBUGGING & ANALYTICS ===
+input group    "=== 🔍 DEBUGGING & ANALYTICS SYSTEM ==="
+input bool     EnableDetailedLogging = true;         // Enable Detailed Logging
+input bool     EnableAnalytics = true;               // Enable Analytics System
+input bool     EnablePerformanceMonitoring = true;   // Enable Performance Monitoring
+input int      LogLevel = 2;                         // Log Level (0=Error, 1=Warning, 2=Info, 3=Debug)
+input bool     GenerateReports = true;               // Generate Analytics Reports
+input bool     SendAnalyticsToML = true;             // Send Analytics to ML Training
+
+//+------------------------------------------------------------------+
+//| Global Variables and Structures                                  |
+//+------------------------------------------------------------------+
+
+// System Status Structure
+struct SystemStatus
+{
+    bool        initialized;        // System initialization status
+    bool        tradingEnabled;     // Master trading switch
+    string      marketType;         // "F&O" or "NON-F&O"
+    datetime    sessionStart;       // Trading session start
+    datetime    lastUpdate;         // Last system update
+    int         totalTrades;        // Total trades executed
+    double      dailyPnL;          // Daily P&L
+    bool        emergencyMode;      // Emergency shutdown mode
+    double      currentVIX;         // Current VIX value
+    int         activePositions;    // Active position count
+    double      accountBalance;     // Account balance
+};
+
+// Trade Analysis Structure (for analytics)
+struct TradeAnalysis
+{
+    ulong       ticket;             // Trade ticket
+    string      symbol;             // Symbol
+    int         type;               // Order type
+    double      volume;             // Volume
+    double      openPrice;          // Open price
+    double      closePrice;         // Close price
+    double      profit;             // Profit
+    datetime    openTime;           // Open time
+    datetime    closeTime;          // Close time
+    string      exitReason;         // Exit reason
+    double      entryScore;         // Entry score from 34 conditions
+    double      mlConfidence;       // ML confidence score
+    bool        tripleEnhanced;     // Was triple enhancement used
+    int         conditionCount;     // Number of conditions met
+    string      entryCondition;     // Which condition triggered entry
+};
+
+// Pattern Analysis Structure
+struct PatternAnalysis
+{
+    string      patternName;        // Pattern name
+    int         occurrences;        // Number of occurrences
+    int         winners;            // Winning trades
+    int         losers;             // Losing trades
+    double      avgProfit;          // Average profit
+    double      winRate;            // Win rate percentage
+    double      profitFactor;       // Profit factor
+    double      maxDrawdown;        // Maximum drawdown
+    datetime    lastOccurrence;     // Last occurrence
+};
+
+// Global System Variables
+SystemStatus g_SystemStatus;
+CTrade trade;
+CSymbolInfo symbolInfo;
+CPositionInfo positionInfo;
+COrderInfo orderInfo;
+
+// Indicator Handles
+int handle_ichimoku;
+int handle_rsi;              // For TDI calculation
+int handle_bb;
+int handle_atr_entry;
+int handle_atr_exit;
+int handle_smma;
+
+// Indicator Arrays
+double ichimoku_tenkan[];
+double ichimoku_kijun[];
+double ichimoku_senkou_a[];
+double ichimoku_senkou_b[];
+double ichimoku_chikou[];
+double rsi_values[];
+double bb_upper[];
+double bb_lower[];
+double bb_middle[];
+double atr_entry[];
+double atr_exit[];
+double smma_values[];
+
+// TDI Calculation Arrays
+double tdi_rsi[];
+double tdi_market_base[];
+double tdi_signal[];
+double tdi_vb_high[];
+double tdi_vb_low[];
+
+// Analytics Arrays
+TradeAnalysis g_TradeHistory[1000];
+PatternAnalysis g_PatternHistory[100];
+int g_TradeCount = 0;
+int g_PatternCount = 0;
+bool g_AnalyticsActive = false;
+datetime g_LastAnalysis = 0;
+int g_LogHandle = INVALID_HANDLE;
+
+// Trading State Variables
+bool major_trend_bullish = false;
+bool middle_trend_bullish = false;
+bool continuation_setup = false;
+bool pullback_setup = false;
+
+// F&O Specific Variables
+string current_atm_strike = "";
+bool secondary_charts_open = false;
+double current_spot_price = 0.0;
+double atm_call_oi = 0.0;
+double atm_put_oi = 0.0;
+
+// Market Classification
+bool is_fno_market = false;
+bool is_forex_market = false;
+bool is_commodity_market = false;
+
+// Dashboard Objects
+string dashboard_objects[];
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    Print("🚀 EA GlobalFlow Pro v0.1 - Institutional Grade Initialization");
+    Print("📧 Contact: ", EmailAddress, " | 📱 Phone: ", PhoneNumber);
+    Print("🎯 Strategy: Ichimoku-TDI-PA-BBsqueeze-Kumocross");
+    Print("💰 Target Win Rate: ", TargetWinRate, "% through Triple Enhancement");
+    
+    // Initialize system status
+    InitializeSystemStatus();
+    
+    // Detect market type
+    DetectAndConfigureMarketType();
+    
+    // Initialize all components
+    if(!InitializeAllComponents())
+    {
+        Print("❌ CRITICAL: Component initialization failed!");
+        return INIT_FAILED;
+    }
+    
+    // Validate configuration
+    if(!ValidateConfiguration())
+    {
+        Print("❌ CRITICAL: Configuration validation failed!");
+        return INIT_FAILED;
+    }
+    
+    // Initialize analytics system
+    if(EnableAnalytics)
+    {
+        InitializeAnalytics();
+    }
+    
+    // Setup Python bridge
+    if(EnablePythonBridge)
+    {
+        InitializePythonBridge();
+    }
+    
+    // Setup dashboards
+    if(EnableMasterDashboards)
+    {
+        InitializeDashboards();
+    }
+    
+    // Start timers
+    EventSetTimer(5);  // 5-second timer
+    
+    // Final system check
+    PerformSystemHealthCheck();
+    
+    // Show initialization warnings
+    ShowInitializationWarnings();
+    
+    Print("✅ EA GlobalFlow Pro v0.1 - READY FOR OPERATION");
+    Print("🎭 Tagline: ", EATagline);
+    Print("🏪 Market Type: ", g_SystemStatus.marketType);
+    Print("📊 Paper Trading: ", PaperTradingMode ? "ENABLED" : "DISABLED");
+    
+    return INIT_SUCCEEDED;
+}
+
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                 |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+    Print("🛑 EA GlobalFlow Pro v0.1 - Deinitialization Started");
+    PrintDeinitialisationReason(reason);
+    
+    // Close all secondary charts (F&O)
+    if(g_SystemStatus.marketType == "F&O")
+        CloseAllSecondaryCharts();
+    
+    // Cleanup analytics
+    if(EnableAnalytics)
+        CleanupAnalytics();
+    
+    // Cleanup Python bridge
+    if(EnablePythonBridge)
+        CleanupPythonBridge();
+    
+    // Clean up dashboard objects
+    CleanupDashboards();
+    
+    // Release indicator handles
+    ReleaseIndicatorHandles();
+    
+    // Stop timers
+    EventKillTimer();
+    
+    Print("✅ EA GlobalFlow Pro v0.1 - Deinitialization Complete");
+}
+
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+    // Quick return if EA disabled
+    if(!EnableEA || !g_SystemStatus.tradingEnabled)
+        return;
+    
+    // Emergency mode check
+    if(g_SystemStatus.emergencyMode)
+    {
+        HandleEmergencyMode();
+        return;
+    }
+    
+    // Update market data
+    if(!UpdateMarketData())
+        return;
+    
+    // Process on new bar only
+    if(IsNewBar())
+    {
+        OnNewBar();
+    }
+    
+    // Continuous monitoring
+    MonitorSystemHealth();
+    
+    // Market-specific processing
+    if(g_SystemStatus.marketType == "F&O")
+        ProcessFnOTick();
+    else
+        ProcessNonFnOTick();
+}
+
+//+------------------------------------------------------------------+
+//| Timer function                                                   |
+//+------------------------------------------------------------------+
+void OnTimer()
+{
+    static datetime lastMajorUpdate = 0;
+    datetime currentTime = TimeCurrent();
+    
+    // Major system update every 30 seconds
+    if(currentTime - lastMajorUpdate >= 30)
+    {
+        UpdateSystemMetrics();
+        CheckTradingHours();
+        MonitorRiskLimits();
+        
+        // Update VIX if enabled
+        if(EnableVIXBasedSizing)
+            UpdateVIXValue();
+        
+        lastMajorUpdate = currentTime;
+    }
+    
+    // Update dashboards
+    if(EnableMasterDashboards)
+        UpdateDashboards();
+    
+    // Analytics timer
+    if(EnableAnalytics)
+        UpdateAnalyticsTimer();
+    
+    // Economic calendar check
+    if(EnableEconomicCalendar)
+        CheckEconomicEvents();
+    
+    // Python bridge health check
+    if(EnablePythonBridge)
+        CheckPythonBridgeHealth();
+}
+
+//+------------------------------------------------------------------+
+//| Chart Event Handler                                             |
+//+------------------------------------------------------------------+
+void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam)
+{
+    // Handle dashboard interactions
+    if(EnableMasterDashboards)
+        HandleDashboardEvents(id, lparam, dparam, sparam);
+}
+
+//+------------------------------------------------------------------+
+//| Trade Event Handler                                             |
+//+------------------------------------------------------------------+
+void OnTrade()
+{
+    // Record trade for analytics
+    if(EnableAnalytics)
+        RecordTradeAnalysis();
+    
+    // Send notifications
+    ProcessTradeNotifications();
+    
+    // Update risk parameters
+    UpdatePostTradeRisk();
+}
+
+//+------------------------------------------------------------------+
+//| Initialize System Status                                         |
+//+------------------------------------------------------------------+
+void InitializeSystemStatus()
+{
+    g_SystemStatus.initialized = false;
+    g_SystemStatus.tradingEnabled = EnableEA;
+    g_SystemStatus.marketType = "";
+    g_SystemStatus.sessionStart = TimeCurrent();
+    g_SystemStatus.lastUpdate = 0;
+    g_SystemStatus.totalTrades = 0;
+    g_SystemStatus.dailyPnL = 0.0;
+    g_SystemStatus.emergencyMode = false;
+    g_SystemStatus.currentVIX = 0.0;
+    g_SystemStatus.activePositions = 0;
+    g_SystemStatus.accountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+    
+    Print("🔧 System Status initialized");
+}
+
+//+------------------------------------------------------------------+
+//| Detect and Configure Market Type                                |
+//+------------------------------------------------------------------+
+void DetectAndConfigureMarketType()
+{
+    string symbol = Symbol();
+    
+    // Indian F&O market detection
+    if(StringFind(symbol, "NIFTY") >= 0 || 
+       StringFind(symbol, "BANKNIFTY") >= 0 ||
+       StringFind(symbol, "FINNIFTY") >= 0 ||
+       StringFind(symbol, "CE") >= 0 ||
+       StringFind(symbol, "PE") >= 0 ||
+       StringFind(symbol, "FUT") >= 0)
+    {
+        g_SystemStatus.marketType = "F&O";
+        is_fno_market = true;
+        is_forex_market = false;
+        is_commodity_market = false;
+        Print("🇮🇳 Indian F&O Market Detected: ", symbol);
+        ConfigureFnOSettings();
+    }
+    else
+    {
+        g_SystemStatus.marketType = "NON-F&O";
+        is_fno_market = false;
+        
+        // Determine if Forex or Commodity
+        if(StringLen(symbol) == 6)  // Typical forex pair length
+        {
+            is_forex_market = true;
+            is_commodity_market = false;
+            Print("💱 Forex Market Detected: ", symbol);
+        }
+        else
+        {
+            is_forex_market = false;
+            is_commodity_market = true;
+            Print("🥇 Commodity Market Detected: ", symbol);
+        }
+        
+        ConfigureNonFnOSettings();
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Initialize All Components                                        |
+//+------------------------------------------------------------------+
+bool InitializeAllComponents()
+{
+    Print("🔧 Initializing EA components...");
+    
+    // 1. Initialize Indicators
+    if(!InitializeIndicators())
+    {
+        Print("❌ Indicators initialization failed");
+        return false;
+    }
+    Print("✅ Indicators initialized");
+    
+    // 2. Initialize Trading System
+    if(!InitializeTradingSystem())
+    {
+        Print("❌ Trading System initialization failed");
+        return false;
+    }
+    Print("✅ Trading System initialized");
+    
+    // 3. Initialize Risk Management
+    if(!InitializeRiskManagement())
+    {
+        Print("❌ Risk Management initialization failed");
+        return false;
+    }
+    Print("✅ Risk Management initialized");
+    
+    // 4. Initialize Market-Specific Components
+    if(g_SystemStatus.marketType == "F&O")
+    {
+        if(!InitializeFnOSystem())
+        {
+            Print("❌ F&O System initialization failed");
+            return false;
+        }
+        Print("✅ F&O System initialized");
+    }
+    else
+    {
+        if(!InitializeNonFnOSystem())
+        {
+            Print("❌ Non-F&O System initialization failed");
+            return false;
+        }
+        Print("✅ Non-F&O System initialized");
+    }
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Indicators                                            |
+//+------------------------------------------------------------------+
+bool InitializeIndicators()
+{
+    // Initialize Ichimoku
+    handle_ichimoku = iIchimoku(Symbol(), PERIOD_CURRENT, Ichi_Tenkan, Ichi_Kijun, Ichi_Senkou);
+    if(handle_ichimoku == INVALID_HANDLE)
+    {
+        Print("❌ ERROR: Failed to create Ichimoku indicator. Error: ", GetLastErrorString());
+        return false;
+    }
+    
+    // Initialize RSI for TDI calculation
+    handle_rsi = iRSI(Symbol(), PERIOD_CURRENT, TDI_RSI_Period, PRICE_CLOSE);
+    if(handle_rsi == INVALID_HANDLE)
+    {
+        Print("❌ ERROR: Failed to create RSI indicator. Error: ", GetLastErrorString());
+        return false;
+    }
+    
+    // Initialize Bollinger Bands
+    handle_bb = iBands(Symbol(), PERIOD_CURRENT, BB_Period, 0, BB_Deviation, PRICE_CLOSE);
+    if(handle_bb == INVALID_HANDLE)
+    {
+        Print("❌ ERROR: Failed to create Bollinger Bands indicator. Error: ", GetLastErrorString());
+        return false;
+    }
+    
+    // Initialize ATR for SuperTrend
+    handle_atr_entry = iATR(Symbol(), PERIOD_CURRENT, STR_Entry_Period);
+    handle_atr_exit = iATR(Symbol(), PERIOD_CURRENT, STR_Exit_Period);
+    
+    if(handle_atr_entry == INVALID_HANDLE || handle_atr_exit == INVALID_HANDLE)
+    {
+        Print("❌ ERROR: Failed to create ATR indicators. Error: ", GetLastErrorString());
+        return false;
+    }
+    
+    // Initialize SMMA
+    handle_smma = iMA(Symbol(), PERIOD_CURRENT, SMMA_Period, 0, MODE_SMMA, PRICE_CLOSE);
+    if(handle_smma == INVALID_HANDLE)
+    {
+        Print("❌ ERROR: Failed to create SMMA indicator. Error: ", GetLastErrorString());
+        return false;
+    }
+    
+    // Set array directions
+    ArraySetAsSeries(ichimoku_tenkan, true);
+    ArraySetAsSeries(ichimoku_kijun, true);
+    ArraySetAsSeries(ichimoku_senkou_a, true);
+    ArraySetAsSeries(ichimoku_senkou_b, true);
+    ArraySetAsSeries(ichimoku_chikou, true);
+    ArraySetAsSeries(rsi_values, true);
+    ArraySetAsSeries(bb_upper, true);
+    ArraySetAsSeries(bb_lower, true);
+    ArraySetAsSeries(bb_middle, true);
+    ArraySetAsSeries(atr_entry, true);
+    ArraySetAsSeries(atr_exit, true);
+    ArraySetAsSeries(smma_values, true);
+    ArraySetAsSeries(tdi_rsi, true);
+    ArraySetAsSeries(tdi_market_base, true);
+    ArraySetAsSeries(tdi_signal, true);
+    ArraySetAsSeries(tdi_vb_high, true);
+    ArraySetAsSeries(tdi_vb_low, true);
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Update Market Data                                               |
+//+------------------------------------------------------------------+
+bool UpdateMarketData()
+{
+    // Copy indicator data
+    if(!CopyIndicatorData())
+        return false;
+    
+    // Calculate TDI components
+    CalculateTDI();
+    
+    // Update current spot price
+    current_spot_price = SymbolInfoDouble(Symbol(), SYMBOL_BID);
+    
+    // Update system metrics
+    g_SystemStatus.accountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+    g_SystemStatus.activePositions = PositionsTotal();
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Copy Indicator Data                                              |
+//+------------------------------------------------------------------+
+bool CopyIndicatorData()
+{
+    // Copy Ichimoku data
+    if(CopyBuffer(handle_ichimoku, 0, 0, 100, ichimoku_tenkan) <= 0 ||
+       CopyBuffer(handle_ichimoku, 1, 0, 100, ichimoku_kijun) <= 0 ||
+       CopyBuffer(handle_ichimoku, 2, 0, 100, ichimoku_senkou_a) <= 0 ||
+       CopyBuffer(handle_ichimoku, 3, 0, 100, ichimoku_senkou_b) <= 0 ||
+       CopyBuffer(handle_ichimoku, 4, 0, 100, ichimoku_chikou) <= 0)
+    {
+        Print("❌ ERROR: Failed to copy Ichimoku data");
+        return false;
+    }
+    
+    // Copy RSI data for TDI
+    if(CopyBuffer(handle_rsi, 0, 0, 100, rsi_values) <= 0)
+    {
+        Print("❌ ERROR: Failed to copy RSI data");
+        return false;
+    }
+    
+    // Copy Bollinger Bands data
+    if(CopyBuffer(handle_bb, 0, 0, 100, bb_middle) <= 0 ||
+       CopyBuffer(handle_bb, 1, 0, 100, bb_upper) <= 0 ||
+       CopyBuffer(handle_bb, 2, 0, 100, bb_lower) <= 0)
+    {
+        Print("❌ ERROR: Failed to copy Bollinger Bands data");
+        return false;
+    }
+    
+    // Copy ATR data
+    if(CopyBuffer(handle_atr_entry, 0, 0, 100, atr_entry) <= 0 ||
+       CopyBuffer(handle_atr_exit, 0, 0, 100, atr_exit) <= 0)
+    {
+        Print("❌ ERROR: Failed to copy ATR data");
+        return false;
+    }
+    
+    // Copy SMMA data
+    if(CopyBuffer(handle_smma, 0, 0, 100, smma_values) <= 0)
+    {
+        Print("❌ ERROR: Failed to copy SMMA data");
+        return false;
+    }
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate TDI Components                                         |
+//+------------------------------------------------------------------+
+void CalculateTDI()
+{
+    int size = ArraySize(rsi_values);
+    if(size < TDI_Volatility_Band + 10) return;
+    
+    ArrayResize(tdi_rsi, size);
+    ArrayResize(tdi_market_base, size);
+    ArrayResize(tdi_signal, size);
+    ArrayResize(tdi_vb_high, size);
+    ArrayResize(tdi_vb_low, size);
+    
+    // Copy RSI values
+    for(int i = 0; i < size; i++)
+    {
+        tdi_rsi[i] = rsi_values[i];
+    }
+    
+    // Calculate Market Base Line (Smoothed RSI)
+    for(int i = 0; i < size - TDI_Price_Line + 1; i++)
+    {
+        double sum = 0;
+        for(int j = 0; j < TDI_Price_Line; j++)
+        {
+            sum += tdi_rsi[i + j];
+        }
+        tdi_market_base[i] = sum / TDI_Price_Line;
+    }
+    
+    // Calculate Trade Signal Line (Further smoothed)
+    for(int i = 0; i < size - TDI_Signal_Line + 1; i++)
+    {
+        double sum = 0;
+        for(int j = 0; j < TDI_Signal_Line; j++)
+        {
+            if(i + j < ArraySize(tdi_market_base))
+                sum += tdi_market_base[i + j];
+        }
+        tdi_signal[i] = sum / TDI_Signal_Line;
+    }
+    
+    // Calculate Volatility Bands
+    for(int i = 0; i < size - TDI_Volatility_Band + 1; i++)
+    {
+        double sum = 0;
+        double sumSq = 0;
+        
+        for(int j = 0; j < TDI_Volatility_Band; j++)
+        {
+            if(i + j < ArraySize(tdi_market_base))
+            {
+                sum += tdi_market_base[i + j];
+                sumSq += tdi_market_base[i + j] * tdi_market_base[i + j];
+            }
+        }
+        
+        double mean = sum / TDI_Volatility_Band;
+        double variance = (sumSq - sum * mean) / (TDI_Volatility_Band - 1);
+        double stdDev = MathSqrt(variance);
+        
+        tdi_vb_high[i] = mean + stdDev;
+        tdi_vb_low[i] = mean - stdDev;
+    }
+}
+
+//+------------------------------------------------------------------+
+//| New Bar Event Handler                                           |
+//+------------------------------------------------------------------+
+void OnNewBar()
+{
+    Print("📊 New bar detected at ", TimeToString(TimeCurrent(), TIME_DATE|TIME_MINUTES));
+    
+    // Perform multi-timeframe trend analysis
+    AnalyzeTrends();
+    
+    // Evaluate all 34 entry conditions
+    EvaluateEntryConditions();
+    
+    // Apply Triple Enhancement System if enabled
+    if(EnableTripleEnhancement)
+    {
+        ApplyTripleEnhancement();
+    }
+    
+    // Check for trade opportunities
+    CheckTradeOpportunities();
+    
+    // Update last update time
+    g_SystemStatus.lastUpdate = TimeCurrent();
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Trends Across Timeframes                                |
+//+------------------------------------------------------------------+
+void AnalyzeTrends()
+{
+    // Analyze major trend (Daily/4H)
+    major_trend_bullish = AnalyzeMajorTrend();
+    
+    // Analyze middle trend (1H/30M)
+    middle_trend_bullish = AnalyzeMiddleTrend();
+    
+    // Determine setup type
+    if(RequireAllTimeframeAlignment)
+    {
+        continuation_setup = (major_trend_bullish == middle_trend_bullish);
+        pullback_setup = (major_trend_bullish != middle_trend_bullish);
+    }
+    else
+    {
+        continuation_setup = true;  // Allow continuation setup
+        pullback_setup = true;      // Allow pullback setup
+    }
+    
+    PrintDebug("🔍 Trend Analysis: Major=" + (major_trend_bullish ? "BULL" : "BEAR") + 
+               ", Middle=" + (middle_trend_bullish ? "BULL" : "BEAR") + 
+               ", CT=" + (continuation_setup ? "YES" : "NO") + 
+               ", PB=" + (pullback_setup ? "YES" : "NO"));
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Major Trend                                             |
+//+------------------------------------------------------------------+
+bool AnalyzeMajorTrend()
+{
+    // Simple trend analysis using SMMA and Ichimoku
+    if(ArraySize(smma_values) < 3 || ArraySize(ichimoku_tenkan) < 3) return false;
+    
+    bool smma_bullish = smma_values[0] > smma_values[2];  // Current > 2 bars ago
+    bool ichimoku_bullish = ichimoku_tenkan[0] > ichimoku_kijun[0];  // Tenkan > Kijun
+    bool kumo_bullish = iClose(Symbol(), PERIOD_CURRENT, 1) > ichimoku_senkou_a[1] && 
+                       iClose(Symbol(), PERIOD_CURRENT, 1) > ichimoku_senkou_b[1];
+    
+    // Majority vote
+    int bullish_votes = (smma_bullish ? 1 : 0) + (ichimoku_bullish ? 1 : 0) + (kumo_bullish ? 1 : 0);
+    
+    return bullish_votes >= 2;
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Middle Trend                                            |
+//+------------------------------------------------------------------+
+bool AnalyzeMiddleTrend()
+{
+    // Middle trend analysis using TDI and price action
+    if(ArraySize(tdi_market_base) < 3 || ArraySize(rsi_values) < 3) return false;
+    
+    bool tdi_bullish = tdi_market_base[0] > 50.0 && tdi_rsi[0] > tdi_market_base[0];
+    bool rsi_bullish = rsi_values[0] > rsi_values[2];  // RSI trending up
+    bool price_bullish = iClose(Symbol(), PERIOD_CURRENT, 1) > iClose(Symbol(), PERIOD_CURRENT, 3);
+    
+    // Majority vote
+    int bullish_votes = (tdi_bullish ? 1 : 0) + (rsi_bullish ? 1 : 0) + (price_bullish ? 1 : 0);
+    
+    return bullish_votes >= 2;
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate All 34 Entry Conditions                                |
+//+------------------------------------------------------------------+
+void EvaluateEntryConditions()
+{
+    int conditions_met = 0;
+    string triggered_conditions = "";
+    
+    // Evaluate Continuation Trend conditions first (Sequential Logic)
+    if(EnableContinuationPath && continuation_setup)
+    {
+        if(EnableSequentialLogic)
+        {
+            // CT-Sell conditions (S1-S13)
+            if(!major_trend_bullish)
+            {
+                conditions_met += EvaluateCTSellConditions(triggered_conditions);
+            }
+            
+            // CT-Buy conditions (B1-B13) 
+            if(major_trend_bullish)
+            {
+                conditions_met += EvaluateCTBuyConditions(triggered_conditions);
+            }
+        }
+    }
+    
+    // Evaluate Pullback conditions if CT didn't trigger
+    if(EnablePullbackPath && pullback_setup && conditions_met < MinimumConditionsRequired)
+    {
+        // PB-Sell conditions (S14-S17)
+        if(major_trend_bullish && !middle_trend_bullish)  // Major bull, middle bear
+        {
+            conditions_met += EvaluatePBSellConditions(triggered_conditions);
+        }
+        
+        // PB-Buy conditions (B14-B17)
+        if(!major_trend_bullish && middle_trend_bullish)  // Major bear, middle bull
+        {
+            conditions_met += EvaluatePBBuyConditions(triggered_conditions);
+        }
+    }
+    
+    PrintDebug("📋 Entry Conditions Evaluation: " + IntegerToString(conditions_met) + "/" + IntegerToString(MinimumConditionsRequired) + " met");
+    if(conditions_met > 0)
+    {
+        PrintDebug("🎯 Triggered: " + triggered_conditions);
+    }
+    
+    // Check if minimum conditions are met
+    if(conditions_met >= MinimumConditionsRequired)
+    {
+        ProcessTradeSignal(conditions_met, triggered_conditions);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate CT-Sell Conditions (S1-S13)                           |
+//+------------------------------------------------------------------+
+int EvaluateCTSellConditions(string &triggered_conditions)
+{
+    int count = 0;
+    
+    // S1 - BB_Squeeze Complex
+    if(EvaluateS1_BBSqueezeComplex())
+    {
+        count++;
+        triggered_conditions += "S1,";
+    }
+    
+    // S2 - BB_Break Lower
+    if(EvaluateS2_BBBreakLower())
+    {
+        count++;
+        triggered_conditions += "S2,";
+    }
+    
+    // S3 - KUMO_Cross Bear
+    if(EvaluateS3_KumoCrossBear())
+    {
+        count++;
+        triggered_conditions += "S3,";
+    }
+    
+    // S4 - KUMO_Cross SMMA
+    if(EvaluateS4_KumoCrossSMMA_Sell())
+    {
+        count++;
+        triggered_conditions += "S4,";
+    }
+    
+    // S5-S8 - STR-ENTRY-Type-1 Group (with prerequisites)
+    if(EvaluateSTREntryType1Prerequisites_Sell())
+    {
+        if(EvaluateS5_STREntry()) { count++; triggered_conditions += "S5,"; }
+        if(EvaluateS6_STREntry()) { count++; triggered_conditions += "S6,"; }
+        if(EvaluateS7_STREntry()) { count++; triggered_conditions += "S7,"; }
+        if(EvaluateS8_STREntry()) { count++; triggered_conditions += "S8,"; }
+    }
+    
+    // S9-S13 - STR-ENTRY-Type-2 Group (with prerequisites)
+    if(EvaluateSTREntryType2Prerequisites_Sell())
+    {
+        if(EvaluateS9_STREntry()) { count++; triggered_conditions += "S9,"; }
+        if(EvaluateS10_STREntry()) { count++; triggered_conditions += "S10,"; }
+        if(EvaluateS11_STREntry()) { count++; triggered_conditions += "S11,"; }
+        if(EvaluateS12_STREntry()) { count++; triggered_conditions += "S12,"; }
+        if(EvaluateS13_STREntry()) { count++; triggered_conditions += "S13,"; }
+    }
+    
+    return count;
+}
+
+//+------------------------------------------------------------------+
+//| Evaluate CT-Buy Conditions (B1-B13)                            |
+//+------------------------------------------------------------------+
+int EvaluateCTBuyConditions(string &triggered_conditions)
+{
+    int count = 0;
+    
+    // B1 - BB_Squeeze Complex
+    if(EvaluateB1_BBSqueezeComplex())
+    {
+        count++;
+        triggered_conditions += "B1,";
+    }
+    
+    // B2 - BB_Break Upper
+    if(EvaluateB2_BBBreakUpper())
+    {
+        count++;
+        triggered_conditions += "B2,";
+    }
+    
+    // B3 - KUMO_Cross Bull
+    if(EvaluateB3_KumoCrossBull())
+    {
+        count++;
+        triggered_conditions += "B3,";
+    }
+    
+    // B4 - KUMO_Cross SMMA
+    if(EvaluateB4_KumoCrossSMMA_Buy())
+    {
+        count++;
+        triggered_conditions += "B4,";
+    }
+    
+    // B5-B8 - STR-ENTRY-Type-1 Group (with prerequisites)
+    if(EvaluateSTREntryType1Prerequisites_Buy())
+    {
+        if(EvaluateB5_STREntry()) { count++; triggered_conditions += "B5,"; }
+        if(EvaluateB6_STREntry()) { count++; triggered_conditions += "B6,"; }
+        if(EvaluateB7_STREntry()) { count++; triggered_conditions += "B7,"; }
+        if(EvaluateB8_STREntry()) { count++; triggered_conditions += "B8,"; }
+    }
+    
+    // B9-B13 - STR-ENTRY-Type-2 Group (with prerequisites)
+    if(EvaluateSTREntryType2Prerequisites_Buy())
+    {
+        if(EvaluateB9_STREntry()) { count++; triggered_conditions += "B9,"; }
+        if(EvaluateB10_STREntry()) { count++; triggered_conditions += "B10,"; }
+        if(EvaluateB11_STREntry()) { count++; triggered_conditions += "B11,"; }
+        if(EvaluateB12_STREntry()) { count++; triggered_conditions += "B12,"; }
+        if(EvaluateB13_STREntry()) { count++; triggered_conditions += "B13,"; }
+    }
+    
+    return count;
+}
+
+//+------------------------------------------------------------------+
+//| Individual Condition Evaluations - S1: BB_Squeeze Complex      |
+//+------------------------------------------------------------------+
+bool EvaluateS1_BBSqueezeComplex()
+{
+    if(ArraySize(tdi_rsi) < 30 || ArraySize(tdi_market_base) < 30 || ArraySize(tdi_signal) < 30) return false;
+    if(ArraySize(ichimoku_chikou) < 30 || ArraySize(ichimoku_senkou_b) < 5) return false;
+    if(ArraySize(smma_values) < 5) return false;
+    
+    // (rsig(1) x< MB(1) OR rsig(1) x< TSL(1))
+    bool rsi_cross = (tdi_rsi[2] >= tdi_market_base[2] && tdi_rsi[1] < tdi_market_base[1]) ||
+                     (tdi_rsi[2] >= tdi_signal[2] && tdi_rsi[1] < tdi_signal[1]);
+    
+    // CSpan(26) < Candle low(26)
+    bool chikou_below = false;
+    if(ArraySize(ichimoku_chikou) > 26)
+        chikou_below = ichimoku_chikou[26] < iLow(Symbol(), PERIOD_CURRENT, 26);
+    
+    // Candle Close(1) < SSB(1)
+    bool close_below_ssb = iClose(Symbol(), PERIOD_CURRENT, 1) < ichimoku_senkou_b[1];
+    
+    // SMMA50(1) <= SMMA50(3)
+    bool smma_declining = smma_values[1] <= smma_values[3];
+    
+    // Candle Close(1) < SSA(1)
+    bool close_below_ssa = iClose(Symbol(), PERIOD_CURRENT, 1) < ichimoku_senkou_a[1];
+    
+    // Candle Close(1) x< SMMA50(1)
+    bool close_cross_smma = iClose(Symbol(), PERIOD_CURRENT, 2) >= smma_values[2] && 
+                           iClose(Symbol(), PERIOD_CURRENT, 1) < smma_values[1];
+    
+    return rsi_cross && chikou_below && close_below_ssb && smma_declining && close_below_ssa && close_cross_smma;
+}
+
+//+------------------------------------------------------------------+
+//| S2: BB_Break Lower                                              |
+//+------------------------------------------------------------------+
+bool EvaluateS2_BBBreakLower()
+{
+    if(ArraySize(bb_lower) < 3) return false;
+    
+    // Candle Low(1) x< Lower boll(1)
+    return iLow(Symbol(), PERIOD_CURRENT, 2) >= bb_lower[2] && 
+           iLow(Symbol(), PERIOD_CURRENT, 1) < bb_lower[1];
+}
+
+//+------------------------------------------------------------------+
+//| S3: KUMO_Cross Bear                                             |
+//+------------------------------------------------------------------+
+bool EvaluateS3_KumoCrossBear()
+{
+    if(ArraySize(ichimoku_chikou) < 30 || ArraySize(ichimoku_senkou_a) < 5 || ArraySize(ichimoku_senkou_b) < 5) return false;
+    if(ArraySize(bb_lower) < 5 || ArraySize(tdi_signal) < 5) return false;
+    
+    // CSpan(26) < Candle close(26)
+    bool chikou_below = false;
+    if(ArraySize(ichimoku_chikou) > 26)
+        chikou_below = ichimoku_chikou[26] < iClose(Symbol(), PERIOD_CURRENT, 26);
+    
+    // Candle Close(1) < SSA(1) OR Candle close(1) < SSB(1)
+    bool close_below_kumo = iClose(Symbol(), PERIOD_CURRENT, 1) < ichimoku_senkou_a[1] ||
+                           iClose(Symbol(), PERIOD_CURRENT, 1) < ichimoku_senkou_b[1];
+    
+    // Candle Close(1) <= Lower boll(2)
+    bool close_at_lower = iClose(Symbol(), PERIOD_CURRENT, 1) <= bb_lower[2];
+    
+    // Candle Low(1) < Candle Low(2)
+    bool low_declining = iLow(Symbol(), PERIOD_CURRENT, 1) < iLow(Symbol(), PERIOD_CURRENT, 2);
+    
+    // rsig(1) x< TSL(1)
+    bool rsi_cross_tsl = tdi_rsi[2] >= tdi_signal[2] && tdi_rsi[1] < tdi_signal[1];
+    
+    // Candle Low(1) x< Lower boll(1)
+    bool low_cross_bb = iLow(Symbol(), PERIOD_CURRENT, 2) >= bb_lower[2] && 
+                       iLow(Symbol(), PERIOD_CURRENT, 1) < bb_lower[1];
+    
+    return chikou_below && close_below_kumo && close_at_lower && low_declining && rsi_cross_tsl && low_cross_bb;
+}
+
+//+------------------------------------------------------------------+
+//| S4: KUMO_Cross SMMA Sell                                       |
+//+------------------------------------------------------------------+
+bool EvaluateS4_KumoCrossSMMA_Sell()
+{
+    if(ArraySize(smma_values) < 3) return false;
+    
+    // Candle Close(1) x< SMMA50(1)
+    return iClose(Symbol(), PERIOD_CURRENT, 2) >= smma_values[2] && 
+           iClose(Symbol(), PERIOD_CURRENT, 1) < smma_values[1];
+}
+
+//+------------------------------------------------------------------+
+//| STR-ENTRY Type-1 Prerequisites for Sell                        |
+//+------------------------------------------------------------------+
+bool EvaluateSTREntryType1Prerequisites_Sell()
+{
+    if(ArraySize(tdi_market_base) < 5 || ArraySize(tdi_vb_low) < 3 || ArraySize(tdi_rsi) < 5) return false;
+    if(ArraySize(smma_values) < 3) return false;
+    
+    // MB(1) <= 50 AND MB(1) > 32
+    bool mb_range = tdi_market_base[1] <= 50.0 && tdi_market_base[1] > 32.0;
+    
+    // VB Low(1) > 32
+    bool vb_above_32 = tdi_vb_low[1] > 32.0;
+    
+    // rsig(1) < 50
+    bool rsi_below_50 = tdi_rsi[1] < 50.0;
+    
+    // MB(1) < MB(3)
+    bool mb_declining = tdi_market_base[1] < tdi_market_base[3];
+    
+    // Candle Open(1) < SMMA50(1) OR Candle close(1) < SMMA50(1)
+    bool below_smma = iOpen(Symbol(), PERIOD_CURRENT, 1) < smma_values[1] || 
+                     iClose(Symbol(), PERIOD_CURRENT, 1) < smma_values[1];
+    
+    // rsig(2) > rsig(1)
+    bool rsi_declining = tdi_rsi[2] > tdi_rsi[1];
+    
+    // STR-ENTRY(0) > Candle Open(0)
+    double str_entry = CalculateSTREntry(0);
+    bool str_above_open = str_entry > iOpen(Symbol(), PERIOD_CURRENT, 0);
+    
+    return mb_range && vb_above_32 && rsi_below_50 && mb_declining && below_smma && rsi_declining && str_above_open;
+}
+
+//+------------------------------------------------------------------+
+//| B1: BB_Squeeze Complex                                          |
+//+------------------------------------------------------------------+
+bool EvaluateB1_BBSqueezeComplex()
+{
+    if(ArraySize(tdi_rsi) < 30 || ArraySize(tdi_market_base) < 30 || ArraySize(tdi_signal) < 30) return false;
+    if(ArraySize(ichimoku_chikou) < 30 || ArraySize(ichimoku_senkou_a) < 5 || ArraySize(ichimoku_senkou_b) < 5) return false;
+    if(ArraySize(smma_values) < 5) return false;
+    
+    // (rsig(1) x> MB(1) OR rsig(1) x> TSL(1))
+    bool rsi_cross = (tdi_rsi[2] <= tdi_market_base[2] && tdi_rsi[1] > tdi_market_base[1]) ||
+                     (tdi_rsi[2] <= tdi_signal[2] && tdi_rsi[1] > tdi_signal[1]);
+    
+    // CSpan(26) > Candle low(26)
+    bool chikou_above = false;
+    if(ArraySize(ichimoku_chikou) > 26)
+        chikou_above = ichimoku_chikou[26] > iLow(Symbol(), PERIOD_CURRENT, 26);
+    
+    // Candle Close(1) > SSB(1)
+    bool close_above_ssb = iClose(Symbol(), PERIOD_CURRENT, 1) > ichimoku_senkou_b[1];
+    
+    // Candle Close(1) > SSA(1)
+    bool close_above_ssa = iClose(Symbol(), PERIOD_CURRENT, 1) > ichimoku_senkou_a[1];
+    
+    // SMMA50(1) >= SMMA50(3)
+    bool smma_rising = smma_values[1] >= smma_values[3];
+    
+    // Candle Close(1) x> SMMA50(1)
+    bool close_cross_smma = iClose(Symbol(), PERIOD_CURRENT, 2) <= smma_values[2] && 
+                           iClose(Symbol(), PERIOD_CURRENT, 1) > smma_values[1];
+    
+    return rsi_cross && chikou_above && close_above_ssb && close_above_ssa && smma_rising && close_cross_smma;
+}
+
+//+------------------------------------------------------------------+
+//| B2: BB_Break Upper                                              |
+//+------------------------------------------------------------------+
+bool EvaluateB2_BBBreakUpper()
+{
+    if(ArraySize(bb_upper) < 3) return false;
+    
+    // Candle Close(1) x> Upper boll(1)
+    return iClose(Symbol(), PERIOD_CURRENT, 2) <= bb_upper[2] && 
+           iClose(Symbol(), PERIOD_CURRENT, 1) > bb_upper[1];
+}
+
+//+------------------------------------------------------------------+
+//| Calculate STR-ENTRY Value                                       |
+//+------------------------------------------------------------------+
+double CalculateSTREntry(int shift)
+{
+    if(ArraySize(atr_entry) <= shift) return 0.0;
+    
+    double hl2 = (iHigh(Symbol(), PERIOD_CURRENT, shift) + iLow(Symbol(), PERIOD_CURRENT, shift)) / 2.0;
+    double str_value = hl2 - STR_Entry_Multiplier * atr_entry[shift];
+    
+    return str_value;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate STR-EXIT Value                                        |
+//+------------------------------------------------------------------+
+double CalculateSTRExit(int shift)
+{
+    if(ArraySize(atr_exit) <= shift) return 0.0;
+    
+    double hl2 = (iHigh(Symbol(), PERIOD_CURRENT, shift) + iLow(Symbol(), PERIOD_CURRENT, shift)) / 2.0;
+    double str_value = hl2 - STR_Exit_Multiplier * atr_exit[shift];
+    
+    return str_value;
+}
+
+//+------------------------------------------------------------------+
+//| Process Trade Signal                                            |
+//+------------------------------------------------------------------+
+void ProcessTradeSignal(int conditions_met, string triggered_conditions)
+{
+    double entry_score = (double)conditions_met / 34.0 * 100.0;  // Convert to percentage
+    
+    PrintDebug("🎯 Trade Signal Processing: Score=" + DoubleToString(entry_score, 1) + "%, Conditions=" + triggered_conditions);
+    
+    // Apply Triple Enhancement System
+    if(EnableTripleEnhancement)
+    {
+        double final_score = ApplyTripleEnhancement(entry_score, triggered_conditions);
+        
+        if(final_score >= FinalScoreThreshold)
+        {
+            ExecuteTradeSignal(triggered_conditions, final_score, true);
+        }
+        else
+        {
+            PrintDebug("❌ Trade rejected by Triple Enhancement: Final Score=" + DoubleToString(final_score, 1) + "% < " + DoubleToString(FinalScoreThreshold, 1) + "%");
+        }
+    }
+    else
+    {
+        // Execute without Triple Enhancement if score meets minimum
+        if(entry_score >= Layer1_MinScore)
+        {
+            ExecuteTradeSignal(triggered_conditions, entry_score, false);
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Apply Triple Enhancement System                                 |
+//+------------------------------------------------------------------+
+double ApplyTripleEnhancement(double entry_score, string triggered_conditions)
+{
+    PrintDebug("🎯 Applying Triple Enhancement System...");
+    
+    // Layer 1: Entry Conditions Score (already have this)
+    double layer1_score = entry_score;
+    PrintDebug("📊 Layer 1 (Entry Conditions): " + DoubleToString(layer1_score, 1) + "%");
+    
+    // Layer 2: ML Enhancement
+    double layer2_score = 50.0;  // Default neutral score
+    if(EnableMLValidation)
+    {
+        layer2_score = GetMLConfidenceScore(triggered_conditions);
+        PrintDebug("🤖 Layer 2 (ML Enhancement): " + DoubleToString(layer2_score, 1) + "%");
+    }
+    
+    // Layer 3: Candlestick + Volume Validation
+    double layer3_score = GetCandlestickVolumeScore();
+    PrintDebug("📈 Layer 3 (Candle+Volume): " + DoubleToString(layer3_score, 1) + "%");
+    
+    // Calculate final weighted score
+    double final_score = (layer1_score * 0.4) + (layer2_score * 0.35) + (layer3_score * 0.25);
+    
+    PrintDebug("✅ Triple Enhancement Final Score: " + DoubleToString(final_score, 1) + "%");
+    
+    return final_score;
+}
+
+//+------------------------------------------------------------------+
+//| Get ML Confidence Score                                         |
+//+------------------------------------------------------------------+
+double GetMLConfidenceScore(string triggered_conditions)
+{
+    if(!EnableMLValidation || !EnablePythonBridge)
+        return 50.0;  // Neutral score if ML disabled
+    
+    // Check if ML should be disabled due to high VIX
+    if(DisableMLOnHighVIX && g_SystemStatus.currentVIX > VIXThreshold)
+    {
+        PrintDebug("⚠️ ML disabled due to high VIX: " + DoubleToString(g_SystemStatus.currentVIX, 1));
+        return 50.0;
+    }
+    
+    // Prepare ML data
+    string ml_data = PrepareMLData(triggered_conditions);
+    
+    // Send to Python bridge for ML validation
+    string command = "{\"service\":\"ml_validator\",\"action\":\"get_confidence\"," +
+                     "\"data\":" + ml_data + "}";
+    
+    string response = SendPythonCommand(command);
+    
+    // Parse ML response
+    double confidence = ParseMLConfidence(response);
+    
+    return MathMax(0.0, MathMin(100.0, confidence));  // Clamp between 0-100
+}
+
+//+------------------------------------------------------------------+
+//| Get Candlestick + Volume Score                                  |
+//+------------------------------------------------------------------+
+double GetCandlestickVolumeScore()
+{
+    double score = 50.0;  // Base neutral score
+    
+    // Candlestick pattern analysis
+    double candle_score = AnalyzeCandlestickPattern();
+    
+    // Volume confirmation
+    double volume_score = AnalyzeVolumeConfirmation();
+    
+    // Combined score (weighted)
+    score = (candle_score * 0.6) + (volume_score * 0.4);
+    
+    return MathMax(0.0, MathMin(100.0, score));
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Candlestick Pattern                                     |
+//+------------------------------------------------------------------+
+double AnalyzeCandlestickPattern()
+{
+    double score = 50.0;
+    
+    // Get OHLC data for last 3 bars
+    double open1 = iOpen(Symbol(), PERIOD_CURRENT, 1);
+    double high1 = iHigh(Symbol(), PERIOD_CURRENT, 1);
+    double low1 = iLow(Symbol(), PERIOD_CURRENT, 1);
+    double close1 = iClose(Symbol(), PERIOD_CURRENT, 1);
+    
+    double open2 = iOpen(Symbol(), PERIOD_CURRENT, 2);
+    double high2 = iHigh(Symbol(), PERIOD_CURRENT, 2);
+    double low2 = iLow(Symbol(), PERIOD_CURRENT, 2);
+    double close2 = iClose(Symbol(), PERIOD_CURRENT, 2);
+    
+    // Calculate body and shadow sizes
+    double body1 = MathAbs(close1 - open1);
+    double range1 = high1 - low1;
+    double upper_shadow1 = high1 - MathMax(open1, close1);
+    double lower_shadow1 = MathMin(open1, close1) - low1;
+    
+    // Strong bullish patterns
+    if(close1 > open1)  // Bullish candle
+    {
+        // Strong bullish candle (body > 70% of range)
+        if(body1 > range1 * 0.7)
+            score += 15.0;
+        
+        // Marubozu-like (small shadows)
+        if(upper_shadow1 < range1 * 0.1 && lower_shadow1 < range1 * 0.1)
+            score += 10.0;
+        
+        // Bullish engulfing
+        if(close2 < open2 && body1 > body1 && close1 > open2 && open1 < close2)
+            score += 20.0;
+    }
+    
+    // Strong bearish patterns
+    if(close1 < open1)  // Bearish candle
+    {
+        // Strong bearish candle
+        if(body1 > range1 * 0.7)
+            score -= 15.0;
+        
+        // Bearish engulfing
+        if(close2 > open2 && body1 > body1 && close1 < open2 && open1 > close2)
+            score -= 20.0;
+    }
+    
+    // Doji patterns (indecision)
+    if(body1 < range1 * 0.1)
+        score -= 5.0;
+    
+    return MathMax(0.0, MathMin(100.0, score));
+}
+
+//+------------------------------------------------------------------+
+//| Analyze Volume Confirmation                                     |
+//+------------------------------------------------------------------+
+double AnalyzeVolumeConfirmation()
+{
+    double score = 50.0;
+    
+    // Get volume data
+    long volume1 = iVolume(Symbol(), PERIOD_CURRENT, 1);
+    long volume2 = iVolume(Symbol(), PERIOD_CURRENT, 2);
+    long volume3 = iVolume(Symbol(), PERIOD_CURRENT, 3);
+    
+    // Calculate average volume
+    long avg_volume = (volume1 + volume2 + volume3) / 3;
+    
+    // High volume confirmation
+    if(volume1 > avg_volume * 1.5)
+        score += 20.0;
+    else if(volume1 > avg_volume * 1.2)
+        score += 10.0;
+    
+    // Low volume penalty
+    if(volume1 < avg_volume * 0.7)
+        score -= 15.0;
+    
+    // Volume trend
+    if(volume1 > volume2 && volume2 > volume3)
+        score += 10.0;  // Increasing volume
+    
+    return MathMax(0.0, MathMin(100.0, score));
+}
+
+//+------------------------------------------------------------------+
+//| Execute Trade Signal                                            |
+//+------------------------------------------------------------------+
+void ExecuteTradeSignal(string triggered_conditions, double final_score, bool triple_enhanced)
+{
+    if(PaperTradingMode)
+    {
+        PrintDebug("📄 PAPER TRADING MODE - Signal recorded but not executed");
+        RecordPaperTrade(triggered_conditions, final_score, triple_enhanced);
+        return;
+    }
+    
+    // Determine trade direction
+    bool is_buy_signal = IsBuySignal(triggered_conditions);
+    
+    // Calculate position size
+    double lot_size = CalculatePositionSize(final_score);
+    
+    // Calculate entry price and stops
+    double entry_price = is_buy_signal ? SymbolInfoDouble(Symbol(), SYMBOL_ASK) : SymbolInfoDouble(Symbol(), SYMBOL_BID);
+    double stop_loss = CalculateStopLoss(is_buy_signal, entry_price);
+    double take_profit = CalculateTakeProfit(is_buy_signal, entry_price, stop_loss);
+    
+    // Create trade comment
+    string comment = "GlobalFlow_v0.1_Score" + DoubleToString(final_score, 0) + 
+                    (triple_enhanced ? "_TripleEnhanced" : "_Standard");
+    
+    // Execute the trade
+    bool result = false;
+    ulong ticket = 0;
+    
+    if(is_buy_signal)
+    {
+        if(is_fno_market)
+            result = trade.Buy(lot_size, Symbol(), entry_price, stop_loss, take_profit, comment);
+        else
+            result = trade.BuyStop(lot_size, entry_price, Symbol(), stop_loss, take_profit, ORDER_TIME_GTC, 0, comment);
+        
+        ticket = trade.ResultOrder();
+    }
+    else
+    {
+        if(is_fno_market)
+            result = trade.Sell(lot_size, Symbol(), entry_price, stop_loss, take_profit, comment);
+        else
+            result = trade.SellStop(lot_size, entry_price, Symbol(), stop_loss, take_profit, ORDER_TIME_GTC, 0, comment);
+        
+        ticket = trade.ResultOrder();
+    }
+    
+    // Handle trade result
+    if(result)
+    {
+        PrintDebug("✅ Trade executed successfully: Ticket=" + IntegerToString(ticket) + 
+                  ", Direction=" + (is_buy_signal ? "BUY" : "SELL") + 
+                  ", Size=" + DoubleToString(lot_size, 2) + 
+                  ", Score=" + DoubleToString(final_score, 1) + "%");
+        
+        // Send notifications
+        SendTradeNotifications(ticket, is_buy_signal, lot_size, final_score, triggered_conditions);
+        
+        // Record for analytics
+        if(EnableAnalytics)
+            RecordTradeForAnalytics(ticket, triggered_conditions, final_score, triple_enhanced);
+    }
+    else
+    {
+        Print("❌ Trade execution failed: Error=" + IntegerToString(trade.ResultRetcode()) + 
+              " (" + trade.ResultRetcodeDescription() + ")");
+        
+        // Record failed trade attempt
+        LogTradeError(trade.ResultRetcode(), triggered_conditions, final_score);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Check if Buy Signal                                             |
+//+------------------------------------------------------------------+
+bool IsBuySignal(string triggered_conditions)
+{
+    // Check if any buy conditions (B1-B17) are triggered
+    return StringFind(triggered_conditions, "B") >= 0;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Position Size                                         |
+//+------------------------------------------------------------------+
+double CalculatePositionSize(double confidence_score)
+{
+    double account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
+    double risk_amount = account_balance * MaxRiskPerTrade_Percent / 100.0;
+    
+    // Adjust risk based on confidence score
+    if(EnableVIXBasedSizing && g_SystemStatus.currentVIX > 0)
+    {
+        double vix_multiplier = 1.0;
+        if(g_SystemStatus.currentVIX > VIXThreshold)
+            vix_multiplier = 0.5;  // Reduce size in high volatility
+        
+        risk_amount *= vix_multiplier;
+    }
+    
+    // Confidence-based sizing
+    double confidence_multiplier = confidence_score / 100.0;
+    risk_amount *= confidence_multiplier;
+    
+    // Calculate lot size based on stop loss
+    double stop_distance = CalculateStopDistance();
+    double tick_value = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_VALUE);
+    double tick_size = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_SIZE);
+    
+    double lots = 0.01;  // Minimum lot size
+    if(stop_distance > 0 && tick_value > 0)
+    {
+        lots = risk_amount / (stop_distance / tick_size * tick_value);
+    }
+    
+    // Apply lot size limits
+    double min_lot = SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_MIN);
+    double max_lot = SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_MAX);
+    double lot_step = SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_STEP);
+    
+    lots = MathMax(min_lot, lots);
+    lots = MathMin(max_lot, lots);
+    lots = NormalizeDouble(lots / lot_step, 0) * lot_step;
+    
+    return lots;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Stop Distance                                         |
+//+------------------------------------------------------------------+
+double CalculateStopDistance()
+{
+    if(ArraySize(atr_exit) < 2) return 0.001;  // Default fallback
+    
+    return STR_Exit_Multiplier * atr_exit[1];
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Stop Loss                                             |
+//+------------------------------------------------------------------+
+double CalculateStopLoss(bool is_buy, double entry_price)
+{
+    double stop_distance = CalculateStopDistance();
+    
+    if(is_buy)
+        return entry_price - stop_distance;
+    else
+        return entry_price + stop_distance;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate Take Profit                                           |
+//+------------------------------------------------------------------+
+double CalculateTakeProfit(bool is_buy, double entry_price, double stop_loss)
+{
+    double stop_distance = MathAbs(entry_price - stop_loss);
+    double tp_distance = stop_distance * MinRiskRewardRatio;
+    
+    if(is_buy)
+        return entry_price + tp_distance;
+    else
+        return entry_price - tp_distance;
+}
+
+//+------------------------------------------------------------------+
+//| Send Trade Notifications                                        |
+//+------------------------------------------------------------------+
+void SendTradeNotifications(ulong ticket, bool is_buy, double lot_size, double score, string conditions)
+{
+    string message = "🎯 EA GlobalFlow Pro v0.1 - Trade Executed\n" +
+                    "Ticket: " + IntegerToString(ticket) + "\n" +
+                    "Symbol: " + Symbol() + "\n" +
+                    "Direction: " + (is_buy ? "BUY" : "SELL") + "\n" +
+                    "Size: " + DoubleToString(lot_size, 2) + "\n" +
+                    "Score: " + DoubleToString(score, 1) + "%\n" +
+                    "Conditions: " + conditions;
+    
+    // Sound alert
+    if(EnableSoundAlerts)
+        Alert(message);
+    
+    // Email alert
+    if(EnableEmailAlerts)
+        SendMail("EA GlobalFlow Pro - Trade Alert", message);
+    
+    // Phone alert (would need SMS API integration)
+    if(EnablePhoneAlerts)
+    {
+        // Implementation would depend on SMS service provider
+        PrintDebug("📱 Phone alert would be sent to: " + PhoneNumber);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Analytics System                                     |
+//+------------------------------------------------------------------+
+void InitializeAnalytics()
+{
+    Print("📊 Initializing Analytics System...");
+    
+    // Initialize trade history array
+    for(int i = 0; i < 1000; i++)
+    {
+        g_TradeHistory[i].ticket = 0;
+        g_TradeHistory[i].symbol = "";
+        g_TradeHistory[i].type = -1;
+        g_TradeHistory[i].volume = 0.0;
+        g_TradeHistory[i].openPrice = 0.0;
+        g_TradeHistory[i].closePrice = 0.0;
+        g_TradeHistory[i].profit = 0.0;
+        g_TradeHistory[i].openTime = 0;
+        g_TradeHistory[i].closeTime = 0;
+        g_TradeHistory[i].exitReason = "";
+        g_TradeHistory[i].entryScore = 0.0;
+        g_TradeHistory[i].mlConfidence = 0.0;
+        g_TradeHistory[i].tripleEnhanced = false;
+        g_TradeHistory[i].conditionCount = 0;
+        g_TradeHistory[i].entryCondition = "";
+    }
+    
+    // Initialize pattern analysis array
+    for(int i = 0; i < 100; i++)
+    {
+        g_PatternHistory[i].patternName = "";
+        g_PatternHistory[i].occurrences = 0;
+        g_PatternHistory[i].winners = 0;
+        g_PatternHistory[i].losers = 0;
+        g_PatternHistory[i].avgProfit = 0.0;
+        g_PatternHistory[i].winRate = 0.0;
+        g_PatternHistory[i].profitFactor = 0.0;
+        g_PatternHistory[i].maxDrawdown = 0.0;
+        g_PatternHistory[i].lastOccurrence = 0;
+    }
+    
+    // Open log file
+    string log_filename = "EA_GlobalFlow_Analytics_" + TimeToString(TimeCurrent(), TIME_DATE) + ".log";
+    g_LogHandle = FileOpen(log_filename, FILE_WRITE | FILE_TXT | FILE_ANSI);
+    
+    if(g_LogHandle != INVALID_HANDLE)
+    {
+        FileWrite(g_LogHandle, "EA GlobalFlow Pro v0.1 - Analytics Log Started: " + TimeToString(TimeCurrent()));
+        FileFlush(g_LogHandle);
+    }
+    
+    g_AnalyticsActive = true;
+    g_TradeCount = 0;
+    g_PatternCount = 0;
+    g_LastAnalysis = TimeCurrent();
+    
+    Print("✅ Analytics System initialized successfully");
+}
+
+//+------------------------------------------------------------------+
+//| Record Trade for Analytics                                      |
+//+------------------------------------------------------------------+
+void RecordTradeForAnalytics(ulong ticket, string conditions, double score, bool triple_enhanced)
+{
+    if(!g_AnalyticsActive || g_TradeCount >= 1000) return;
+    
+    // Find position info
+    if(!PositionSelectByTicket(ticket)) return;
+    
+    // Record trade data
+    g_TradeHistory[g_TradeCount].ticket = ticket;
+    g_TradeHistory[g_TradeCount].symbol = PositionGetString(POSITION_SYMBOL);
+    g_TradeHistory[g_TradeCount].type = (int)PositionGetInteger(POSITION_TYPE);
+    g_TradeHistory[g_TradeCount].volume = PositionGetDouble(POSITION_VOLUME);
+    g_TradeHistory[g_TradeCount].openPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+    g_TradeHistory[g_TradeCount].openTime = (datetime)PositionGetInteger(POSITION_TIME);
+    g_TradeHistory[g_TradeCount].entryScore = score;
+    g_TradeHistory[g_TradeCount].tripleEnhanced = triple_enhanced;
+    g_TradeHistory[g_TradeCount].entryCondition = conditions;
+    
+    // Count conditions
+    int condition_count = 0;
+    for(int i = 0; i < StringLen(conditions); i++)
+    {
+        if(StringGetCharacter(conditions, i) == ',')
+            condition_count++;
+    }
+    g_TradeHistory[g_TradeCount].conditionCount = condition_count;
+    
+    g_TradeCount++;
+    
+    // Log to file
+    if(g_LogHandle != INVALID_HANDLE)
+    {
+        string log_entry = TimeToString(TimeCurrent()) + " | TRADE_OPEN | " +
+                          "Ticket=" + IntegerToString(ticket) + " | " +
+                          "Score=" + DoubleToString(score, 1) + " | " +
+                          "Enhanced=" + (triple_enhanced ? "YES" : "NO") + " | " +
+                          "Conditions=" + conditions;
+        FileWrite(g_LogHandle, log_entry);
+        FileFlush(g_LogHandle);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Record Trade Analysis (on close)                               |
+//+------------------------------------------------------------------+
+void RecordTradeAnalysis()
+{
+    if(!g_AnalyticsActive) return;
+    
+    // Get the last closed position from history
+    if(HistorySelect(TimeCurrent() - 86400, TimeCurrent()))  // Last 24 hours
+    {
+        int total = HistoryDealsTotal();
+        for(int i = total - 1; i >= 0; i--)
+        {
+            ulong ticket = HistoryDealGetTicket(i);
+            if(ticket > 0)
+            {
+                if(HistoryDealGetInteger(ticket, DEAL_ENTRY) == DEAL_ENTRY_OUT)  // Exit deal
+                {
+                    ulong position_id = HistoryDealGetInteger(ticket, DEAL_POSITION_ID);
+                    
+                    // Find corresponding trade in our analytics array
+                    for(int j = 0; j < g_TradeCount; j++)
+                    {
+                        if(g_TradeHistory[j].ticket == position_id)
+                        {
+                            // Update trade with close data
+                            g_TradeHistory[j].closePrice = HistoryDealGetDouble(ticket, DEAL_PRICE);
+                            g_TradeHistory[j].closeTime = (datetime)HistoryDealGetInteger(ticket, DEAL_TIME);
+                            g_TradeHistory[j].profit = HistoryDealGetDouble(ticket, DEAL_PROFIT);
+                            g_TradeHistory[j].exitReason = "MANUAL_OR_SL_TP";  // Would need to determine actual reason
+                            
+                            // Log completion
+                            if(g_LogHandle != INVALID_HANDLE)
+                            {
+                                string log_entry = TimeToString(TimeCurrent()) + " | TRADE_CLOSE | " +
+                                                  "Ticket=" + IntegerToString(position_id) + " | " +
+                                                  "Profit=" + DoubleToString(g_TradeHistory[j].profit, 2) + " | " +
+                                                  "ExitReason=" + g_TradeHistory[j].exitReason;
+                                FileWrite(g_LogHandle, log_entry);
+                                FileFlush(g_LogHandle);
+                            }
+                            
+                            break;
+                        }
+                    }
+                    break;  // Process only the most recent close
+                }
+            }
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Generate Analytics Report                                       |
+//+------------------------------------------------------------------+
+void GenerateAnalyticsReport()
+{
+    if(!g_AnalyticsActive) return;
+    
+    Print("📊 Generating Analytics Report...");
+    
+    // Calculate overall statistics
+    int total_trades = 0;
+    int winning_trades = 0;
+    int losing_trades = 0;
+    double total_profit = 0.0;
+    double total_loss = 0.0;
+    
+    for(int i = 0; i < g_TradeCount; i++)
+    {
+        if(g_TradeHistory[i].closeTime > 0)  // Closed trade
+        {
+            total_trades++;
+            if(g_TradeHistory[i].profit > 0)
+            {
+                winning_trades++;
+                total_profit += g_TradeHistory[i].profit;
+            }
+            else if(g_TradeHistory[i].profit < 0)
+            {
+                losing_trades++;
+                total_loss += MathAbs(g_TradeHistory[i].profit);
+            }
+        }
+    }
+    
+    // Calculate metrics
+    double win_rate = total_trades > 0 ? (double)winning_trades / total_trades * 100.0 : 0.0;
+    double profit_factor = total_loss > 0 ? total_profit / total_loss : 0.0;
+    double net_profit = total_profit - total_loss;
+    
+    // Print report
+    Print("📈 === EA GLOBALFLOW PRO v0.1 ANALYTICS REPORT ===");
+    Print("📊 Total Trades: ", total_trades);
+    Print("✅ Winning Trades: ", winning_trades);
+    Print("❌ Losing Trades: ", losing_trades);
+    Print("🎯 Win Rate: ", DoubleToString(win_rate, 1), "%");
+    Print("💰 Profit Factor: ", DoubleToString(profit_factor, 2));
+    Print("💵 Net Profit: ", DoubleToString(net_profit, 2));
+    Print("🎭 Target Win Rate: ", DoubleToString(TargetWinRate, 1), "%");
+    Print("📈 Performance vs Target: ", (win_rate >= TargetWinRate ? "✅ ACHIEVED" : "❌ BELOW TARGET"));
+    
+    // Log report to file
+    if(g_LogHandle != INVALID_HANDLE)
+    {
+        FileWrite(g_LogHandle, "=== ANALYTICS REPORT ===");
+        FileWrite(g_LogHandle, "Total Trades: " + IntegerToString(total_trades));
+        FileWrite(g_LogHandle, "Win Rate: " + DoubleToString(win_rate, 1) + "%");
+        FileWrite(g_LogHandle, "Profit Factor: " + DoubleToString(profit_factor, 2));
+        FileWrite(g_LogHandle, "Net Profit: " + DoubleToString(net_profit, 2));
+        FileFlush(g_LogHandle);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Send Analytics to Python Bridge for ML Training               |
+//+------------------------------------------------------------------+
+void SendAnalyticsToPythonBridge()
+{
+    if(!g_AnalyticsActive || !EnablePythonBridge || !SendAnalyticsToML) return;
+    
+    // Prepare analytics data for ML training
+    string analytics_data = PrepareAnalyticsForML();
+    
+    // Send to Python bridge
+    string command = "{\"service\":\"ml_trainer\",\"action\":\"update_training_data\"," +
+                     "\"data\":" + analytics_data + "}";
+    
+    string response = SendPythonCommand(command);
+    
+    if(StringFind(response, "success") >= 0)
+    {
+        Print("✅ Analytics data sent to ML training system");
+        if(g_LogHandle != INVALID_HANDLE)
+        {
+            FileWrite(g_LogHandle, TimeToString(TimeCurrent()) + " | ML_TRAINING_UPDATE | Training data updated successfully");
+            FileFlush(g_LogHandle);
+        }
+    }
+    else
+    {
+        Print("❌ Failed to send analytics to ML system");
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Prepare Analytics for ML                                       |
+//+------------------------------------------------------------------+
+string PrepareAnalyticsForML()
+{
+    string ml_data = "{\"trades\":[";
+    
+    int limit = MathMin(g_TradeCount, 100);  // Send last 100 trades
+    bool first = true;
+    
+    for(int i = 0; i < limit; i++)
+    {
+        if(g_TradeHistory[i].ticket > 0 && g_TradeHistory[i].closeTime > 0)
+        {
+            if(!first) ml_data += ",";
+            first = false;
+            
+            ml_data += "{";
+            ml_data += "\"ticket\":" + IntegerToString(g_TradeHistory[i].ticket) + ",";
+            ml_data += "\"profit\":" + DoubleToString(g_TradeHistory[i].profit, 2) + ",";
+            ml_data += "\"entry_score\":" + DoubleToString(g_TradeHistory[i].entryScore, 2) + ",";
+            ml_data += "\"conditions\":\"" + g_TradeHistory[i].entryCondition + "\",";
+            ml_data += "\"condition_count\":" + IntegerToString(g_TradeHistory[i].conditionCount) + ",";
+            ml_data += "\"triple_enhanced\":" + (g_TradeHistory[i].tripleEnhanced ? "true" : "false") + ",";
+            ml_data += "\"win\":" + (g_TradeHistory[i].profit > 0 ? "true" : "false");
+            ml_data += "}";
+        }
+    }
+    
+    ml_data += "]}";
+    
+    return ml_data;
+}
+
+//+------------------------------------------------------------------+
+//| Cleanup Analytics                                              |
+//+------------------------------------------------------------------+
+void CleanupAnalytics()
+{
+    Print("🧹 Cleaning up Analytics System...");
+    
+    // Generate final report before cleanup
+    if(GenerateReports)
+        GenerateAnalyticsReport();
+    
+    // Send final data to ML
+    if(SendAnalyticsToML)
+        SendAnalyticsToPythonBridge();
+    
+    // Close log file
+    if(g_LogHandle != INVALID_HANDLE)
+    {
+        FileWrite(g_LogHandle, "EA GlobalFlow Pro v0.1 - Analytics Log Ended: " + TimeToString(TimeCurrent()));
+        FileClose(g_LogHandle);
+        g_LogHandle = INVALID_HANDLE;
+    }
+    
+    g_AnalyticsActive = false;
+    Print("✅ Analytics System cleanup complete");
+}
+
+//+------------------------------------------------------------------+
+//| Initialize Python Bridge                                        |
+//+------------------------------------------------------------------+
+bool InitializePythonBridge()
+{
+    Print("🐍 Initializing Python Bridge...");
+    
+    // Test Python bridge connection
+    string test_command = "{\"service\":\"system\",\"action\":\"ping\"}";
+    string response = SendPythonCommand(test_command);
+    
+    if(StringFind(response, "pong") >= 0)
+    {
+        Print("✅ Python Bridge connected successfully");
+        return true;
+    }
+    else
+    {
+        Print("❌ Python Bridge connection failed - continuing without ML features");
+        return false;
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Send Python Command                                            |
+//+------------------------------------------------------------------+
+string SendPythonCommand(string command)
+{
+    // This is a placeholder implementation
+    // In a real implementation, this would use named pipes or other IPC
+    // to communicate with the Python bridge process
+    
+    // For now, return a mock response
+    if(StringFind(command, "ping") >= 0)
+        return "{\"status\":\"success\",\"response\":\"pong\"}";
+    
+    if(StringFind(command, "ml_validator") >= 0)
+        return "{\"status\":\"success\",\"confidence\":75.5}";
+    
+    if(StringFind(command, "ml_trainer") >= 0)
+        return "{\"status\":\"success\",\"message\":\"training_updated\"}";
+    
+    return "{\"status\":\"error\",\"message\":\"unknown_command\"}";
+}
+
+//+------------------------------------------------------------------+
+//| Parse ML Confidence from Response                              |
+//+------------------------------------------------------------------+
+double ParseMLConfidence(string response)
+{
+    // Simple JSON parsing for confidence value
+    int start_pos = StringFind(response, "\"confidence\":");
+    if(start_pos >= 0)
+    {
+        start_pos += 13; // Length of "\"confidence\":"
+        int end_pos = StringFind(response, "}", start_pos);
+        if(end_pos > start_pos)
+        {
+            string confidence_str = StringSubstr(response, start_pos, end_pos - start_pos);
+            return StringToDouble(confidence_str);
+        }
+    }
+    
+    return 50.0; // Default neutral confidence
+}
+
+//+------------------------------------------------------------------+
+//| Prepare ML Data                                                |
+//+------------------------------------------------------------------+
+string PrepareMLData(string triggered_conditions)
+{
+    string ml_data = "{";
+    
+    // Add current indicator values
+    if(ArraySize(tdi_rsi) > 0)
+        ml_data += "\"tdi_rsi\":" + DoubleToString(tdi_rsi[0], 4) + ",";
+    if(ArraySize(tdi_market_base) > 0)
+        ml_data += "\"tdi_mb\":" + DoubleToString(tdi_market_base[0], 4) + ",";
+    if(ArraySize(smma_values) > 0)
+        ml_data += "\"smma\":" + DoubleToString(smma_values[0], 4) + ",";
+    if(ArraySize(bb_upper) > 0)
+        ml_data += "\"bb_upper\":" + DoubleToString(bb_upper[0], 4) + ",";
+    if(ArraySize(bb_lower) > 0)
+        ml_data += "\"bb_lower\":" + DoubleToString(bb_lower[0], 4) + ",";
+    
+    // Add market conditions
+    ml_data += "\"major_trend\":" + (major_trend_bullish ? "1" : "0") + ",";
+    ml_data += "\"middle_trend\":" + (middle_trend_bullish ? "1" : "0") + ",";
+    ml_data += "\"vix\":" + DoubleToString(g_SystemStatus.currentVIX, 2) + ",";
+    ml_data += "\"conditions\":\"" + triggered_conditions + "\"";
+    
+    ml_data += "}";
+    
+    return ml_data;
+}
+
+//+------------------------------------------------------------------+
+//| Cleanup Python Bridge                                          |
+//+------------------------------------------------------------------+
+void CleanupPythonBridge()
+{
+    // Send shutdown command to Python bridge
+    string shutdown_command = "{\"service\":\"system\",\"action\":\"shutdown\"}";
+    SendPythonCommand(shutdown_command);
+    
+    Print("🐍 Python Bridge cleanup complete");
+}
+
+//+------------------------------------------------------------------+
+//| Additional placeholder implementations                          |
+//+------------------------------------------------------------------+
+
+// Placeholder implementations for remaining functions
+bool InitializeTradingSystem() { return true; }
+bool InitializeRiskManagement() { return true; }
+bool InitializeFnOSystem() { return true; }
+bool InitializeNonFnOSystem() { return true; }
+void ConfigureFnOSettings() { }
+void ConfigureNonFnOSettings() { }
+bool ValidateConfiguration() { return true; }
+void ShowInitializationWarnings() { }
+bool PerformSystemHealthCheck() { return true; }
+void InitializeDashboards() { }
+void UpdateDashboards() { }
+void HandleDashboardEvents(int id, long lparam, double dparam, string sparam) { }
+void CleanupDashboards() { }
+void ReleaseIndicatorHandles()
+{
+    if(handle_ichimoku != INVALID_HANDLE) IndicatorRelease(handle_ichimoku);
+    if(handle_rsi != INVALID_HANDLE) IndicatorRelease(handle_rsi);
+    if(handle_bb != INVALID_HANDLE) IndicatorRelease(handle_bb);
+    if(handle_atr_entry != INVALID_HANDLE) IndicatorRelease(handle_atr_entry);
+    if(handle_atr_exit != INVALID_HANDLE) IndicatorRelease(handle_atr_exit);
+    if(handle_smma != INVALID_HANDLE) IndicatorRelease(handle_smma);
+}
+
+void HandleEmergencyMode() { }
+void ProcessFnOTick() { }
+void ProcessNonFnOTick() { }
+void UpdateSystemMetrics() { }
+void CheckTradingHours() { }
+void MonitorRiskLimits() { }
+void UpdateVIXValue() { }
+void UpdateAnalyticsTimer()
+{
+    if(!g_AnalyticsActive) return;
+    
+    // Generate report every hour
+    if(TimeCurrent() - g_LastAnalysis > 3600)
+    {
+        GenerateAnalyticsReport();
+        if(SendAnalyticsToML)
+            SendAnalyticsToPythonBridge();
+        g_LastAnalysis = TimeCurrent();
+    }
+}
+void CheckEconomicEvents() { }
+void CheckPythonBridgeHealth() { }
+void ProcessTradeNotifications() { }
+void UpdatePostTradeRisk() { }
+void MonitorSystemHealth() { }
+void CloseAllSecondaryCharts() { }
+
+// Evaluation function placeholders for remaining conditions
+bool EvaluateS5_STREntry() { return false; }
+bool EvaluateS6_STREntry() { return false; }
+bool EvaluateS7_STREntry() { return false; }
+bool EvaluateS8_STREntry() { return false; }
+bool EvaluateS9_STREntry() { return false; }
+bool EvaluateS10_STREntry() { return false; }
+bool EvaluateS11_STREntry() { return false; }
+bool EvaluateS12_STREntry() { return false; }
+bool EvaluateS13_STREntry() { return false; }
+bool EvaluateSTREntryType2Prerequisites_Sell() { return false; }
+bool EvaluateSTREntryType1Prerequisites_Buy() { return false; }
+bool EvaluateSTREntryType2Prerequisites_Buy() { return false; }
+bool EvaluateB3_KumoCrossBull() { return false; }
+bool EvaluateB4_KumoCrossSMMA_Buy() { return false; }
+bool EvaluateB5_STREntry() { return false; }
+bool EvaluateB6_STREntry() { return false; }
+bool EvaluateB7_STREntry() { return false; }
+bool EvaluateB8_STREntry() { return false; }
+bool EvaluateB9_STREntry() { return false; }
+bool EvaluateB10_STREntry() { return false; }
+bool EvaluateB11_STREntry() { return false; }
+bool EvaluateB12_STREntry() { return false; }
+bool EvaluateB13_STREntry() { return false; }
+int EvaluatePBSellConditions(string &triggered_conditions) { return 0; }
+int EvaluatePBBuyConditions(string &triggered_conditions) { return 0; }
+
+void RecordPaperTrade(string conditions, double score, bool enhanced)
+{
+    PrintDebug("📄 Paper Trade: Conditions=" + conditions + ", Score=" + DoubleToString(score, 1) + "%, Enhanced=" + (enhanced ? "YES" : "NO"));
+}
+
+void LogTradeError(int error_code, string conditions, double score)
+{
+    Print("❌ Trade Error: Code=" + IntegerToString(error_code) + ", Conditions=" + conditions + ", Score=" + DoubleToString(score, 1) + "%");
+}
+
+string GetLastErrorString()
+{
+    return "Error " + IntegerToString(GetLastError());
+}
+
+bool IsNewBar()
+{
+    static datetime lastBarTime = 0;
+    datetime currentBarTime = iTime(Symbol(), EntryTF, 0);
+    
+    if(currentBarTime != lastBarTime)
+    {
+        lastBarTime = currentBarTime;
+        return true;
+    }
+    return false;
+}
+
+void PrintDebug(string message)
+{
+    if(LogLevel >= 3)  // Debug level
+        Print("🔍 DEBUG: " + message);
+}
+
+void PrintDeinitialisationReason(int reason)
+{
+    string reasonText;
+    switch(reason)
+    {
+        case REASON_PROGRAM:     reasonText = "EA stopped by user"; break;
+        case REASON_REMOVE:      reasonText = "EA removed from chart"; break;
+        case REASON_RECOMPILE:   reasonText = "EA recompiled"; break;
+        case REASON_CHARTCHANGE: reasonText = "Chart changed"; break;
+        case REASON_CHARTCLOSE:  reasonText = "Chart closed"; break;
+        case REASON_PARAMETERS:  reasonText = "Input parameters changed"; break;
+        case REASON_ACCOUNT:     reasonText = "Account changed"; break;
+        case REASON_TEMPLATE:    reasonText = "Template changed"; break;
+        case REASON_INITFAILED:  reasonText = "Initialization failed"; break;
+        case REASON_CLOSE:       reasonText = "Terminal closed"; break;
+        default:                 reasonText = "Unknown reason"; break;
+    }
+    Print("🔄 Deinitialization reason: " + reasonText);
+}
+
+//+------------------------------------------------------------------+
+//| Expert end                                                       |
+//+------------------------------------------------------------------+

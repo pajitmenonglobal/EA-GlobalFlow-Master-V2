@@ -1,0 +1,24 @@
+┌─────────────────────────────────────────────────────────────┐
+│                EA GlobalFlow Pro v4.0                      │
+│                  Complete System                           │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                ┌─────────────┼─────────────┐
+                │             │             │
+        ┌───────▼────┐ ┌──────▼──────┐ ┌───▼────────┐
+        │Non-F&O     │ │Economic     │ │MQL5        │
+        │Scanner     │ │Calendar     │ │Bridge      │
+        │            │ │             │ │            │
+        │• 60+ symbols│ │• Multi-source│ │• Named Pipes│
+        │• 34 conditions│ │• Smart pause│ │• Shared Mem │
+        │• Auto charts│ │• News filter│ │• Real-time  │
+        └────────────┘ └─────────────┘ └────────────┘
+                              │
+                    ┌─────────▼─────────┐
+                    │   MetaTrader5     │
+                    │   EA Integration  │
+                    │                   │
+                    │• IC Markets       │
+                    │• Fyers API        │
+                    │• Paper Trading    │
+                    └───────────────────┘
