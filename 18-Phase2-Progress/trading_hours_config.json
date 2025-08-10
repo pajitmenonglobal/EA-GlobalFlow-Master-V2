@@ -1,0 +1,552 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "created": "2024-08-05",
+    "description": "EA GlobalFlow Pro v0.1 - Market Trading Hours Configuration",
+    "author": "EA GlobalFlow Development Team",
+    "timezone_reference": "Multiple timezones supported",
+    "last_updated": "2024-08-05T10:00:00Z"
+  },
+  
+  "timezone_settings": {
+    "description": "Global timezone configuration",
+    "server_timezone": "UTC",
+    "local_timezone": "Asia/Dubai",
+    "auto_dst_adjustment": true,
+    "timezone_validation": true,
+    "fallback_timezone": "UTC"
+  },
+  
+  "indian_markets": {
+    "description": "Indian F&O, Equity, and Stock Options trading hours",
+    
+    "nse_equity": {
+      "market_name": "NSE Equity",
+      "timezone": "Asia/Kolkata",
+      "currency": "INR",
+      "
+      
+      "regular_session": {
+        "pre_open": {
+          "start_time": "09:00:00",
+          "end_time": "09:15:00",
+          "trading_allowed": false,
+          "order_modification": true
+        },
+        "normal_market": {
+          "start_time": "09:15:00",
+          "end_time": "15:30:00",
+          "trading_allowed": true,
+          "primary_session": true
+        },
+        "closing_session": {
+          "start_time": "15:40:00",
+          "end_time": "16:00:00",
+          "trading_allowed": false,
+          "settlement_only": true
+        }
+      },
+      
+      "trading_days": {
+        "monday": true,
+        "tuesday": true,
+        "wednesday": true,
+        "thursday": true,
+        "friday": true,
+        "saturday": false,
+        "sunday": false
+      },
+      
+      "ea_trading_hours": {
+        "start_time": "09:30:00",
+        "end_time": "15:29:00",
+        "buffer_minutes": 1,
+        "early_closure": "15:29:00"
+      }
+    },
+    
+    "nse_fno": {
+      "market_name": "NSE F&O (Futures & Options)",
+      "timezone": "Asia/Kolkata",
+      "currency": "INR",
+      
+      "regular_session": {
+        "pre_open": {
+          "start_time": "09:00:00",
+          "end_time": "09:15:00",
+          "trading_allowed": false,
+          "order_modification": true
+        },
+        "normal_market": {
+          "start_time": "09:15:00",
+          "end_time": "15:30:00",
+          "trading_allowed": true,
+          "primary_session": true
+        },
+        "expiry_day_special": {
+          "start_time": "09:15:00",
+          "end_time": "15:30:00",
+          "early_closure_time": "15:30:00",
+          "no_new_positions_after": "15:25:00"
+        }
+      },
+      
+      "trading_days": {
+        "monday": true,
+        "tuesday": true,
+        "wednesday": true,
+        "thursday": true,
+        "friday": true,
+        "saturday": false,
+        "sunday": false
+      },
+      
+      "ea_trading_hours": {
+        "start_time": "09:30:00",
+        "end_time": "15:29:00",
+        "expiry_day_end": "15:29:00",
+        "buffer_minutes": 1,
+        "secondary_chart_closure": "15:29:00"
+      },
+      
+      "expiry_schedule": {
+        "weekly_expiry": "thursday",
+        "monthly_expiry": "last_thursday",
+        "nifty_expiry": "thursday",
+        "banknifty_expiry": "wednesday",
+        "finnifty_expiry": "tuesday"
+      }
+    },
+    
+    "bse_equity": {
+      "market_name": "BSE Equity",
+      "timezone": "Asia/Kolkata",
+      "currency": "INR",
+      
+      "regular_session": {
+        "pre_open": {
+          "start_time": "09:00:00",
+          "end_time": "09:15:00",
+          "trading_allowed": false
+        },
+        "normal_market": {
+          "start_time": "09:15:00",
+          "end_time": "15:30:00",
+          "trading_allowed": true,
+          "primary_session": true
+        }
+      },
+      
+      "trading_days": {
+        "monday": true,
+        "tuesday": true,
+        "wednesday": true,
+        "thursday": true,
+        "friday": true,
+        "saturday": false,
+        "sunday": false
+      },
+      
+      "ea_trading_hours": {
+        "start_time": "09:30:00",
+        "end_time": "15:29:00",
+        "buffer_minutes": 1
+      }
+    },
+    
+    "stock_options": {
+      "market_name": "Stock Options",
+      "timezone": "Asia/Kolkata",
+      "currency": "INR",
+      
+      "regular_session": {
+        "normal_market": {
+          "start_time": "09:15:00",
+          "end_time": "15:30:00",
+          "trading_allowed": true,
+          "primary_session": true
+        }
+      },
+      
+      "ea_trading_hours": {
+        "start_time": "09:30:00",
+        "end_time": "15:29:00",
+        "varying_intervals": true,
+        "buffer_minutes": 1
+      },
+      
+      "strike_intervals": {
+        "varying_by_stock": true,
+        "common_intervals": [1, 2.5, 5, 10, 25, 50, 100]
+      }
+    }
+  },
+  
+  "forex_markets": {
+    "description": "Forex market trading hours (24/5 operation)",
+    
+    "global_forex": {
+      "market_name": "Global Forex",
+      "timezone": "UTC",
+      "currency": "Multiple",
+      
+      "trading_sessions": {
+        "sydney": {
+          "start_time": "21:00:00",
+          "end_time": "06:00:00",
+          "timezone": "UTC",
+          "volatility": "Low"
+        },
+        "tokyo": {
+          "start_time": "23:00:00",
+          "end_time": "08:00:00",
+          "timezone": "UTC",
+          "volatility": "Medium"
+        },
+        "london": {
+          "start_time": "07:00:00",
+          "end_time": "16:00:00",
+          "timezone": "UTC",
+          "volatility": "High"
+        },
+        "new_york": {
+          "start_time": "12:00:00",
+          "end_time": "21:00:00",
+          "timezone": "UTC",
+          "volatility": "High"
+        }
+      },
+      
+      "overlap_sessions": {
+        "london_new_york": {
+          "start_time": "12:00:00",
+          "end_time": "16:00:00",
+          "timezone": "UTC",
+          "volatility": "Maximum",
+          "preferred_trading": true
+        },
+        "sydney_tokyo": {
+          "start_time": "23:00:00",
+          "end_time": "06:00:00",
+          "timezone": "UTC",
+          "volatility": "Medium"
+        }
+      },
+      
+      "trading_days": {
+        "monday": true,
+        "tuesday": true,
+        "wednesday": true,
+        "thursday": true,
+        "friday": true,
+        "saturday": false,
+        "sunday": false
+      },
+      
+      "ea_trading_hours": {
+        "start_time": "01:00:00",
+        "end_time": "23:00:00",
+        "timezone": "server_time",
+        "weekend_closure": true,
+        "friday_early_closure": "22:00:00"
+      },
+      
+      "market_holidays": {
+        "christmas": "2024-12-25",
+        "new_year": "2025-01-01",
+        "good_friday": "2025-04-18",
+        "bank_holidays": true
+      }
+    }
+  },
+  
+  "commodity_markets": {
+    "description": "International commodity trading hours",
+    
+    "metals": {
+      "gold": {
+        "market_name": "Gold Futures",
+        "timezone": "UTC",
+        "trading_hours": {
+          "start_time": "22:00:00",
+          "end_time": "21:00:00",
+          "break_start": "16:30:00",
+          "break_end": "17:30:00"
+        }
+      },
+      "silver": {
+        "market_name": "Silver Futures", 
+        "timezone": "UTC",
+        "trading_hours": {
+          "start_time": "22:00:00",
+          "end_time": "21:00:00",
+          "break_start": "16:30:00",
+          "break_end": "17:30:00"
+        }
+      }
+    },
+    
+    "energy": {
+      "crude_oil": {
+        "market_name": "Crude Oil Futures",
+        "timezone": "UTC",
+        "trading_hours": {
+          "start_time": "22:00:00",
+          "end_time": "21:00:00",
+          "break_start": "16:30:00",
+          "break_end": "17:30:00"
+        }
+      }
+    },
+    
+    "agricultural": {
+      "wheat": {
+        "market_name": "Wheat Futures",
+        "timezone": "UTC", 
+        "trading_hours": {
+          "start_time": "01:20:00",
+          "end_time": "13:20:00",
+          "break_start": "08:45:00",
+          "break_end": "09:30:00"
+        }
+      }
+    },
+    
+    "ea_trading_hours": {
+      "start_time": "01:00:00",
+      "end_time": "23:00:00",
+      "timezone": "server_time",
+      "market_specific": true
+    }
+  },
+  
+  "cfd_markets": {
+    "description": "CFD trading hours (varies by underlying)",
+    
+    "equity_cfds": {
+      "us_stocks": {
+        "market_name": "US Stock CFDs",
+        "timezone": "America/New_York",
+        "trading_hours": {
+          "pre_market": {
+            "start_time": "04:00:00",
+            "end_time": "09:30:00",
+            "limited_liquidity": true
+          },
+          "regular_market": {
+            "start_time": "09:30:00", 
+            "end_time": "16:00:00",
+            "primary_session": true
+          },
+          "after_hours": {
+            "start_time": "16:00:00",
+            "end_time": "20:00:00",
+            "limited_liquidity": true
+          }
+        }
+      },
+      "european_stocks": {
+        "market_name": "European Stock CFDs",
+        "timezone": "Europe/London",
+        "trading_hours": {
+          "start_time": "08:00:00",
+          "end_time": "16:30:00"
+        }
+      }
+    },
+    
+    "index_cfds": {
+      "sp500": {
+        "market_name": "S&P 500 CFD",
+        "timezone": "America/New_York",
+        "trading_hours": {
+          "start_time": "17:00:00",
+          "end_time": "16:00:00"
+        }
+      },
+      "dax": {
+        "market_name": "DAX CFD",
+        "timezone": "Europe/Berlin",
+        "trading_hours": {
+          "start_time": "01:00:00",
+          "end_time": "22:00:00"
+        }
+      }
+    },
+    
+    "ea_trading_hours": {
+      "start_time": "01:00:00",
+      "end_time": "23:00:00",
+      "timezone": "server_time",
+      "asset_specific": true
+    }
+  },
+  
+  "special_trading_rules": {
+    "description": "Special rules and exceptions",
+    
+    "market_holidays": {
+      "indian_markets": {
+        "diwali": "2024-11-01",
+        "holi": "2025-03-14",
+        "independence_day": "2024-08-15",
+        "republic_day": "2025-01-26",
+        "gandhi_jayanti": "2024-10-02",
+        "dussehra": "2024-10-12",
+        "eid": ["2024-04-11", "2024-06-17"],
+        "christmas": "2024-12-25",
+        "new_year": "2025-01-01"
+      },
+      "international_markets": {
+        "thanksgiving": "2024-11-28",
+        "memorial_day": "2024-05-27",
+        "labor_day": "2024-09-02",
+        "martin_luther_king": "2025-01-20"
+      }
+    },
+    
+    "early_closures": {
+      "description": "Markets with early closure",
+      "day_before_holiday": {
+        "closure_time": "13:00:00",
+        "applies_to": ["nse_equity", "nse_fno", "bse_equity"]
+      },
+      "special_events": {
+        "muhurat_trading": {
+          "date": "2024-11-01",
+          "time": "18:15:00",
+          "duration_minutes": 15
+        }
+      }
+    },
+    
+    "expiry_day_rules": {
+      "nse_options": {
+        "no_new_positions_after": "15:25:00",
+        "square_off_time": "15:29:00",
+        "auto_exercise": true
+      },
+      "stock_options": {
+        "varying_by_stock": true,
+        "early_closure_possible": true
+      }
+    },
+    
+    "circuit_breaker_rules": {
+      "market_halt": {
+        "trigger_levels": [10, 15, 20],
+        "halt_duration": [15, 60, "remainder_of_day"],
+        "ea_response": "stop_all_trading"
+      },
+      "stock_specific": {
+        "individual_halt": true,
+        "resume_detection": true
+      }
+    }
+  },
+  
+  "ea_operational_settings": {
+    "description": "EA-specific trading hour controls",
+    
+    "global_controls": {
+      "master_trading_switch": true,
+      "emergency_stop_time": "15:29:00",
+      "pre_market_analysis": "09:00:00",
+      "post_market_analysis": "16:00:00"
+    },
+    
+    "market_specific_controls": {
+      "indian_fno": {
+        "enabled": true,
+        "start_delay_minutes": 15,
+        "end_buffer_minutes": 1,
+        "expiry_day_buffer_minutes": 1
+      },
+      "forex": {
+        "enabled": true,
+        "high_volatility_sessions_only": false,
+        "news_event_pause": true
+      },
+      "commodities": {
+        "enabled": true,
+        "energy_session_focus": true,
+        "metals_session_focus": true
+      },
+      "cfds": {
+        "enabled": true,
+        "underlying_market_hours": true
+      }
+    },
+    
+    "risk_based_controls": {
+      "vix_based_hours": {
+        "high_vix_early_closure": true,
+        "vix_threshold": 25,
+        "early_closure_time": "15:00:00"
+      },
+      "volatility_based": {
+        "extreme_volatility_pause": true,
+        "volatility_threshold": 5.0,
+        "pause_duration_minutes": 15
+      }
+    },
+    
+    "performance_monitoring": {
+      "session_performance_tracking": true,
+      "optimal_trading_hours_analysis": true,
+      "performance_by_time_slot": true,
+      "auto_adjustment": false
+    }
+  },
+  
+  "notifications_and_alerts": {
+    "description": "Time-based notifications",
+    
+    "session_alerts": {
+      "market_open": {
+        "enabled": true,
+        "advance_minutes": 5,
+        "channels": ["email", "sms"]
+      },
+      "market_close": {
+        "enabled": true,
+        "advance_minutes": 5,
+        "channels": ["email", "dashboard"]
+      },
+      "expiry_day": {
+        "enabled": true,
+        "advance_hours": 2,
+        "channels": ["email", "sms", "whatsapp"]
+      }
+    },
+    
+    "holiday_alerts": {
+      "upcoming_holiday": {
+        "enabled": true,
+        "advance_days": 1,
+        "channels": ["email"]
+      },
+      "trading_resumption": {
+        "enabled": true,
+        "channels": ["email", "dashboard"]
+      }
+    }
+  },
+  
+  "data_management": {
+    "description": "Time-based data management",
+    
+    "historical_data": {
+      "retention_period": 365,
+      "compression_after_days": 30,
+      "backup_schedule": "daily",
+      "cleanup_time": "02:00:00"
+    },
+    
+    "real_time_data": {
+      "session_logging": true,
+      "performance_metrics": true,
+      "trade_execution_times": true
+    }
+  }
+}

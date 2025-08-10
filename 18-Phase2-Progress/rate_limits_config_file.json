@@ -1,0 +1,648 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "created": "2024-08-05",
+    "description": "EA GlobalFlow Pro v0.1 - API Rate Limits Configuration",
+    "author": "EA GlobalFlow Development Team",
+    "rate_limit_system": "Intelligent Rate Limit Management with Failover",
+    "last_updated": "2024-08-05T10:00:00Z"
+  },
+  
+  "rate_limit_system": {
+    "description": "Global rate limit management system",
+    "enabled": true,
+    "intelligent_throttling": true,
+    "adaptive_limits": true,
+    "failover_management": true,
+    "queue_management": true,
+    "priority_queuing": true,
+    "burst_handling": true,
+    "circuit_breaker": true,
+    "health_monitoring": true
+  },
+  
+  "broker_apis": {
+    "description": "Broker API rate limits and management",
+    
+    "fyers": {
+      "description": "Fyers API rate limits - Primary broker",
+      "enabled": true,
+      "priority": 1,
+      "environment": "production",
+      
+      "official_limits": {
+        "orders_per_second": 10,
+        "data_requests_per_minute": 1000,
+        "historical_requests_per_minute": 200,
+        "websocket_connections": 5,
+        "daily_api_calls": 50000,
+        "portfolio_requests_per_minute": 300,
+        "positions_requests_per_minute": 300
+      },
+      
+      "configured_limits": {
+        "orders_per_second": 8,
+        "data_requests_per_minute": 800,
+        "historical_requests_per_minute": 150,
+        "websocket_connections": 3,
+        "daily_api_calls": 40000,
+        "portfolio_requests_per_minute": 250,
+        "positions_requests_per_minute": 250,
+        "safety_margin_percent": 20
+      },
+      
+      "endpoint_specific_limits": {
+        "place_order": {
+          "requests_per_second": 8,
+          "burst_allowance": 3,
+          "priority": "critical"
+        },
+        "modify_order": {
+          "requests_per_second": 8,
+          "burst_allowance": 3,
+          "priority": "critical"
+        },
+        "cancel_order": {
+          "requests_per_second": 8,
+          "burst_allowance": 3,
+          "priority": "critical"
+        },
+        "get_positions": {
+          "requests_per_minute": 250,
+          "priority": "high"
+        },
+        "get_orders": {
+          "requests_per_minute": 250,
+          "priority": "high"
+        },
+        "get_profile": {
+          "requests_per_minute": 60,
+          "priority": "medium"
+        },
+        "historical_data": {
+          "requests_per_minute": 150,
+          "priority": "medium"
+        },
+        "quote_data": {
+          "requests_per_minute": 800,
+          "priority": "high"
+        },
+        "option_chain": {
+          "requests_per_minute": 200,
+          "priority": "high"
+        }
+      },
+      
+      "queue_management": {
+        "enabled": true,
+        "max_queue_size": 1000,
+        "queue_timeout_seconds": 30,
+        "priority_levels": 4,
+        "fifo_within_priority": true,
+        "drop_on_overflow": false
+      },
+      
+      "circuit_breaker": {
+        "enabled": true,
+        "failure_threshold": 5,
+        "recovery_timeout_seconds": 60,
+        "half_open_max_calls": 3,
+        "success_threshold": 2
+      },
+      
+      "retry_configuration": {
+        "enabled": true,
+        "max_retries": 3,
+        "base_delay_ms": 1000,
+        "exponential_backoff": true,
+        "max_delay_ms": 10000,
+        "jitter": true,
+        "retryable_errors": [502, 503, 504, 429]
+      }
+    },
+    
+    "truedata": {
+      "description": "TrueData API rate limits - Primary data provider",
+      "enabled": true,
+      "priority": 1,
+      "environment": "production",
+      
+      "official_limits": {
+        "websocket_connections": 10,
+        "symbol_subscriptions": 1000,
+        "historical_requests_per_minute": 100,
+        "real_time_requests_per_second": 50,
+        "login_requests_per_hour": 10,
+        "concurrent_api_calls": 20
+      },
+      
+      "configured_limits": {
+        "websocket_connections": 8,
+        "symbol_subscriptions": 800,
+        "historical_requests_per_minute": 80,
+        "real_time_requests_per_second": 40,
+        "login_requests_per_hour": 8,
+        "concurrent_api_calls": 15,
+        "safety_margin_percent": 20
+      },
+      
+      "endpoint_specific_limits": {
+        "login": {
+          "requests_per_hour": 8,
+          "priority": "critical"
+        },
+        "subscribe_symbols": {
+          "requests_per_minute": 60,
+          "priority": "high"
+        },
+        "unsubscribe_symbols": {
+          "requests_per_minute": 60,
+          "priority": "medium"
+        },
+        "historical_data": {
+          "requests_per_minute": 80,
+          "priority": "medium"
+        },
+        "master_data": {
+          "requests_per_day": 10,
+          "priority": "low"
+        },
+        "option_chain": {
+          "requests_per_minute": 50,
+          "priority": "high"
+        }
+      },
+      
+      "websocket_management": {
+        "max_connections": 8,
+        "max_subscriptions_per_connection": 100,
+        "heartbeat_interval_seconds": 30,
+        "reconnection_delay_seconds": 5,
+        "max_reconnection_attempts": 10
+      },
+      
+      "data_throttling": {
+        "enabled": true,
+        "max_symbols_per_request": 50,
+        "batch_processing": true,
+        "batch_size": 20,
+        "batch_interval_ms": 100
+      }
+    },
+    
+    "zerodha": {
+      "description": "Zerodha Kite API - Backup broker",
+      "enabled": false,
+      "priority": 2,
+      "environment": "production",
+      
+      "official_limits": {
+        "orders_per_second": 10,
+        "data_requests_per_minute": 3000,
+        "historical_requests_per_minute": 60,
+        "websocket_connections": 3,
+        "daily_api_calls": 100000
+      },
+      
+      "configured_limits": {
+        "orders_per_second": 8,
+        "data_requests_per_minute": 2400,
+        "historical_requests_per_minute": 48,
+        "websocket_connections": 2,
+        "daily_api_calls": 80000,
+        "safety_margin_percent": 20
+      },
+      
+      "activation_conditions": {
+        "fyers_failure": true,
+        "fyers_rate_limit_exceeded": true,
+        "manual_activation": true,
+        "load_balancing": false
+      }
+    },
+    
+    "upstox": {
+      "description": "Upstox API - Secondary backup broker",
+      "enabled": false,
+      "priority": 3,
+      "environment": "production",
+      
+      "official_limits": {
+        "orders_per_second": 10,
+        "data_requests_per_minute": 1000,
+        "websocket_connections": 1,
+        "daily_api_calls": 50000
+      },
+      
+      "configured_limits": {
+        "orders_per_second": 8,
+        "data_requests_per_minute": 800,
+        "websocket_connections": 1,
+        "daily_api_calls": 40000,
+        "safety_margin_percent": 20
+      },
+      
+      "activation_conditions": {
+        "primary_brokers_failed": true,
+        "emergency_only": true
+      }
+    }
+  },
+  
+  "data_providers": {
+    "description": "Data provider API rate limits",
+    
+    "yahoo_finance": {
+      "description": "Yahoo Finance API - Free tier backup data",
+      "enabled": false,
+      "priority": 3,
+      "use_case": "emergency_backup_only",
+      
+      "official_limits": {
+        "requests_per_hour": 2000,
+        "requests_per_day": 20000,
+        "concurrent_requests": 5
+      },
+      
+      "configured_limits": {
+        "requests_per_hour": 1600,
+        "requests_per_day": 16000,
+        "concurrent_requests": 3,
+        "safety_margin_percent": 20
+      }
+    },
+    
+    "alpha_vantage": {
+      "description": "Alpha Vantage API - International data backup",
+      "enabled": false,
+      "priority": 4,
+      "use_case": "forex_commodity_backup",
+      
+      "official_limits": {
+        "requests_per_minute": 5,
+        "requests_per_day": 500
+      },
+      
+      "configured_limits": {
+        "requests_per_minute": 4,
+        "requests_per_day": 400,
+        "safety_margin_percent": 20
+      }
+    }
+  },
+  
+  "notification_services": {
+    "description": "Notification service rate limits",
+    
+    "email_smtp": {
+      "description": "SMTP email sending limits",
+      "enabled": true,
+      "provider": "gmail",
+      
+      "official_limits": {
+        "emails_per_day": 500,
+        "emails_per_hour": 100,
+        "recipients_per_email": 100
+      },
+      
+      "configured_limits": {
+        "emails_per_day": 400,
+        "emails_per_hour": 80,
+        "recipients_per_email": 50,
+        "safety_margin_percent": 20
+      },
+      
+      "batch_processing": {
+        "enabled": true,
+        "batch_size": 10,
+        "batch_interval_seconds": 60,
+        "priority_queue": true
+      }
+    },
+    
+    "twilio_sms": {
+      "description": "Twilio SMS service limits",
+      "enabled": true,
+      "provider": "twilio",
+      
+      "official_limits": {
+        "messages_per_second": 1,
+        "messages_per_hour": 3600,
+        "messages_per_day": 50000
+      },
+      
+      "configured_limits": {
+        "messages_per_second": 1,
+        "messages_per_hour": 30,
+        "messages_per_day": 100,
+        "safety_margin_percent": 20
+      },
+      
+      "cost_controls": {
+        "enabled": true,
+        "daily_budget": 50.00,
+        "per_message_cost": 0.05,
+        "budget_alerts": [50, 75, 90]
+      }
+    },
+    
+    "twilio_whatsapp": {
+      "description": "Twilio WhatsApp service limits",
+      "enabled": true,
+      "provider": "twilio",
+      
+      "official_limits": {
+        "messages_per_second": 1,
+        "messages_per_hour": 3600,
+        "messages_per_day": 50000
+      },
+      
+      "configured_limits": {
+        "messages_per_second": 1,
+        "messages_per_hour": 100,
+        "messages_per_day": 1000,
+        "safety_margin_percent": 20
+      },
+      
+      "template_limits": {
+        "template_messages_per_24h": 1000,
+        "session_messages_unlimited": true,
+        "session_duration_hours": 24
+      }
+    }
+  },
+  
+  "rate_limit_strategies": {
+    "description": "Rate limiting strategies and algorithms",
+    
+    "token_bucket": {
+      "description": "Token bucket algorithm for smooth rate limiting",
+      "enabled": true,
+      "default_algorithm": true,
+      
+      "configuration": {
+        "bucket_capacity": 100,
+        "refill_rate_per_second": 10,
+        "initial_tokens": 50,
+        "burst_handling": true,
+        "overflow_behavior": "drop"
+      }
+    },
+    
+    "sliding_window": {
+      "description": "Sliding window algorithm for precise rate limiting",
+      "enabled": true,
+      "use_case": "critical_endpoints",
+      
+      "configuration": {
+        "window_size_seconds": 60,
+        "sub_window_count": 12,
+        "precision": "high",
+        "memory_usage": "medium"
+      }
+    },
+    
+    "leaky_bucket": {
+      "description": "Leaky bucket algorithm for consistent output rate",
+      "enabled": false,
+      "use_case": "data_streaming",
+      
+      "configuration": {
+        "bucket_capacity": 1000,
+        "leak_rate_per_second": 50,
+        "overflow_behavior": "queue"
+      }
+    },
+    
+    "adaptive_throttling": {
+      "description": "AI-powered adaptive rate limiting",
+      "enabled": true,
+      "machine_learning": false,
+      
+      "configuration": {
+        "learning_period_hours": 24,
+        "adaptation_sensitivity": 0.7,
+        "min_adjustment_percent": 5,
+        "max_adjustment_percent": 50,
+        "volatility_consideration": true,
+        "market_hours_optimization": true
+      }
+    }
+  },
+  
+  "monitoring_and_alerting": {
+    "description": "Rate limit monitoring and alerting configuration",
+    
+    "monitoring": {
+      "enabled": true,
+      "real_time_tracking": true,
+      "metrics_collection": true,
+      "performance_analytics": true,
+      
+      "tracked_metrics": {
+        "requests_per_second": true,
+        "requests_per_minute": true,
+        "requests_per_hour": true,
+        "requests_per_day": true,
+        "queue_depth": true,
+        "rejection_rate": true,
+        "average_response_time": true,
+        "success_rate": true,
+        "circuit_breaker_state": true
+      },
+      
+      "retention_period": {
+        "real_time_data": "1_hour",
+        "minute_aggregates": "24_hours",
+        "hourly_aggregates": "7_days",
+        "daily_aggregates": "30_days"
+      }
+    },
+    
+    "alerting": {
+      "enabled": true,
+      "alert_channels": ["desktop", "email"],
+      "escalation_enabled": true,
+      
+      "alert_thresholds": {
+        "usage_warning": 70,
+        "usage_critical": 85,
+        "usage_emergency": 95,
+        "queue_depth_warning": 100,
+        "queue_depth_critical": 500,
+        "rejection_rate_warning": 5,
+        "rejection_rate_critical": 10
+      },
+      
+      "alert_suppression": {
+        "enabled": true,
+        "suppression_window_minutes": 15,
+        "max_alerts_per_hour": 10
+      }
+    }
+  },
+  
+  "failover_management": {
+    "description": "Automatic failover and load balancing configuration",
+    
+    "failover_strategy": {
+      "enabled": true,
+      "automatic_failover": true,
+      "health_check_interval_seconds": 30,
+      "failure_detection_threshold": 3,
+      "recovery_check_interval_seconds": 60,
+      
+      "failover_conditions": {
+        "rate_limit_exceeded": true,
+        "service_unavailable": true,
+        "high_error_rate": true,
+        "timeout_threshold_exceeded": true,
+        "circuit_breaker_open": true
+      },
+      
+      "failover_priorities": {
+        "trading_apis": ["fyers", "zerodha", "upstox"],
+        "data_apis": ["truedata", "yahoo_finance", "alpha_vantage"],
+        "notification_services": ["twilio", "smtp", "webhook"]
+      }
+    },
+    
+    "load_balancing": {
+      "enabled": false,
+      "algorithm": "round_robin",
+      "health_aware": true,
+      "weight_based": false,
+      
+      "algorithms": {
+        "round_robin": {
+          "enabled": false,
+          "equal_distribution": true
+        },
+        "least_connections": {
+          "enabled": false,
+          "connection_tracking": true
+        },
+        "weighted_round_robin": {
+          "enabled": false,
+          "weights": {"fyers": 70, "zerodha": 30}
+        }
+      }
+    },
+    
+    "circuit_breaker_global": {
+      "enabled": true,
+      "failure_threshold": 10,
+      "recovery_timeout_seconds": 300,
+      "half_open_max_calls": 5,
+      "success_threshold": 3,
+      
+      "monitored_metrics": {
+        "error_rate": true,
+        "response_time": true,
+        "availability": true,
+        "rate_limit_breaches": true
+      }
+    }
+  },
+  
+  "performance_optimization": {
+    "description": "Performance optimization settings for rate limiting",
+    
+    "caching": {
+      "enabled": true,
+      "cache_type": "redis",
+      "cache_ttl_seconds": 300,
+      "cache_key_prefix": "ea_globalflow_rate_limit",
+      
+      "cached_data": {
+        "rate_limit_counters": true,
+        "api_quotas": true,
+        "service_health": true,
+        "configuration": true
+      }
+    },
+    
+    "connection_pooling": {
+      "enabled": true,
+      "pool_size": 10,
+      "max_overflow": 20,
+      "pool_timeout_seconds": 30,
+      "pool_recycle_seconds": 3600,
+      "pool_pre_ping": true
+    },
+    
+    "request_optimization": {
+      "request_batching": true,
+      "batch_size": 10,
+      "batch_timeout_ms": 100,
+      "compression": true,
+      "keep_alive": true,
+      "connection_reuse": true
+    },
+    
+    "async_processing": {
+      "enabled": true,
+      "worker_threads": 4,
+      "queue_size": 1000,
+      "timeout_seconds": 30
+    }
+  },
+  
+  "development_and_testing": {
+    "description": "Development and testing rate limit configurations",
+    
+    "sandbox_limits": {
+      "enabled": false,
+      "environment": "sandbox",
+      "relaxed_limits": true,
+      "unlimited_testing": false,
+      
+      "test_limits": {
+        "orders_per_second": 1,
+        "data_requests_per_minute": 100,
+        "daily_api_calls": 1000
+      }
+    },
+    
+    "load_testing": {
+      "enabled": false,
+      "bypass_rate_limits": false,
+      "synthetic_load": false,
+      "stress_testing_mode": false
+    },
+    
+    "debugging": {
+      "verbose_logging": false,
+      "request_tracing": false,
+      "performance_profiling": false,
+      "rate_limit_bypass": false
+    }
+  },
+  
+  "compliance_and_governance": {
+    "description": "Compliance and governance settings",
+    
+    "audit_logging": {
+      "enabled": true,
+      "log_all_requests": false,
+      "log_rate_limit_events": true,
+      "log_failover_events": true,
+      "retention_days": 90
+    },
+    
+    "regulatory_compliance": {
+      "sebi_compliance": true,
+      "data_residency": "india",
+      "privacy_protection": true,
+      "audit_trail": true
+    },
+    
+    "cost_management": {
+      "enabled": true,
+      "budget_tracking": true,
+      "cost_alerts": true,
+      "usage_optimization": true,
+      "monthly_budget": 1000.00
+    }
+  }
+}

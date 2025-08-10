@@ -1,0 +1,656 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "created": "2024-08-05",
+    "description": "EA GlobalFlow Pro v0.1 - Dashboard Visual Themes Configuration",
+    "author": "EA GlobalFlow Development Team",
+    "theme_system": "Professional Trading Interface",
+    "last_updated": "2024-08-05T10:00:00Z"
+  },
+  
+  "theme_system": {
+    "description": "Global theme management system",
+    "default_theme": "professional_dark",
+    "auto_theme_switching": true,
+    "time_based_switching": {
+      "enabled": true,
+      "day_theme": "professional_light",
+      "night_theme": "professional_dark",
+      "day_start": "06:00",
+      "night_start": "18:00"
+    },
+    "user_preference_storage": true,
+    "theme_transition_animation": true,
+    "transition_duration_ms": 300
+  },
+  
+  "professional_dark": {
+    "name": "Professional Dark",
+    "description": "Dark theme optimized for trading environments",
+    "type": "dark",
+    "primary": true,
+    
+    "colors": {
+      "primary": "#0066CC",
+      "secondary": "#1A1A2E",
+      "accent": "#00D4FF",
+      "background": "#0F0F23",
+      "surface": "#16213E",
+      "surface_variant": "#1E2A47",
+      "surface_container": "#252B42",
+      "on_primary": "#FFFFFF",
+      "on_secondary": "#E8E9F3",
+      "on_background": "#E8E9F3",
+      "on_surface": "#E8E9F3",
+      "on_surface_variant": "#C7C7DB",
+      "outline": "#777B95",
+      "outline_variant": "#464A67"
+    },
+    
+    "trading_colors": {
+      "profit": "#00C851",
+      "loss": "#FF4444",
+      "neutral": "#FFA726",
+      "pending": "#2196F3",
+      
+      "buy_orders": "#4CAF50",
+      "sell_orders": "#F44336",
+      "pending_orders": "#FF9800",
+      
+      "bullish": "#00C851",
+      "bearish": "#FF4444",
+      "sideways": "#757575",
+      
+      "call_options": "#4CAF50",
+      "put_options": "#F44336",
+      "atm_options": "#2196F3",
+      "otm_options": "#9C27B0",
+      "itm_options": "#FF5722"
+    },
+    
+    "chart_colors": {
+      "candlestick": {
+        "bullish_body": "#00C851",
+        "bearish_body": "#FF4444",
+        "bullish_border": "#00A041",
+        "bearish_border": "#CC0000",
+        "wick": "#888888"
+      },
+      "volume": {
+        "up_volume": "#4CAF50",
+        "down_volume": "#F44336",
+        "neutral_volume": "#757575"
+      },
+      "indicators": {
+        "ma_fast": "#00D4FF",
+        "ma_slow": "#FFA726",
+        "rsi": "#9C27B0",
+        "macd": "#FF5722",
+        "bollinger_upper": "#E91E63",
+        "bollinger_lower": "#E91E63",
+        "bollinger_middle": "#3F51B5"
+      }
+    },
+    
+    "ui_components": {
+      "header": {
+        "background": "#16213E",
+        "text": "#E8E9F3",
+        "border": "#464A67"
+      },
+      "sidebar": {
+        "background": "#1A1A2E",
+        "text": "#E8E9F3",
+        "hover": "#252B42",
+        "active": "#0066CC"
+      },
+      "cards": {
+        "background": "#16213E",
+        "border": "#464A67",
+        "shadow": "rgba(0, 0, 0, 0.3)"
+      },
+      "buttons": {
+        "primary": "#0066CC",
+        "secondary": "#464A67",
+        "success": "#00C851",
+        "danger": "#FF4444",
+        "warning": "#FFA726",
+        "info": "#00D4FF"
+      },
+      "inputs": {
+        "background": "#252B42",
+        "border": "#464A67",
+        "text": "#E8E9F3",
+        "placeholder": "#777B95",
+        "focus_border": "#0066CC"
+      }
+    },
+    
+    "status_indicators": {
+      "online": "#00C851",
+      "offline": "#FF4444",
+      "connecting": "#FFA726",
+      "error": "#FF4444",
+      "warning": "#FFA726",
+      "info": "#00D4FF"
+    },
+    
+    "alerts": {
+      "success": {
+        "background": "rgba(0, 200, 81, 0.1)",
+        "border": "#00C851",
+        "text": "#00C851"
+      },
+      "error": {
+        "background": "rgba(255, 68, 68, 0.1)",
+        "border": "#FF4444",
+        "text": "#FF4444"
+      },
+      "warning": {
+        "background": "rgba(255, 167, 38, 0.1)",
+        "border": "#FFA726",
+        "text": "#FFA726"
+      },
+      "info": {
+        "background": "rgba(0, 212, 255, 0.1)",
+        "border": "#00D4FF",
+        "text": "#00D4FF"
+      }
+    }
+  },
+  
+  "professional_light": {
+    "name": "Professional Light",
+    "description": "Light theme for daytime trading",
+    "type": "light",
+    "primary": false,
+    
+    "colors": {
+      "primary": "#1976D2",
+      "secondary": "#F5F5F5",
+      "accent": "#0091EA",
+      "background": "#FFFFFF",
+      "surface": "#FAFAFA",
+      "surface_variant": "#F0F0F0",
+      "surface_container": "#E8E8E8",
+      "on_primary": "#FFFFFF",
+      "on_secondary": "#212121",
+      "on_background": "#212121",
+      "on_surface": "#212121",
+      "on_surface_variant": "#424242",
+      "outline": "#757575",
+      "outline_variant": "#BDBDBD"
+    },
+    
+    "trading_colors": {
+      "profit": "#4CAF50",
+      "loss": "#F44336",
+      "neutral": "#FF9800",
+      "pending": "#2196F3",
+      
+      "buy_orders": "#388E3C",
+      "sell_orders": "#D32F2F",
+      "pending_orders": "#F57C00",
+      
+      "bullish": "#4CAF50",
+      "bearish": "#F44336",
+      "sideways": "#757575",
+      
+      "call_options": "#388E3C",
+      "put_options": "#D32F2F",
+      "atm_options": "#1976D2",
+      "otm_options": "#7B1FA2",
+      "itm_options": "#E64A19"
+    },
+    
+    "chart_colors": {
+      "candlestick": {
+        "bullish_body": "#4CAF50",
+        "bearish_body": "#F44336",
+        "bullish_border": "#388E3C",
+        "bearish_border": "#D32F2F",
+        "wick": "#757575"
+      },
+      "volume": {
+        "up_volume": "#4CAF50",
+        "down_volume": "#F44336",
+        "neutral_volume": "#9E9E9E"
+      },
+      "indicators": {
+        "ma_fast": "#0091EA",
+        "ma_slow": "#FF9800",
+        "rsi": "#9C27B0",
+        "macd": "#FF5722",
+        "bollinger_upper": "#E91E63",
+        "bollinger_lower": "#E91E63",
+        "bollinger_middle": "#3F51B5"
+      }
+    },
+    
+    "ui_components": {
+      "header": {
+        "background": "#F5F5F5",
+        "text": "#212121",
+        "border": "#E0E0E0"
+      },
+      "sidebar": {
+        "background": "#FAFAFA",
+        "text": "#212121",
+        "hover": "#E8E8E8",
+        "active": "#1976D2"
+      },
+      "cards": {
+        "background": "#FFFFFF",
+        "border": "#E0E0E0",
+        "shadow": "rgba(0, 0, 0, 0.1)"
+      },
+      "buttons": {
+        "primary": "#1976D2",
+        "secondary": "#757575",
+        "success": "#4CAF50",
+        "danger": "#F44336",
+        "warning": "#FF9800",
+        "info": "#0091EA"
+      },
+      "inputs": {
+        "background": "#FFFFFF",
+        "border": "#BDBDBD",
+        "text": "#212121",
+        "placeholder": "#757575",
+        "focus_border": "#1976D2"
+      }
+    },
+    
+    "status_indicators": {
+      "online": "#4CAF50",
+      "offline": "#F44336",
+      "connecting": "#FF9800",
+      "error": "#F44336",
+      "warning": "#FF9800",
+      "info": "#0091EA"
+    },
+    
+    "alerts": {
+      "success": {
+        "background": "#E8F5E8",
+        "border": "#4CAF50",
+        "text": "#2E7D32"
+      },
+      "error": {
+        "background": "#FFEBEE",
+        "border": "#F44336",
+        "text": "#C62828"
+      },
+      "warning": {
+        "background": "#FFF3E0",
+        "border": "#FF9800",
+        "text": "#EF6C00"
+      },
+      "info": {
+        "background": "#E3F2FD",
+        "border": "#0091EA",
+        "text": "#0277BD"
+      }
+    }
+  },
+  
+  "matrix_green": {
+    "name": "Matrix Green",
+    "description": "Cyberpunk-inspired green theme for night trading",
+    "type": "dark",
+    "primary": false,
+    
+    "colors": {
+      "primary": "#00FF41",
+      "secondary": "#0D1B2A",
+      "accent": "#39FF14",
+      "background": "#000000",
+      "surface": "#0A0A0A",
+      "surface_variant": "#141414",
+      "surface_container": "#1A1A1A",
+      "on_primary": "#000000",
+      "on_secondary": "#00FF41",
+      "on_background": "#00FF41",
+      "on_surface": "#00FF41",
+      "on_surface_variant": "#00CC33",
+      "outline": "#006600",
+      "outline_variant": "#003300"
+    },
+    
+    "trading_colors": {
+      "profit": "#00FF41",
+      "loss": "#FF0040",
+      "neutral": "#FFFF00",
+      "pending": "#00FFFF",
+      
+      "buy_orders": "#00FF41",
+      "sell_orders": "#FF0040",
+      "pending_orders": "#FFFF00",
+      
+      "bullish": "#00FF41",
+      "bearish": "#FF0040",
+      "sideways": "#808080",
+      
+      "call_options": "#00FF41",
+      "put_options": "#FF0040",
+      "atm_options": "#00FFFF",
+      "otm_options": "#FF00FF",
+      "itm_options": "#FFFF00"
+    },
+    
+    "chart_colors": {
+      "candlestick": {
+        "bullish_body": "#00FF41",
+        "bearish_body": "#FF0040",
+        "bullish_border": "#00CC33",
+        "bearish_border": "#CC0020",
+        "wick": "#808080"
+      },
+      "volume": {
+        "up_volume": "#00FF41",
+        "down_volume": "#FF0040",
+        "neutral_volume": "#808080"
+      },
+      "indicators": {
+        "ma_fast": "#39FF14",
+        "ma_slow": "#FFFF00",
+        "rsi": "#FF00FF",
+        "macd": "#00FFFF",
+        "bollinger_upper": "#FF0080",
+        "bollinger_lower": "#FF0080",
+        "bollinger_middle": "#0080FF"
+      }
+    }
+  },
+  
+  "royal_blue": {
+    "name": "Royal Blue",
+    "description": "Elegant blue theme for professional trading",
+    "type": "dark",
+    "primary": false,
+    
+    "colors": {
+      "primary": "#4169E1",
+      "secondary": "#191970",
+      "accent": "#00BFFF",
+      "background": "#0F0F2F",
+      "surface": "#1A1A3F",
+      "surface_variant": "#25254F",
+      "surface_container": "#30305F",
+      "on_primary": "#FFFFFF",
+      "on_secondary": "#E0E6FF",
+      "on_background": "#E0E6FF",
+      "on_surface": "#E0E6FF",
+      "on_surface_variant": "#C0C6DF",
+      "outline": "#6B7394",
+      "outline_variant": "#4B5070"
+    },
+    
+    "trading_colors": {
+      "profit": "#32CD32",
+      "loss": "#DC143C",
+      "neutral": "#DAA520",
+      "pending": "#1E90FF",
+      
+      "buy_orders": "#32CD32",
+      "sell_orders": "#DC143C",
+      "pending_orders": "#DAA520",
+      
+      "bullish": "#32CD32",
+      "bearish": "#DC143C",
+      "sideways": "#708090",
+      
+      "call_options": "#32CD32",
+      "put_options": "#DC143C",
+      "atm_options": "#1E90FF",
+      "otm_options": "#9932CC",
+      "itm_options": "#FF4500"
+    }
+  },
+  
+  "sunset_orange": {
+    "name": "Sunset Orange",
+    "description": "Warm orange theme for evening trading sessions",
+    "type": "dark",
+    "primary": false,
+    
+    "colors": {
+      "primary": "#FF6B35",
+      "secondary": "#2F1B14",
+      "accent": "#FFB347",
+      "background": "#1A0F0A",
+      "surface": "#2D1B16",
+      "surface_variant": "#3D2B26",
+      "surface_container": "#4D3B36",
+      "on_primary": "#FFFFFF",
+      "on_secondary": "#FFE4D6",
+      "on_background": "#FFE4D6",
+      "on_surface": "#FFE4D6",
+      "on_surface_variant": "#E4C4B6",
+      "outline": "#B4947B",
+      "outline_variant": "#94745B"
+    },
+    
+    "trading_colors": {
+      "profit": "#00C851",
+      "loss": "#E53935",
+      "neutral": "#FFB74D",
+      "pending": "#42A5F5",
+      
+      "buy_orders": "#66BB6A",
+      "sell_orders": "#EF5350",
+      "pending_orders": "#FFA726",
+      
+      "bullish": "#4CAF50",
+      "bearish": "#F44336",
+      "sideways": "#9E9E9E"
+    }
+  },
+  
+  "custom_themes": {
+    "description": "User-defined custom themes",
+    "enabled": true,
+    "max_custom_themes": 5,
+    "template_structure": {
+      "name": "string",
+      "description": "string", 
+      "type": "light|dark",
+      "colors": "object",
+      "trading_colors": "object",
+      "chart_colors": "object",
+      "ui_components": "object"
+    }
+  },
+  
+  "typography": {
+    "description": "Font and text styling configuration",
+    
+    "font_families": {
+      "primary": "Segoe UI, Tahoma, Geneva, Verdana, sans-serif",
+      "monospace": "Consolas, Monaco, 'Courier New', monospace",
+      "numbers": "JetBrains Mono, Consolas, monospace"
+    },
+    
+    "font_sizes": {
+      "xs": "0.75rem",
+      "sm": "0.875rem", 
+      "base": "1rem",
+      "lg": "1.125rem",
+      "xl": "1.25rem",
+      "2xl": "1.5rem",
+      "3xl": "1.875rem",
+      "4xl": "2.25rem"
+    },
+    
+    "font_weights": {
+      "light": 300,
+      "normal": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700,
+      "extrabold": 800
+    },
+    
+    "line_heights": {
+      "tight": 1.25,
+      "normal": 1.5,
+      "relaxed": 1.75
+    }
+  },
+  
+  "layout_spacing": {
+    "description": "Spacing and layout configuration",
+    
+    "spacing_scale": {
+      "0": "0",
+      "1": "0.25rem",
+      "2": "0.5rem", 
+      "3": "0.75rem",
+      "4": "1rem",
+      "5": "1.25rem",
+      "6": "1.5rem",
+      "8": "2rem",
+      "10": "2.5rem",
+      "12": "3rem",
+      "16": "4rem",
+      "20": "5rem"
+    },
+    
+    "border_radius": {
+      "none": "0",
+      "sm": "0.125rem",
+      "base": "0.25rem", 
+      "md": "0.375rem",
+      "lg": "0.5rem",
+      "xl": "0.75rem",
+      "2xl": "1rem",
+      "full": "9999px"
+    },
+    
+    "shadows": {
+      "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+      "base": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+      "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+      "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+      "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+    }
+  },
+  
+  "animations": {
+    "description": "Animation and transition configuration",
+    
+    "durations": {
+      "fast": "150ms",
+      "normal": "300ms",
+      "slow": "500ms"
+    },
+    
+    "easing": {
+      "linear": "linear",
+      "ease": "ease",
+      "ease_in": "ease-in",
+      "ease_out": "ease-out",
+      "ease_in_out": "ease-in-out"
+    },
+    
+    "transitions": {
+      "theme_switch": {
+        "duration": "300ms",
+        "easing": "ease-in-out",
+        "properties": ["background-color", "color", "border-color"]
+      },
+      "hover_effects": {
+        "duration": "150ms",
+        "easing": "ease-out",
+        "properties": ["background-color", "transform", "box-shadow"]
+      },
+      "modal_animations": {
+        "duration": "300ms",
+        "easing": "ease-out",
+        "properties": ["opacity", "transform"]
+      }
+    }
+  },
+  
+  "accessibility": {
+    "description": "Accessibility and inclusive design settings",
+    
+    "contrast_ratios": {
+      "minimum_aa": 4.5,
+      "minimum_aaa": 7.0,
+      "large_text_aa": 3.0,
+      "large_text_aaa": 4.5
+    },
+    
+    "motion_preferences": {
+      "respect_prefers_reduced_motion": true,
+      "alternative_indicators": true,
+      "reduced_animation_mode": true
+    },
+    
+    "focus_indicators": {
+      "visible_focus_rings": true,
+      "high_contrast_focus": true,
+      "focus_color": "#005FCC",
+      "focus_width": "2px"
+    },
+    
+    "text_scaling": {
+      "support_browser_zoom": true,
+      "minimum_text_size": "14px",
+      "scalable_ui_elements": true
+    }
+  },
+  
+  "responsive_design": {
+    "description": "Responsive design breakpoints and adaptations",
+    
+    "breakpoints": {
+      "xs": "0px",
+      "sm": "640px",
+      "md": "768px", 
+      "lg": "1024px",
+      "xl": "1280px",
+      "2xl": "1536px"
+    },
+    
+    "adaptive_layouts": {
+      "mobile_first": true,
+      "touch_friendly_targets": true,
+      "minimum_touch_target": "44px",
+      "responsive_typography": true
+    },
+    
+    "device_specific": {
+      "mobile_theme_adjustments": true,
+      "tablet_optimizations": true,
+      "desktop_enhancements": true,
+      "high_dpi_support": true
+    }
+  },
+  
+  "performance_optimization": {
+    "description": "Theme performance and optimization settings",
+    
+    "css_optimization": {
+      "critical_css_inlining": true,
+      "unused_css_removal": true,
+      "css_minification": true,
+      "css_compression": true
+    },
+    
+    "loading_strategies": {
+      "lazy_load_non_critical": true,
+      "progressive_enhancement": true,
+      "fallback_themes": true,
+      "theme_caching": true
+    },
+    
+    "resource_optimization": {
+      "svg_icons": true,
+      "webp_images": true,
+      "font_display_swap": true,
+      "preload_critical_fonts": true
+    }
+  }
+}

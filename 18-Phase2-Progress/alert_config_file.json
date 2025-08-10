@@ -1,0 +1,690 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "created": "2024-08-05",
+    "description": "EA GlobalFlow Pro v0.1 - Alert Settings Configuration",
+    "author": "EA GlobalFlow Development Team",
+    "alert_system": "Multi-Channel Smart Alert System",
+    "last_updated": "2024-08-05T10:00:00Z"
+  },
+  
+  "alert_system": {
+    "description": "Global alert system configuration",
+    "enabled": true,
+    "master_volume": 0.7,
+    "alert_queue_enabled": true,
+    "max_queue_size": 100,
+    "alert_deduplication": true,
+    "deduplication_window_seconds": 30,
+    "priority_based_routing": true,
+    "batch_processing": true,
+    "batch_size": 5,
+    "batch_interval_seconds": 2
+  },
+  
+  "alert_categories": {
+    "description": "Different categories of alerts with specific settings",
+    
+    "trading_alerts": {
+      "description": "Trade execution and position-related alerts",
+      "enabled": true,
+      "priority": "high",
+      "channels": ["sound", "desktop", "email", "sms"],
+      "sound_enabled": true,
+      "volume": 0.8,
+      
+      "subcategories": {
+        "order_execution": {
+          "enabled": true,
+          "priority": "high",
+          "sound_file": "order_filled.wav",
+          "channels": ["sound", "desktop"],
+          "delay_seconds": 0,
+          "message_template": "Order {order_type} {quantity} {symbol} executed at {price}"
+        },
+        "position_opened": {
+          "enabled": true,
+          "priority": "medium",
+          "sound_file": "position_open.wav",
+          "channels": ["sound", "desktop"],
+          "delay_seconds": 0,
+          "message_template": "Position opened: {direction} {quantity} {symbol} at {entry_price}"
+        },
+        "position_closed": {
+          "enabled": true,
+          "priority": "medium",
+          "sound_file": "position_close.wav",
+          "channels": ["sound", "desktop", "email"],
+          "delay_seconds": 0,
+          "message_template": "Position closed: {symbol} P&L: {pnl} ({pnl_percent}%)"
+        },
+        "stop_loss_hit": {
+          "enabled": true,
+          "priority": "critical",
+          "sound_file": "stop_loss.wav",
+          "channels": ["sound", "desktop", "email", "sms"],
+          "delay_seconds": 0,
+          "message_template": "STOP LOSS HIT: {symbol} Loss: {loss_amount}"
+        },
+        "take_profit_hit": {
+          "enabled": true,
+          "priority": "high",
+          "sound_file": "take_profit.wav",
+          "channels": ["sound", "desktop", "email"],
+          "delay_seconds": 0,
+          "message_template": "TAKE PROFIT HIT: {symbol} Profit: {profit_amount}"
+        },
+        "trailing_stop_updated": {
+          "enabled": false,
+          "priority": "low",
+          "sound_file": "trail_update.wav",
+          "channels": ["desktop"],
+          "delay_seconds": 0,
+          "message_template": "Trailing stop updated for {symbol}: {new_stop_price}"
+        }
+      }
+    },
+    
+    "risk_alerts": {
+      "description": "Risk management and limit-related alerts",
+      "enabled": true,
+      "priority": "critical",
+      "channels": ["sound", "desktop", "email", "sms", "whatsapp"],
+      "sound_enabled": true,
+      "volume": 1.0,
+      
+      "subcategories": {
+        "daily_loss_limit": {
+          "enabled": true,
+          "priority": "critical",
+          "sound_file": "risk_critical.wav",
+          "channels": ["sound", "desktop", "email", "sms", "whatsapp"],
+          "delay_seconds": 0,
+          "thresholds": {
+            "warning": 70,
+            "concern": 85,
+            "critical": 95
+          },
+          "message_templates": {
+            "warning": "Daily loss at {percent}% of limit. Current: ₹{current_loss}",
+            "concern": "CONCERN: Daily loss at {percent}% of limit. Current: ₹{current_loss}",
+            "critical": "CRITICAL: Daily loss limit breached! Loss: ₹{current_loss}"
+          }
+        },
+        "drawdown_alert": {
+          "enabled": true,
+          "priority": "critical",
+          "sound_file": "drawdown_alert.wav",
+          "channels": ["sound", "desktop", "email", "sms"],
+          "delay_seconds": 0,
+          "thresholds": {
+            "warning": 5,
+            "concern": 7,
+            "critical": 10
+          },
+          "message_templates": {
+            "warning": "Drawdown alert: {drawdown_percent}% from peak",
+            "concern": "CONCERN: High drawdown {drawdown_percent}% from peak",
+            "critical": "CRITICAL: Maximum drawdown {drawdown_percent}% reached!"
+          }
+        },
+        "margin_utilization": {
+          "enabled": true,
+          "priority": "high",
+          "sound_file": "margin_alert.wav",
+          "channels": ["sound", "desktop", "email"],
+          "delay_seconds": 0,
+          "thresholds": {
+            "warning": 70,
+            "concern": 85,
+            "critical": 95
+          },
+          "message_templates": {
+            "warning": "Margin utilization: {utilization_percent}%",
+            "concern": "High margin utilization: {utilization_percent}%",
+            "critical": "CRITICAL: Margin utilization {utilization_percent}%"
+          }
+        },
+        "vix_spike": {
+          "enabled": true,
+          "priority": "high",
+          "sound_file": "vix_spike.wav",
+          "channels": ["sound", "desktop", "email"],
+          "delay_seconds": 0,
+          "spike_threshold_percent": 20,
+          "message_template": "VIX SPIKE: {vix_change_percent}% increase to {current_vix}"
+        },
+        "correlation_breach": {
+          "enabled": true,
+          "priority": "medium",
+          "sound_file": "correlation_alert.wav",
+          "channels": ["desktop", "email"],
+          "delay_seconds": 0,
+          "correlation_threshold": 0.8,
+          "message_template": "High correlation detected: {symbol1} & {symbol2} correlation: {correlation}"
+        }
+      }
+    },
+    
+    "system_alerts": {
+      "description": "System status and technical alerts",
+      "enabled": true,
+      "priority": "high",
+      "channels": ["sound", "desktop", "email"],
+      "sound_enabled": true,
+      "volume": 0.6,
+      
+      "subcategories": {
+        "connection_loss": {
+          "enabled": true,
+          "priority": "critical",
+          "sound_file": "connection_lost.wav",
+          "channels": ["sound", "desktop", "email", "sms"],
+          "delay_seconds": 0,
+          "reconnect_attempts": 3,
+          "message_template": "Connection lost to {service}. Attempting reconnection..."
+        },
+        "connection_restored": {
+          "enabled": true,
+          "priority": "medium",
+          "sound_file": "connection_restored.wav",
+          "channels": ["sound", "desktop"],
+          "delay_seconds": 0,
+          "message_template": "Connection restored to {service}"
+        },
+        "api_rate_limit": {
+          "enabled": true,
+          "priority": "medium",
+          "sound_file": "rate_limit.wav",
+          "channels": ["desktop", "email"],
+          "delay_seconds": 0,
+          "message_template": "API rate limit approaching for {service}: {usage_percent}%"
+        },
+        "system_error": {
+          "enabled": true,
+          "priority": "high",
+          "sound_file": "system_error.wav",
+          "channels": ["sound", "desktop", "email"],
+          "delay_seconds": 0,
+          "message_template": "System error in {component}: {error_message}"
+        },
+        "low_disk_space": {
+          "enabled": true,
+          "priority": "medium",
+          "sound_file": "disk_space.wav",
+          "channels": ["desktop", "email"],
+          "delay_seconds": 0,
+          "threshold_percent": 85,
+          "message_template": "Low disk space: {available_space} remaining ({usage_percent}% used)"
+        },
+        "high_cpu_usage": {
+          "enabled": true,
+          "priority": "medium",
+          "sound_file": "cpu_high.wav",
+          "channels": ["desktop"],
+          "delay_seconds": 0,
+          "threshold_percent": 90,
+          "duration_seconds": 60,
+          "message_template": "High CPU usage: {cpu_percent}% for {duration} seconds"
+        }
+      }
+    },
+    
+    "market_alerts": {
+      "description": "Market conditions and opportunity alerts",
+      "enabled": true,
+      "priority": "medium",
+      "channels": ["sound", "desktop", "email"],
+      "sound_enabled": true,
+      "volume": 0.5,
+      
+      "subcategories": {
+        "market_open": {
+          "enabled": true,
+          "priority": "low",
+          "sound_file": "market_open.wav",
+          "channels": ["sound", "desktop"],
+          "delay_seconds": 0,
+          "advance_minutes": 5,
+          "message_template": "Market opening in {minutes} minutes"
+        },
+        "market_close": {
+          "enabled": true,
+          "priority": "medium",
+          "sound_file": "market_close.wav",
+          "channels": ["sound", "desktop", "email"],
+          "delay_seconds": 0,
+          "advance_minutes": 5,
+          "message_template": "Market closing in {minutes} minutes"
+        },
+        "expiry_day": {
+          "enabled": true,
+          "priority": "high",
+          "sound_file": "expiry_day.wav",
+          "channels": ["sound", "desktop", "email", "sms"],
+          "delay_seconds": 0,
+          "advance_hours": 2,
+          "message_template": "OPTIONS EXPIRY DAY - {expiry_type} expiry in {hours} hours"
+        },
+        "circuit_breaker": {
+          "enabled": true,
+          "priority": "critical",
+          "sound_file": "circuit_breaker.wav",
+          "channels": ["sound", "desktop", "email", "sms"],
+          "delay_seconds": 0,
+          "message_template": "CIRCUIT BREAKER: {symbol} {direction} {percent}%"
+        },
+        "unusual_volume": {
+          "enabled": false,
+          "priority": "low",
+          "sound_file": "volume_spike.wav",
+          "channels": ["desktop"],
+          "delay_seconds": 0,
+          "volume_multiplier": 3.0,
+          "message_template": "Unusual volume in {symbol}: {volume_ratio}x average"
+        }
+      }
+    },
+    
+    "opportunity_alerts": {
+      "description": "Trading opportunity and scanner alerts",
+      "enabled": true,
+      "priority": "medium",
+      "channels": ["sound", "desktop"],
+      "sound_enabled": true,
+      "volume": 0.4,
+      
+      "subcategories": {
+        "fno_opportunity": {
+          "enabled": true,
+          "priority": "medium",
+          "sound_file": "opportunity.wav",
+          "channels": ["sound", "desktop"],
+          "delay_seconds": 0,
+          "message_template": "F&O Opportunity: {symbol} {path_type} signal"
+        },
+        "forex_opportunity": {
+          "enabled": true,
+          "priority": "medium",
+          "sound_file": "forex_signal.wav",
+          "channels": ["sound", "desktop"],
+          "delay_seconds": 0,
+          "message_template": "Forex Signal: {pair} {direction} setup"
+        },
+        "ml_high_confidence": {
+          "enabled": true,
+          "priority": "high",
+          "sound_file": "ml_signal.wav",
+          "channels": ["sound", "desktop", "email"],
+          "delay_seconds": 0,
+          "confidence_threshold": 85,
+          "message_template": "High confidence ML signal: {symbol} {confidence}% confidence"
+        },
+        "hybrid_oi_pattern": {
+          "enabled": true,
+          "priority": "medium",
+          "sound_file": "oi_pattern.wav",
+          "channels": ["sound", "desktop"],
+          "delay_seconds": 0,
+          "message_template": "Hybrid OI Pattern detected: {symbol} {pattern_type}"
+        }
+      }
+    }
+  },
+  
+  "sound_settings": {
+    "description": "Audio alert configuration",
+    
+    "global_sound_settings": {
+      "enabled": true,
+      "master_volume": 0.7,
+      "device_selection": "default",
+      "sound_format": "wav",
+      "quality": "high",
+      "fade_in_duration": 100,
+      "fade_out_duration": 200
+    },
+    
+    "sound_files": {
+      "directory": "C:\\EA_GlobalFlow_Bridge\\Sounds\\",
+      "format": "wav",
+      "quality": "16bit_44khz",
+      
+      "available_sounds": {
+        "order_filled.wav": {
+          "description": "Order execution confirmation",
+          "duration": 1.2,
+          "volume": 0.8
+        },
+        "position_open.wav": {
+          "description": "Position opened",
+          "duration": 0.8,
+          "volume": 0.6
+        },
+        "position_close.wav": {
+          "description": "Position closed",
+          "duration": 1.0,
+          "volume": 0.6
+        },
+        "stop_loss.wav": {
+          "description": "Stop loss hit - urgent",
+          "duration": 1.5,
+          "volume": 1.0
+        },
+        "take_profit.wav": {
+          "description": "Take profit hit - success",
+          "duration": 1.2,
+          "volume": 0.8
+        },
+        "risk_critical.wav": {
+          "description": "Critical risk alert",
+          "duration": 2.0,
+          "volume": 1.0
+        },
+        "connection_lost.wav": {
+          "description": "Connection lost warning",
+          "duration": 1.5,
+          "volume": 0.8
+        },
+        "market_open.wav": {
+          "description": "Market opening notification",
+          "duration": 1.0,
+          "volume": 0.5
+        },
+        "opportunity.wav": {
+          "description": "Trading opportunity detected",
+          "duration": 0.8,
+          "volume": 0.4
+        }
+      },
+      
+      "custom_sounds": {
+        "enabled": true,
+        "upload_directory": "C:\\EA_GlobalFlow_Bridge\\Sounds\\Custom\\",
+        "max_file_size_mb": 5,
+        "supported_formats": ["wav", "mp3", "ogg"]
+      }
+    },
+    
+    "sound_behavior": {
+      "interrupt_lower_priority": true,
+      "queue_same_priority": true,
+      "max_simultaneous_sounds": 3,
+      "repeat_critical_alerts": true,
+      "repeat_interval_seconds": 30,
+      "max_repeats": 3,
+      "quiet_hours": {
+        "enabled": false,
+        "start_time": "22:00",
+        "end_time": "06:00",
+        "reduced_volume": 0.3
+      }
+    }
+  },
+  
+  "visual_alerts": {
+    "description": "Visual alert configuration",
+    
+    "desktop_notifications": {
+      "enabled": true,
+      "duration_seconds": 5,
+      "position": "top_right",
+      "theme": "system",
+      "show_icon": true,
+      "show_timestamp": true,
+      "click_to_dismiss": true,
+      "auto_dismiss": true,
+      "max_notifications": 5,
+      "stack_notifications": true
+    },
+    
+    "dashboard_alerts": {
+      "enabled": true,
+      "alert_panel": true,
+      "panel_position": "top",
+      "auto_scroll": true,
+      "max_visible_alerts": 10,
+      "color_coding": true,
+      "priority_sorting": true,
+      "timestamp_display": true,
+      "alert_history": true,
+      "history_retention_hours": 24
+    },
+    
+    "screen_flash": {
+      "enabled": false,
+      "critical_alerts_only": true,
+      "flash_color": "#FF0000",
+      "flash_duration": 500,
+      "flash_intensity": 0.3
+    },
+    
+    "tray_icon_alerts": {
+      "enabled": true,
+      "icon_changes": true,
+      "tooltip_updates": true,
+      "balloon_notifications": true,
+      "blink_on_critical": true
+    }
+  },
+  
+  "alert_channels": {
+    "description": "Multi-channel alert delivery configuration",
+    
+    "email_alerts": {
+      "enabled": true,
+      "smtp_settings": {
+        "server": "smtp.gmail.com",
+        "port": 587,
+        "encryption": "TLS",
+        "from_address": "pajitmenonai@gmail.com",
+        "to_addresses": ["pajitmenonai@gmail.com"]
+      },
+      "email_templates": {
+        "subject_prefix": "[EA GlobalFlow]",
+        "include_timestamp": true,
+        "include_system_info": true,
+        "html_format": true,
+        "attach_screenshots": false
+      },
+      "batching": {
+        "enabled": true,
+        "batch_interval_minutes": 5,
+        "max_batch_size": 10,
+        "immediate_for_critical": true
+      }
+    },
+    
+    "sms_alerts": {
+      "enabled": true,
+      "provider": "twilio",
+      "phone_numbers": ["+971507423656"],
+      "message_settings": {
+        "max_length": 160,
+        "include_timestamp": false,
+        "abbreviate_symbols": true,
+        "priority_filter": ["critical", "high"]
+      },
+      "rate_limiting": {
+        "max_per_hour": 10,
+        "max_per_day": 50,
+        "cooldown_minutes": 5
+      }
+    },
+    
+    "whatsapp_alerts": {
+      "enabled": true,
+      "provider": "twilio",
+      "phone_numbers": ["+971507423656"],
+      "message_settings": {
+        "include_images": false,
+        "include_charts": false,
+        "rich_formatting": true,
+        "priority_filter": ["critical", "high"]
+      },
+      "rate_limiting": {
+        "max_per_hour": 20,
+        "max_per_day": 100,
+        "cooldown_minutes": 2
+      }
+    },
+    
+    "telegram_alerts": {
+      "enabled": false,
+      "bot_token": "encrypted_placeholder",
+      "chat_id": "encrypted_placeholder",
+      "message_settings": {
+        "markdown_format": true,
+        "include_buttons": true,
+        "inline_charts": false
+      }
+    },
+    
+    "webhook_alerts": {
+      "enabled": false,
+      "endpoints": [],
+      "authentication": "bearer_token",
+      "payload_format": "json",
+      "retry_attempts": 3,
+      "timeout_seconds": 10
+    }
+  },
+  
+  "alert_rules": {
+    "description": "Alert filtering and routing rules",
+    
+    "priority_rules": {
+      "critical": {
+        "all_channels": true,
+        "immediate_delivery": true,
+        "override_quiet_hours": true,
+        "max_frequency": "unlimited"
+      },
+      "high": {
+        "channels": ["sound", "desktop", "email"],
+        "immediate_delivery": true,
+        "respect_quiet_hours": false,
+        "max_frequency": "5_per_minute"
+      },
+      "medium": {
+        "channels": ["sound", "desktop"],
+        "batch_delivery": true,
+        "respect_quiet_hours": true,
+        "max_frequency": "10_per_hour"
+      },
+      "low": {
+        "channels": ["desktop"],
+        "batch_delivery": true,
+        "respect_quiet_hours": true,
+        "max_frequency": "20_per_hour"
+      }
+    },
+    
+    "time_based_rules": {
+      "market_hours": {
+        "enabled": true,
+        "indian_market_hours": "09:15-15:30",
+        "forex_hours": "00:00-23:59",
+        "reduced_alerts_after_hours": true
+      },
+      "quiet_hours": {
+        "enabled": false,
+        "start_time": "22:00",
+        "end_time": "06:00",
+        "critical_only": true,
+        "reduced_volume": true
+      },
+      "weekend_rules": {
+        "enabled": true,
+        "system_alerts_only": true,
+        "no_trading_alerts": true,
+        "maintenance_alerts": true
+      }
+    },
+    
+    "frequency_limits": {
+      "duplicate_suppression": true,
+      "suppression_window_seconds": 30,
+      "max_alerts_per_minute": 10,
+      "max_alerts_per_hour": 100,
+      "burst_protection": true,
+      "cooldown_escalation": true
+    }
+  },
+  
+  "alert_customization": {
+    "description": "User customization options",
+    
+    "user_profiles": {
+      "enabled": true,
+      "profiles": {
+        "conservative_trader": {
+          "description": "Minimal alerts, focus on risk",
+          "risk_alerts": "all",
+          "trading_alerts": "critical_only",
+          "system_alerts": "important_only",
+          "sound_volume": 0.3
+        },
+        "active_trader": {
+          "description": "Comprehensive alerts for active trading",
+          "risk_alerts": "all",
+          "trading_alerts": "all",
+          "system_alerts": "all",
+          "sound_volume": 0.7
+        },
+        "scalper": {
+          "description": "High-frequency alerts for scalping",
+          "execution_alerts": "all",
+          "opportunity_alerts": "all",
+          "minimal_system_alerts": true,
+          "sound_volume": 0.5
+        }
+      },
+      "custom_profiles": true,
+      "profile_switching": true
+    },
+    
+    "symbol_specific_alerts": {
+      "enabled": true,
+      "watchlist_alerts": true,
+      "position_alerts": true,
+      "custom_thresholds": true,
+      "per_symbol_channels": true
+    },
+    
+    "conditional_alerts": {
+      "enabled": true,
+      "vix_conditional": true,
+      "time_conditional": true,
+      "pnl_conditional": true,
+      "position_size_conditional": true
+    }
+  },
+  
+  "alert_analytics": {
+    "description": "Alert performance and analytics",
+    
+    "alert_metrics": {
+      "enabled": true,
+      "delivery_success_rate": true,
+      "response_time_tracking": true,
+      "user_interaction_tracking": true,
+      "effectiveness_scoring": true
+    },
+    
+    "alert_history": {
+      "enabled": true,
+      "retention_days": 90,
+      "searchable_history": true,
+      "export_functionality": true,
+      "statistical_analysis": true
+    },
+    
+    "optimization": {
+      "auto_tuning": false,
+      "machine_learning": false,
+      "user_feedback_integration": true,
+      "performance_optimization": true
+    }
+  }
+}

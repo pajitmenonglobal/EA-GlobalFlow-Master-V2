@@ -1,0 +1,549 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "created": "2024-08-05",
+    "description": "EA GlobalFlow Pro v0.1 - Comprehensive Risk Management Configuration",
+    "author": "EA GlobalFlow Development Team",
+    "risk_framework": "VIX-based Dynamic Risk Management",
+    "last_updated": "2024-08-05T10:00:00Z"
+  },
+  
+  "global_risk_settings": {
+    "description": "Master risk management controls",
+    
+    "account_level_limits": {
+      "max_daily_loss": 50000,
+      "max_weekly_loss": 150000,
+      "max_monthly_loss": 400000,
+      "max_drawdown_percent": 10.0,
+      "daily_profit_target": 25000,
+      "weekly_profit_target": 75000,
+      "monthly_profit_target": 200000,
+      "stop_trading_on_target": false,
+      "currency": "INR"
+    },
+    
+    "position_level_limits": {
+      "max_positions_per_symbol": 3,
+      "max_total_positions": 20,
+      "max_position_size_percent": 5.0,
+      "max_sector_exposure_percent": 25.0,
+      "max_correlation_exposure": 0.7,
+      "position_concentration_limit": 30.0
+    },
+    
+    "leverage_controls": {
+      "max_leverage_ratio": 5.0,
+      "margin_utilization_limit": 80.0,
+      "margin_call_level": 85.0,
+      "force_liquidation_level": 90.0,
+      "dynamic_leverage_adjustment": true
+    }
+  },
+  
+  "vix_based_risk_management": {
+    "description": "Dynamic risk adjustment based on India VIX levels",
+    
+    "vix_regimes": {
+      "ultra_low_vix": {
+        "vix_range": [0, 12],
+        "risk_multiplier": 1.2,
+        "max_positions": 20,
+        "position_size_multiplier": 1.0,
+        "stop_loss_multiplier": 0.8,
+        "take_profit_multiplier": 1.2,
+        "description": "Ultra-low volatility - Increased risk taking"
+      },
+      "low_vix": {
+        "vix_range": [12, 18],
+        "risk_multiplier": 1.0,
+        "max_positions": 15,
+        "position_size_multiplier": 0.9,
+        "stop_loss_multiplier": 1.0,
+        "take_profit_multiplier": 1.0,
+        "description": "Low volatility - Normal risk parameters"
+      },
+      "normal_vix": {
+        "vix_range": [18, 25],
+        "risk_multiplier": 0.8,
+        "max_positions": 12,
+        "position_size_multiplier": 0.8,
+        "stop_loss_multiplier": 1.1,
+        "take_profit_multiplier": 0.9,
+        "description": "Normal volatility - Slight risk reduction"
+      },
+      "high_vix": {
+        "vix_range": [25, 35],
+        "risk_multiplier": 0.6,
+        "max_positions": 8,
+        "position_size_multiplier": 0.6,
+        "stop_loss_multiplier": 1.3,
+        "take_profit_multiplier": 0.8,
+        "description": "High volatility - Significant risk reduction"
+      },
+      "extreme_vix": {
+        "vix_range": [35, 100],
+        "risk_multiplier": 0.3,
+        "max_positions": 5,
+        "position_size_multiplier": 0.4,
+        "stop_loss_multiplier": 1.5,
+        "take_profit_multiplier": 0.7,
+        "description": "Extreme volatility - Maximum risk reduction"
+      }
+    },
+    
+    "vix_monitoring": {
+      "real_time_updates": true,
+      "update_frequency_seconds": 60,
+      "historical_lookback_days": 30,
+      "vix_spike_detection": true,
+      "spike_threshold_percent": 20.0,
+      "regime_change_delay_minutes": 5
+    },
+    
+    "dynamic_adjustments": {
+      "position_sizing": true,
+      "stop_loss_levels": true,
+      "take_profit_levels": true,
+      "entry_criteria": true,
+      "exit_criteria": true,
+      "max_positions": true,
+      "correlation_limits": true
+    }
+  },
+  
+  "position_sizing_models": {
+    "description": "Position sizing calculation methods",
+    
+    "primary_model": "vix_adjusted_fixed_fractional",
+    
+    "fixed_fractional": {
+      "risk_per_trade_percent": 1.0,
+      "max_risk_per_trade": 5000,
+      "account_balance_based": true
+    },
+    
+    "vix_adjusted_fixed_fractional": {
+      "base_risk_percent": 1.0,
+      "vix_adjustment_factor": true,
+      "min_risk_percent": 0.3,
+      "max_risk_percent": 1.5,
+      "account_balance_based": true
+    },
+    
+    "kelly_criterion": {
+      "enabled": false,
+      "win_rate_required": 0.6,
+      "min_sample_size": 100,
+      "max_kelly_percent": 2.0,
+      "fractional_kelly": 0.25
+    },
+    
+    "volatility_adjusted": {
+      "enabled": true,
+      "atr_multiplier": 2.0,
+      "volatility_lookback": 20,
+      "min_position_size": 1000,
+      "max_position_size": 50000
+    }
+  },
+  
+  "stop_loss_management": {
+    "description": "Stop loss calculation and management",
+    
+    "stop_loss_methods": {
+      "primary_method": "atr_based",
+      
+      "fixed_percentage": {
+        "stop_loss_percent": 2.0,
+        "enabled": false
+      },
+      
+      "atr_based": {
+        "atr_multiplier": 1.5,
+        "atr_period": 20,
+        "min_stop_loss_points": 10,
+        "max_stop_loss_points": 200,
+        "enabled": true
+      },
+      
+      "support_resistance": {
+        "buffer_points": 5,
+        "lookback_periods": 50,
+        "enabled": false
+      },
+      
+      "trailing_stop": {
+        "enabled": true,
+        "trail_start_percent": 1.0,
+        "trail_step_percent": 0.5,
+        "trail_activation_profit": 1.5
+      }
+    },
+    
+    "vix_adjustments": {
+      "low_vix_multiplier": 0.8,
+      "normal_vix_multiplier": 1.0,
+      "high_vix_multiplier": 1.3,
+      "extreme_vix_multiplier": 1.5
+    },
+    
+    "time_based_stops": {
+      "intraday_exit_time": "15:29:00",
+      "max_hold_time_hours": 4,
+      "overnight_stop_adjustment": 1.2
+    }
+  },
+  
+  "take_profit_management": {
+    "description": "Take profit calculation and management",
+    
+    "take_profit_methods": {
+      "primary_method": "risk_reward_ratio",
+      
+      "risk_reward_ratio": {
+        "target_ratio": 2.0,
+        "min_ratio": 1.5,
+        "max_ratio": 3.0,
+        "dynamic_adjustment": true
+      },
+      
+      "fixed_percentage": {
+        "profit_percent": 3.0,
+        "enabled": false
+      },
+      
+      "multiple_targets": {
+        "enabled": true,
+        "target_1": {
+          "profit_ratio": 1.0,
+          "position_percent": 30
+        },
+        "target_2": {
+          "profit_ratio": 2.0,
+          "position_percent": 50
+        },
+        "target_3": {
+          "profit_ratio": 3.0,
+          "position_percent": 20
+        }
+      }
+    },
+    
+    "vix_adjustments": {
+      "low_vix_multiplier": 1.2,
+      "normal_vix_multiplier": 1.0,
+      "high_vix_multiplier": 0.8,
+      "extreme_vix_multiplier": 0.7
+    }
+  },
+  
+  "correlation_risk_management": {
+    "description": "Position correlation and sector exposure controls",
+    
+    "correlation_monitoring": {
+      "enabled": true,
+      "correlation_period": 30,
+      "correlation_threshold": 0.7,
+      "max_correlated_positions": 3,
+      "correlation_adjustment_factor": 0.8
+    },
+    
+    "sector_exposure": {
+      "max_sector_percent": 25.0,
+      "sectors": {
+        "banking": {"max_percent": 30.0, "current_percent": 0.0},
+        "it": {"max_percent": 25.0, "current_percent": 0.0},
+        "pharma": {"max_percent": 20.0, "current_percent": 0.0},
+        "auto": {"max_percent": 15.0, "current_percent": 0.0},
+        "energy": {"max_percent": 20.0, "current_percent": 0.0},
+        "fmcg": {"max_percent": 15.0, "current_percent": 0.0},
+        "metals": {"max_percent": 15.0, "current_percent": 0.0},
+        "realty": {"max_percent": 10.0, "current_percent": 0.0}
+      }
+    },
+    
+    "diversification_requirements": {
+      "min_sectors": 3,
+      "max_position_concentration": 30.0,
+      "rebalancing_threshold": 5.0
+    }
+  },
+  
+  "time_based_risk_controls": {
+    "description": "Time-based risk management rules",
+    
+    "intraday_controls": {
+      "max_trades_per_day": 50,
+      "max_trades_per_hour": 10,
+      "cooling_period_minutes": 5,
+      "loss_limit_pause_minutes": 30
+    },
+    
+    "session_controls": {
+      "pre_market_trading": false,
+      "first_hour_max_positions": 5,
+      "last_hour_no_new_positions": true,
+      "lunch_time_pause": false
+    },
+    
+    "weekly_monthly_controls": {
+      "max_weekly_trades": 200,
+      "max_monthly_trades": 800,
+      "week_end_position_closure": false,
+      "month_end_risk_reduction": true
+    }
+  },
+  
+  "volatility_risk_management": {
+    "description": "Volatility-based risk controls",
+    
+    "volatility_measurement": {
+      "method": "atr",
+      "period": 20,
+      "smoothing": "sma",
+      "update_frequency": "real_time",
+      "historical_period": 252
+    },
+    
+    "volatility_regimes": {
+      "low_vol": {
+        "threshold_percentile": 20,
+        "position_multiplier": 1.0,
+        "max_positions": 15
+      },
+      "normal_vol": {
+        "threshold_percentile": 60,
+        "position_multiplier": 0.8,
+        "max_positions": 12
+      },
+      "high_vol": {
+        "threshold_percentile": 80,
+        "position_multiplier": 0.6,
+        "max_positions": 8
+      },
+      "extreme_vol": {
+        "threshold_percentile": 95,
+        "position_multiplier": 0.3,
+        "max_positions": 5
+      }
+    },
+    
+    "volatility_adjustments": {
+      "position_sizing": true,
+      "stop_loss_levels": true,
+      "take_profit_levels": true,
+      "entry_criteria": true,
+      "exit_criteria": true
+    }
+  },
+  
+  "liquidity_risk_management": {
+    "description": "Liquidity risk controls and monitoring",
+    
+    "liquidity_requirements": {
+      "min_avg_volume": 1000000,
+      "min_value_traded": 10000000,
+      "max_bid_ask_spread": 0.5,
+      "min_market_makers": 3
+    },
+    
+    "position_sizing_adjustments": {
+      "high_liquidity": 1.0,
+      "medium_liquidity": 0.8,
+      "low_liquidity": 0.5,
+      "illiquid": 0.0
+    },
+    
+    "exit_protocols": {
+      "liquidity_deterioration": {
+        "immediate_exit": true,
+        "scale_out_strategy": true,
+        "max_market_impact": 2.0
+      },
+      "circuit_breaker_response": {
+        "pause_trading": true,
+        "reassess_positions": true,
+        "reduce_exposure": true
+      }
+    }
+  },
+  
+  "operational_risk_management": {
+    "description": "Operational risk controls and procedures",
+    
+    "system_risk_controls": {
+      "redundancy_systems": true,
+      "failover_protocols": true,
+      "data_backup_frequency": "real_time",
+      "recovery_time_objective": 60,
+      "recovery_point_objective": 0
+    },
+    
+    "api_risk_management": {
+      "connection_monitoring": true,
+      "latency_monitoring": true,
+      "error_rate_monitoring": true,
+      "rate_limit_management": true,
+      "failover_brokers": ["zerodha", "upstox"]
+    },
+    
+    "data_quality_controls": {
+      "real_time_validation": true,
+      "anomaly_detection": true,
+      "cross_reference_checking": true,
+      "data_staleness_limits": 5
+    }
+  },
+  
+  "regulatory_compliance": {
+    "description": "Regulatory risk management and compliance",
+    
+    "sebi_compliance": {
+      "position_reporting": true,
+      "risk_disclosure": true,
+      "audit_trail": true,
+      "margin_requirements": true
+    },
+    
+    "exchange_compliance": {
+      "nse_requirements": true,
+      "bse_requirements": true,
+      "position_limits": true,
+      "reporting_obligations": true
+    },
+    
+    "risk_disclosures": {
+      "daily_var": true,
+      "stress_test_results": true,
+      "concentration_reports": true,
+      "performance_attribution": true
+    }
+  },
+  
+  "emergency_protocols": {
+    "description": "Emergency risk management procedures",
+    
+    "trigger_conditions": {
+      "market_crash": {
+        "index_decline_percent": 5.0,
+        "action": "emergency_stop"
+      },
+      "flash_crash": {
+        "rapid_decline_percent": 2.0,
+        "time_window_minutes": 5,
+        "action": "immediate_position_closure"
+      },
+      "system_failure": {
+        "api_downtime_minutes": 2,
+        "action": "switch_to_backup_systems"
+      },
+      "risk_limit_breach": {
+        "drawdown_threshold": 10.0,
+        "action": "emergency_stop_and_review"
+      }
+    },
+    
+    "escalation_procedures": {
+      "level_1": {
+        "triggers": ["warning_threshold_breach"],
+        "actions": ["automated_alert", "increased_monitoring"],
+        "notification_delay": 0
+      },
+      "level_2": {
+        "triggers": ["concern_threshold_breach", "system_anomaly"],
+        "actions": ["management_notification", "position_review"],
+        "notification_delay": 5
+      },
+      "level_3": {
+        "triggers": ["action_threshold_breach", "major_system_failure"],
+        "actions": ["emergency_meeting", "position_reduction"],
+        "notification_delay": 1
+      },
+      "level_4": {
+        "triggers": ["emergency_threshold_breach", "critical_system_failure"],
+        "actions": ["complete_shutdown", "regulatory_notification"],
+        "notification_delay": 0
+      }
+    },
+    
+    "communication_protocols": {
+      "internal_alerts": {
+        "email": true,
+        "sms": true,
+        "whatsapp": true,
+        "phone_call": true
+      },
+      "external_notifications": {
+        "broker_notification": true,
+        "regulatory_reporting": true,
+        "client_communication": false
+      }
+    }
+  },
+  
+  "monitoring_and_reporting": {
+    "description": "Risk monitoring and reporting configuration",
+    
+    "real_time_monitoring": {
+      "position_monitoring": true,
+      "pnl_monitoring": true,
+      "risk_metric_monitoring": true,
+      "correlation_monitoring": true,
+      "volatility_monitoring": true,
+      "update_frequency_seconds": 1
+    },
+    
+    "reporting_schedule": {
+      "real_time_dashboard": true,
+      "hourly_snapshots": true,
+      "daily_reports": true,
+      "weekly_summaries": true,
+      "monthly_reviews": true
+    },
+    
+    "risk_metrics": {
+      "var_calculation": {
+        "confidence_level": 0.95,
+        "holding_period": 1,
+        "historical_window": 252,
+        "method": "historical_simulation"
+      },
+      "stress_testing": {
+        "scenarios": ["2008_crisis", "2020_covid", "custom_scenarios"],
+        "frequency": "daily",
+        "impact_assessment": true
+      },
+      "performance_attribution": {
+        "sector_attribution": true,
+        "strategy_attribution": true,
+        "time_attribution": true
+      }
+    }
+  },
+  
+  "backtesting_risk_validation": {
+    "description": "Risk parameter validation through backtesting",
+    
+    "validation_period": {
+      "start_date": "2023-01-01",
+      "end_date": "2024-07-31",
+      "out_of_sample_percent": 20
+    },
+    
+    "risk_metrics_validation": {
+      "max_drawdown_validation": true,
+      "var_backtesting": true,
+      "stress_test_validation": true,
+      "correlation_analysis": true
+    },
+    
+    "optimization_constraints": {
+      "min_trades": 100,
+      "min_win_rate": 0.55,
+      "max_drawdown": 0.15,
+      "min_sharpe_ratio": 1.0,
+      "min_profit_factor": 1.2
+    }
+  }
+}

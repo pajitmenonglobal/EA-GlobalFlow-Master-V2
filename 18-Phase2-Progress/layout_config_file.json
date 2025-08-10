@@ -1,0 +1,580 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "created": "2024-08-05",
+    "description": "EA GlobalFlow Pro v0.1 - Dashboard Layout Configuration",
+    "author": "EA GlobalFlow Development Team",
+    "layout_system": "Responsive Grid with Dynamic Panels",
+    "last_updated": "2024-08-05T10:00:00Z"
+  },
+  
+  "layout_system": {
+    "description": "Global layout management system",
+    "default_layout": "trading_focused_4panel",
+    "responsive_design": true,
+    "drag_drop_enabled": true,
+    "panel_resizing": true,
+    "layout_persistence": true,
+    "layout_templates": 8,
+    "custom_layouts_allowed": true,
+    "max_custom_layouts": 5
+  },
+  
+  "screen_configurations": {
+    "description": "Screen size and resolution configurations",
+    
+    "breakpoints": {
+      "mobile": {
+        "min_width": 320,
+        "max_width": 767,
+        "columns": 1,
+        "default_layout": "mobile_compact"
+      },
+      "tablet": {
+        "min_width": 768,
+        "max_width": 1023,
+        "columns": 2,
+        "default_layout": "tablet_dual_panel"
+      },
+      "desktop": {
+        "min_width": 1024,
+        "max_width": 1439,
+        "columns": 3,
+        "default_layout": "desktop_triple_panel"
+      },
+      "wide_desktop": {
+        "min_width": 1440,
+        "max_width": 1919,
+        "columns": 4,
+        "default_layout": "trading_focused_4panel"
+      },
+      "ultra_wide": {
+        "min_width": 1920,
+        "max_width": 3840,
+        "columns": 6,
+        "default_layout": "ultra_wide_6panel"
+      }
+    },
+    
+    "recommended_resolutions": {
+      "minimum": "1280x720",
+      "optimal": "1920x1080",
+      "premium": "2560x1440",
+      "ultra": "3840x2160"
+    }
+  },
+  
+  "layout_templates": {
+    "description": "Pre-defined layout templates",
+    
+    "trading_focused_4panel": {
+      "name": "Trading Focused 4-Panel",
+      "description": "Optimized layout for active trading with F&O focus",
+      "type": "grid",
+      "columns": 4,
+      "rows": 3,
+      "responsive": true,
+      "default": true,
+      
+      "panels": {
+        "market_overview": {
+          "position": {"col": 1, "row": 1, "colspan": 2, "rowspan": 1},
+          "component": "market_overview_widget",
+          "resizable": true,
+          "movable": true,
+          "closable": false,
+          "min_width": 400,
+          "min_height": 200
+        },
+        "vix_risk_monitor": {
+          "position": {"col": 3, "row": 1, "colspan": 2, "rowspan": 1},
+          "component": "vix_risk_widget",
+          "resizable": true,
+          "movable": true,
+          "closable": false,
+          "min_width": 300,
+          "min_height": 200
+        },
+        "fno_scanner": {
+          "position": {"col": 1, "row": 2, "colspan": 1, "rowspan": 2},
+          "component": "fno_scanner_widget",
+          "resizable": true,
+          "movable": true,
+          "closable": false,
+          "min_width": 300,
+          "min_height": 400
+        },
+        "secondary_charts": {
+          "position": {"col": 2, "row": 2, "colspan": 2, "rowspan": 2},
+          "component": "dynamic_charts_grid",
+          "resizable": true,
+          "movable": true,
+          "closable": false,
+          "min_width": 600,
+          "min_height": 400
+        },
+        "trading_controls": {
+          "position": {"col": 4, "row": 2, "colspan": 1, "rowspan": 1},
+          "component": "trading_controls_widget",
+          "resizable": true,
+          "movable": true,
+          "closable": false,
+          "min_width": 250,
+          "min_height": 200
+        },
+        "positions_pnl": {
+          "position": {"col": 4, "row": 3, "colspan": 1, "rowspan": 1},
+          "component": "positions_pnl_widget",
+          "resizable": true,
+          "movable": true,
+          "closable": false,
+          "min_width": 250,
+          "min_height": 200
+        }
+      }
+    },
+    
+    "analytics_focused_6panel": {
+      "name": "Analytics Focused 6-Panel",
+      "description": "Layout optimized for market analysis and research",
+      "type": "grid",
+      "columns": 6,
+      "rows": 3,
+      "responsive": true,
+      "default": false,
+      
+      "panels": {
+        "market_overview": {
+          "position": {"col": 1, "row": 1, "colspan": 3, "rowspan": 1},
+          "component": "expanded_market_overview"
+        },
+        "economic_calendar": {
+          "position": {"col": 4, "row": 1, "colspan": 2, "rowspan": 1},
+          "component": "economic_calendar_widget"
+        },
+        "vix_analysis": {
+          "position": {"col": 6, "row": 1, "colspan": 1, "rowspan": 1},
+          "component": "vix_detailed_analysis"
+        },
+        "main_chart": {
+          "position": {"col": 1, "row": 2, "colspan": 4, "rowspan": 2},
+          "component": "advanced_trading_chart"
+        },
+        "scanner_results": {
+          "position": {"col": 5, "row": 2, "colspan": 1, "rowspan": 1},
+          "component": "comprehensive_scanner"
+        },
+        "trade_analysis": {
+          "position": {"col": 6, "row": 2, "colspan": 1, "rowspan": 1},
+          "component": "trade_analysis_widget"
+        },
+        "performance_metrics": {
+          "position": {"col": 5, "row": 3, "colspan": 2, "rowspan": 1},
+          "component": "performance_dashboard"
+        }
+      }
+    },
+    
+    "mobile_compact": {
+      "name": "Mobile Compact",
+      "description": "Optimized for mobile devices with essential controls",
+      "type": "stack",
+      "columns": 1,
+      "responsive": true,
+      "scrollable": true,
+      
+      "panels": {
+        "mobile_header": {
+          "position": {"order": 1},
+          "component": "mobile_header_widget",
+          "fixed": true,
+          "height": 60
+        },
+        "quick_overview": {
+          "position": {"order": 2},
+          "component": "mobile_overview_widget",
+          "collapsible": true,
+          "height": 150
+        },
+        "positions_summary": {
+          "position": {"order": 3},
+          "component": "mobile_positions_widget",
+          "collapsible": true,
+          "height": 200
+        },
+        "trading_controls": {
+          "position": {"order": 4},
+          "component": "mobile_trading_controls",
+          "collapsible": false,
+          "height": 250
+        },
+        "alerts_notifications": {
+          "position": {"order": 5},
+          "component": "mobile_alerts_widget",
+          "collapsible": true,
+          "height": 150
+        }
+      }
+    },
+    
+    "risk_management_focus": {
+      "name": "Risk Management Focus",
+      "description": "Layout emphasizing risk monitoring and control",
+      "type": "grid",
+      "columns": 4,
+      "rows": 4,
+      "responsive": true,
+      
+      "panels": {
+        "risk_dashboard": {
+          "position": {"col": 1, "row": 1, "colspan": 4, "rowspan": 1},
+          "component": "comprehensive_risk_dashboard"
+        },
+        "vix_monitor": {
+          "position": {"col": 1, "row": 2, "colspan": 1, "rowspan": 1},
+          "component": "vix_risk_monitor"
+        },
+        "position_risk": {
+          "position": {"col": 2, "row": 2, "colspan": 1, "rowspan": 1},
+          "component": "position_risk_analysis"
+        },
+        "correlation_matrix": {
+          "position": {"col": 3, "row": 2, "colspan": 1, "rowspan": 1},
+          "component": "correlation_heatmap"
+        },
+        "exposure_breakdown": {
+          "position": {"col": 4, "row": 2, "colspan": 1, "rowspan": 1},
+          "component": "sector_exposure_chart"
+        },
+        "drawdown_analysis": {
+          "position": {"col": 1, "row": 3, "colspan": 2, "rowspan": 1},
+          "component": "drawdown_analysis_chart"
+        },
+        "var_stress_testing": {
+          "position": {"col": 3, "row": 3, "colspan": 2, "rowspan": 1},
+          "component": "var_stress_test_widget"
+        },
+        "emergency_controls": {
+          "position": {"col": 1, "row": 4, "colspan": 4, "rowspan": 1},
+          "component": "emergency_risk_controls"
+        }
+      }
+    },
+    
+    "forex_cfd_layout": {
+      "name": "Forex & CFD Layout",
+      "description": "Optimized for forex and CFD trading",
+      "type": "grid",
+      "columns": 5,
+      "rows": 3,
+      "responsive": true,
+      
+      "panels": {
+        "forex_overview": {
+          "position": {"col": 1, "row": 1, "colspan": 3, "rowspan": 1},
+          "component": "forex_market_overview"
+        },
+        "economic_calendar": {
+          "position": {"col": 4, "row": 1, "colspan": 2, "rowspan": 1},
+          "component": "forex_economic_calendar"
+        },
+        "currency_scanner": {
+          "position": {"col": 1, "row": 2, "colspan": 1, "rowspan": 2},
+          "component": "forex_currency_scanner"
+        },
+        "main_chart": {
+          "position": {"col": 2, "row": 2, "colspan": 3, "rowspan": 2},
+          "component": "forex_trading_chart"
+        },
+        "trading_controls": {
+          "position": {"col": 5, "row": 2, "colspan": 1, "rowspan": 1},
+          "component": "forex_trading_controls"
+        },
+        "position_manager": {
+          "position": {"col": 5, "row": 3, "colspan": 1, "rowspan": 1},
+          "component": "forex_position_manager"
+        }
+      }
+    }
+  },
+  
+  "widget_components": {
+    "description": "Available widget components for layouts",
+    
+    "market_data_widgets": {
+      "market_overview_widget": {
+        "name": "Market Overview",
+        "description": "NIFTY, BANKNIFTY, and major indices",
+        "min_size": {"width": 300, "height": 150},
+        "preferred_size": {"width": 400, "height": 200},
+        "data_sources": ["nse", "bse"],
+        "update_frequency": 1000
+      },
+      "vix_risk_widget": {
+        "name": "VIX Risk Monitor", 
+        "description": "India VIX with risk regime indicator",
+        "min_size": {"width": 250, "height": 150},
+        "preferred_size": {"width": 300, "height": 200},
+        "data_sources": ["nse"],
+        "update_frequency": 5000
+      },
+      "economic_calendar_widget": {
+        "name": "Economic Calendar",
+        "description": "Upcoming economic events and news",
+        "min_size": {"width": 300, "height": 200},
+        "preferred_size": {"width": 400, "height": 300},
+        "data_sources": ["forex_factory", "investing_com"],
+        "update_frequency": 300000
+      }
+    },
+    
+    "trading_widgets": {
+      "fno_scanner_widget": {
+        "name": "F&O Scanner",
+        "description": "Real-time F&O opportunities scanner",
+        "min_size": {"width": 300, "height": 400},
+        "preferred_size": {"width": 350, "height": 500},
+        "data_sources": ["truedata", "fyers"],
+        "update_frequency": 1000
+      },
+      "dynamic_charts_grid": {
+        "name": "Dynamic Charts Grid",
+        "description": "Secondary charts for F&O analysis",
+        "min_size": {"width": 600, "height": 400},
+        "preferred_size": {"width": 800, "height": 600},
+        "data_sources": ["truedata"],
+        "max_charts": 6,
+        "chart_types": ["candlestick", "line", "volume"]
+      },
+      "trading_controls_widget": {
+        "name": "Trading Controls",
+        "description": "Order placement and management",
+        "min_size": {"width": 250, "height": 300},
+        "preferred_size": {"width": 300, "height": 400},
+        "data_sources": ["fyers"],
+        "features": ["order_entry", "position_management", "risk_controls"]
+      }
+    },
+    
+    "analysis_widgets": {
+      "option_chain_analyzer": {
+        "name": "Option Chain Analyzer",
+        "description": "OI analysis and hybrid logic implementation",
+        "min_size": {"width": 400, "height": 300},
+        "preferred_size": {"width": 600, "height": 400},
+        "data_sources": ["truedata"],
+        "features": ["oi_analysis", "pcr_ratio", "max_pain"]
+      },
+      "correlation_heatmap": {
+        "name": "Correlation Heatmap",
+        "description": "Position correlation visualization",
+        "min_size": {"width": 300, "height": 300},
+        "preferred_size": {"width": 400, "height": 400},
+        "data_sources": ["internal"],
+        "features": ["real_time_correlation", "sector_grouping"]
+      },
+      "performance_dashboard": {
+        "name": "Performance Dashboard",
+        "description": "Trading performance metrics and analytics",
+        "min_size": {"width": 400, "height": 250},
+        "preferred_size": {"width": 500, "height": 300},
+        "data_sources": ["internal"],
+        "features": ["pnl_analysis", "win_rate", "sharpe_ratio"]
+      }
+    }
+  },
+  
+  "panel_behaviors": {
+    "description": "Panel interaction and behavior settings",
+    
+    "resize_behavior": {
+      "enabled": true,
+      "snap_to_grid": true,
+      "grid_size": 10,
+      "maintain_aspect_ratio": false,
+      "resize_handles": ["se", "sw", "ne", "nw", "s", "e"],
+      "resize_constraints": {
+        "enforce_min_size": true,
+        "enforce_max_size": false,
+        "collision_detection": true
+      }
+    },
+    
+    "drag_drop_behavior": {
+      "enabled": true,
+      "snap_to_grid": true,
+      "ghost_preview": true,
+      "drop_zones_highlight": true,
+      "auto_arrange": false,
+      "collision_behavior": "push",
+      "drag_handles": ["header", "title_bar"]
+    },
+    
+    "panel_states": {
+      "collapsible": true,
+      "minimizable": true,
+      "maximizable": true,
+      "closable": true,
+      "pinnable": true,
+      "floating": false,
+      "tabbed_panels": true,
+      "auto_hide": false
+    },
+    
+    "persistence": {
+      "save_layout": true,
+      "save_panel_states": true,
+      "save_custom_settings": true,
+      "auto_save_interval": 30000,
+      "layout_versioning": true,
+      "backup_layouts": 5
+    }
+  },
+  
+  "responsive_behavior": {
+    "description": "Responsive design behavior configuration",
+    
+    "breakpoint_transitions": {
+      "smooth_transitions": true,
+      "transition_duration": 300,
+      "preserve_proportions": true,
+      "adaptive_font_sizes": true,
+      "adaptive_spacing": true
+    },
+    
+    "mobile_optimizations": {
+      "touch_friendly_controls": true,
+      "swipe_gestures": true,
+      "pull_to_refresh": true,
+      "bottom_navigation": true,
+      "collapsible_sections": true,
+      "priority_content_first": true
+    },
+    
+    "tablet_optimizations": {
+      "dual_pane_layout": true,
+      "split_screen_support": true,
+      "orientation_handling": true,
+      "contextual_toolbars": true
+    },
+    
+    "desktop_enhancements": {
+      "keyboard_shortcuts": true,
+      "right_click_menus": true,
+      "hover_interactions": true,
+      "window_management": true,
+      "multi_monitor_support": true
+    }
+  },
+  
+  "accessibility_features": {
+    "description": "Accessibility and inclusive design features",
+    
+    "keyboard_navigation": {
+      "tab_order_optimization": true,
+      "skip_links": true,
+      "keyboard_shortcuts": true,
+      "focus_management": true,
+      "escape_key_handling": true
+    },
+    
+    "screen_reader_support": {
+      "aria_labels": true,
+      "role_definitions": true,
+      "live_regions": true,
+      "descriptive_headings": true,
+      "landmark_navigation": true
+    },
+    
+    "visual_accessibility": {
+      "high_contrast_mode": true,
+      "focus_indicators": true,
+      "color_blind_friendly": true,
+      "text_scaling_support": true,
+      "reduced_motion_mode": true
+    }
+  },
+  
+  "performance_optimization": {
+    "description": "Layout performance optimization settings",
+    
+    "rendering_optimization": {
+      "virtual_scrolling": true,
+      "lazy_loading": true,
+      "debounced_updates": true,
+      "gpu_acceleration": true,
+      "minimize_reflows": true
+    },
+    
+    "memory_management": {
+      "component_recycling": true,
+      "automatic_cleanup": true,
+      "memory_leak_detection": true,
+      "garbage_collection_hints": true
+    },
+    
+    "data_optimization": {
+      "update_batching": true,
+      "delta_updates": true,
+      "compression": true,
+      "caching_strategy": "intelligent",
+      "background_updates": true
+    }
+  },
+  
+  "customization_options": {
+    "description": "User customization capabilities",
+    
+    "layout_customization": {
+      "save_custom_layouts": true,
+      "share_layouts": true,
+      "import_export_layouts": true,
+      "layout_templates": true,
+      "workspace_switching": true
+    },
+    
+    "widget_customization": {
+      "custom_widget_settings": true,
+      "widget_themes": true,
+      "data_source_selection": true,
+      "refresh_rate_control": true,
+      "display_preferences": true
+    },
+    
+    "user_preferences": {
+      "default_layout": "trading_focused_4panel",
+      "auto_save_preferences": true,
+      "preference_sync": false,
+      "preference_backup": true,
+      "reset_to_defaults": true
+    }
+  },
+  
+  "integration_settings": {
+    "description": "Integration with external systems",
+    
+    "mt5_integration": {
+      "chart_sync": true,
+      "symbol_sync": true,
+      "order_sync": true,
+      "position_sync": true,
+      "alert_integration": true
+    },
+    
+    "api_integration": {
+      "real_time_data": true,
+      "historical_data": true,
+      "order_management": true,
+      "account_info": true,
+      "market_data": true
+    },
+    
+    "notification_integration": {
+      "desktop_notifications": true,
+      "mobile_push": true,
+      "email_alerts": true,
+      "sms_alerts": true,
+      "webhook_integration": true
+    }
+  }
+}

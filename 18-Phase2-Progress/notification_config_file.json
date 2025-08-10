@@ -1,0 +1,773 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "created": "2024-08-05",
+    "description": "EA GlobalFlow Pro v0.1 - Notification Settings Configuration",
+    "author": "EA GlobalFlow Development Team",
+    "notification_system": "Intelligent Multi-Channel Notification System",
+    "last_updated": "2024-08-05T10:00:00Z"
+  },
+  
+  "notification_system": {
+    "description": "Global notification system configuration",
+    "enabled": true,
+    "intelligent_routing": true,
+    "context_aware": true,
+    "user_presence_detection": true,
+    "adaptive_delivery": true,
+    "cross_device_sync": false,
+    "notification_center": true,
+    "do_not_disturb_support": true,
+    "scheduled_notifications": true
+  },
+  
+  "delivery_channels": {
+    "description": "Available notification delivery channels",
+    
+    "desktop_notifications": {
+      "enabled": true,
+      "priority": 1,
+      "native_notifications": true,
+      "browser_notifications": false,
+      "system_tray_integration": true,
+      
+      "settings": {
+        "position": "top_right",
+        "duration_seconds": 8,
+        "max_notifications": 5,
+        "stack_behavior": "newest_on_top",
+        "click_action": "focus_application",
+        "auto_dismiss": true,
+        "persistent_critical": true,
+        "rich_content": true,
+        "action_buttons": true,
+        "progress_indicators": false
+      },
+      
+      "styling": {
+        "theme": "system",
+        "custom_icons": true,
+        "color_coding": true,
+        "transparency": 0.95,
+        "border_radius": 8,
+        "shadow": true,
+        "animation": "slide_in"
+      },
+      
+      "interaction": {
+        "click_to_dismiss": true,
+        "swipe_to_dismiss": false,
+        "hover_to_pause": true,
+        "keyboard_shortcuts": true,
+        "quick_actions": ["acknowledge", "snooze", "dismiss_all"]
+      }
+    },
+    
+    "email_notifications": {
+      "enabled": true,
+      "priority": 2,
+      "immediate_delivery": false,
+      "batch_processing": true,
+      
+      "smtp_configuration": {
+        "server": "smtp.gmail.com",
+        "port": 587,
+        "encryption": "TLS",
+        "authentication": "oauth2",
+        "from_address": "pajitmenonai@gmail.com",
+        "reply_to": "pajitmenonai@gmail.com",
+        "display_name": "EA GlobalFlow Pro"
+      },
+      
+      "recipients": {
+        "primary": ["pajitmenonai@gmail.com"],
+        "cc": [],
+        "bcc": [],
+        "escalation": ["pajitmenonai@gmail.com"]
+      },
+      
+      "email_templates": {
+        "html_enabled": true,
+        "plain_text_fallback": true,
+        "responsive_design": true,
+        "branding": true,
+        "custom_css": true,
+        
+        "template_structure": {
+          "header": {
+            "include_logo": true,
+            "include_timestamp": true,
+            "include_system_status": true
+          },
+          "body": {
+            "rich_formatting": true,
+            "include_charts": false,
+            "include_screenshots": false,
+            "include_links": true
+          },
+          "footer": {
+            "include_signature": true,
+            "include_unsubscribe": false,
+            "include_system_info": true
+          }
+        }
+      },
+      
+      "batch_settings": {
+        "enabled": true,
+        "batch_interval_minutes": 15,
+        "max_batch_size": 20,
+        "immediate_for_critical": true,
+        "grouping_strategy": "by_category",
+        "digest_format": true
+      },
+      
+      "content_filtering": {
+        "priority_threshold": "medium",
+        "category_filters": ["trading", "risk", "system"],
+        "keyword_filtering": false,
+        "duplicate_suppression": true,
+        "content_summarization": true
+      }
+    },
+    
+    "sms_notifications": {
+      "enabled": true,
+      "priority": 3,
+      "provider": "twilio",
+      "backup_provider": "aws_sns",
+      
+      "twilio_config": {
+        "account_sid": "encrypted_placeholder",
+        "auth_token": "encrypted_placeholder",
+        "from_number": "encrypted_placeholder",
+        "messaging_service_sid": "encrypted_placeholder"
+      },
+      
+      "recipients": {
+        "primary": ["+971507423656"],
+        "backup": [],
+        "emergency": ["+971507423656"]
+      },
+      
+      "message_settings": {
+        "max_length": 160,
+        "split_long_messages": true,
+        "include_timestamp": false,
+        "include_sender_id": true,
+        "url_shortening": true,
+        "emoji_support": false,
+        "unicode_support": true
+      },
+      
+      "delivery_settings": {
+        "delivery_receipts": true,
+        "retry_attempts": 3,
+        "retry_interval_seconds": 30,
+        "failover_provider": true,
+        "priority_routing": true
+      },
+      
+      "rate_limiting": {
+        "max_per_minute": 5,
+        "max_per_hour": 30,
+        "max_per_day": 100,
+        "burst_limit": 3,
+        "cooldown_period_minutes": 15,
+        "emergency_override": true
+      },
+      
+      "content_optimization": {
+        "symbol_abbreviation": true,
+        "number_formatting": true,
+        "priority_keywords": ["CRITICAL", "URGENT", "LOSS", "PROFIT"],
+        "template_compression": true
+      }
+    },
+    
+    "whatsapp_notifications": {
+      "enabled": true,
+      "priority": 4,
+      "provider": "twilio",
+      "business_account": false,
+      
+      "configuration": {
+        "account_sid": "encrypted_placeholder",
+        "auth_token": "encrypted_placeholder",
+        "from_number": "whatsapp:+14155238886",
+        "webhook_url": "https://your-domain.com/whatsapp/webhook"
+      },
+      
+      "recipients": {
+        "primary": ["whatsapp:+971507423656"],
+        "groups": [],
+        "broadcast_lists": []
+      },
+      
+      "message_features": {
+        "rich_media": false,
+        "document_sharing": false,
+        "location_sharing": false,
+        "contact_sharing": false,
+        "template_messages": true,
+        "interactive_messages": false,
+        "quick_replies": true
+      },
+      
+      "content_settings": {
+        "max_length": 1600,
+        "formatting": {
+          "bold": true,
+          "italic": true,
+          "strikethrough": false,
+          "monospace": true,
+          "line_breaks": true
+        },
+        "emoji_support": true,
+        "link_preview": false
+      },
+      
+      "delivery_optimization": {
+        "message_status_tracking": true,
+        "read_receipts": false,
+        "delivery_confirmation": true,
+        "queue_management": true,
+        "rate_limiting": {
+          "max_per_minute": 10,
+          "max_per_hour": 100,
+          "max_per_day": 1000
+        }
+      }
+    },
+    
+    "push_notifications": {
+      "enabled": false,
+      "mobile_app_required": true,
+      "platforms": ["android", "ios"],
+      
+      "firebase_config": {
+        "project_id": "ea-globalflow-notifications",
+        "server_key": "encrypted_placeholder",
+        "sender_id": "encrypted_placeholder"
+      },
+      
+      "apple_config": {
+        "team_id": "encrypted_placeholder",
+        "key_id": "encrypted_placeholder",
+        "bundle_id": "com.eaglobalflow.mobile"
+      },
+      
+      "notification_features": {
+        "rich_notifications": true,
+        "action_buttons": true,
+        "custom_sounds": true,
+        "badge_updates": true,
+        "deep_linking": true,
+        "notification_grouping": true
+      }
+    },
+    
+    "webhook_notifications": {
+      "enabled": false,
+      "endpoints": [],
+      
+      "configuration": {
+        "authentication_method": "bearer_token",
+        "timeout_seconds": 10,
+        "retry_attempts": 3,
+        "retry_backoff": "exponential",
+        "payload_format": "json",
+        "compression": "gzip"
+      },
+      
+      "security": {
+        "signature_verification": true,
+        "encryption": true,
+        "rate_limiting": true,
+        "ip_whitelist": []
+      }
+    },
+    
+    "slack_notifications": {
+      "enabled": false,
+      "workspace_integration": false,
+      
+      "configuration": {
+        "webhook_url": "encrypted_placeholder",
+        "bot_token": "encrypted_placeholder",
+        "channel": "#trading-alerts",
+        "username": "EA GlobalFlow Bot",
+        "icon_emoji": ":chart_with_upwards_trend:"
+      },
+      
+      "message_features": {
+        "rich_formatting": true,
+        "code_blocks": true,
+        "attachments": true,
+        "interactive_components": false,
+        "thread_replies": false
+      }
+    },
+    
+    "telegram_notifications": {
+      "enabled": false,
+      "bot_integration": false,
+      
+      "configuration": {
+        "bot_token": "encrypted_placeholder",
+        "chat_id": "encrypted_placeholder",
+        "parse_mode": "Markdown",
+        "disable_web_page_preview": true
+      },
+      
+      "features": {
+        "inline_keyboards": false,
+        "file_sharing": false,
+        "location_sharing": false,
+        "poll_creation": false
+      }
+    }
+  },
+  
+  "notification_categories": {
+    "description": "Categorized notification settings",
+    
+    "trading_notifications": {
+      "enabled": true,
+      "channels": ["desktop", "email", "sms"],
+      "priority": "high",
+      "immediate_delivery": true,
+      
+      "subcategories": {
+        "order_confirmations": {
+          "enabled": true,
+          "channels": ["desktop"],
+          "template": "Order {action}: {quantity} {symbol} at ₹{price}",
+          "include_details": true
+        },
+        "position_updates": {
+          "enabled": true,
+          "channels": ["desktop", "email"],
+          "template": "Position {action}: {symbol} P&L: ₹{pnl}",
+          "include_charts": false
+        },
+        "execution_reports": {
+          "enabled": true,
+          "channels": ["desktop", "email"],
+          "batch_processing": true,
+          "daily_summary": true
+        }
+      }
+    },
+    
+    "risk_notifications": {
+      "enabled": true,
+      "channels": ["desktop", "email", "sms", "whatsapp"],
+      "priority": "critical",
+      "immediate_delivery": true,
+      "override_dnd": true,
+      
+      "subcategories": {
+        "limit_breaches": {
+          "enabled": true,
+          "channels": ["desktop", "email", "sms", "whatsapp"],
+          "escalation": true,
+          "template": "RISK ALERT: {limit_type} {percentage}% reached"
+        },
+        "drawdown_alerts": {
+          "enabled": true,
+          "channels": ["desktop", "email", "sms"],
+          "progressive_alerts": true,
+          "template": "Drawdown Alert: {drawdown}% from peak"
+        },
+        "margin_calls": {
+          "enabled": true,
+          "channels": ["desktop", "email", "sms", "whatsapp"],
+          "urgent_priority": true,
+          "template": "MARGIN CALL: {utilization}% utilization"
+        }
+      }
+    },
+    
+    "system_notifications": {
+      "enabled": true,
+      "channels": ["desktop", "email"],
+      "priority": "medium",
+      "batch_processing": true,
+      
+      "subcategories": {
+        "connection_status": {
+          "enabled": true,
+          "channels": ["desktop"],
+          "state_changes_only": true,
+          "template": "Connection {status}: {service}"
+        },
+        "system_health": {
+          "enabled": true,
+          "channels": ["desktop", "email"],
+          "threshold_based": true,
+          "template": "System Alert: {metric} at {value}"
+        },
+        "maintenance_notifications": {
+          "enabled": true,
+          "channels": ["email"],
+          "advance_notice": true,
+          "template": "Scheduled Maintenance: {service} on {date}"
+        }
+      }
+    },
+    
+    "market_notifications": {
+      "enabled": true,
+      "channels": ["desktop"],
+      "priority": "low",
+      "batch_processing": true,
+      
+      "subcategories": {
+        "market_status": {
+          "enabled": true,
+          "channels": ["desktop"],
+          "session_changes": true,
+          "template": "Market {status}: {exchange}"
+        },
+        "economic_events": {
+          "enabled": false,
+          "channels": ["desktop", "email"],
+          "advance_notice_hours": 2,
+          "template": "Economic Event: {event} at {time}"
+        },
+        "volatility_alerts": {
+          "enabled": true,
+          "channels": ["desktop"],
+          "vix_threshold": 25,
+          "template": "Volatility Alert: VIX at {vix_level}"
+        }
+      }
+    },
+    
+    "performance_notifications": {
+      "enabled": true,
+      "channels": ["email"],
+      "priority": "low",
+      "scheduled_delivery": true,
+      
+      "subcategories": {
+        "daily_summary": {
+          "enabled": true,
+          "channels": ["email"],
+          "delivery_time": "16:00",
+          "include_charts": true,
+          "template": "Daily Performance Summary"
+        },
+        "weekly_report": {
+          "enabled": true,
+          "channels": ["email"],
+          "delivery_day": "friday",
+          "delivery_time": "17:00",
+          "comprehensive_analysis": true
+        },
+        "monthly_analysis": {
+          "enabled": true,
+          "channels": ["email"],
+          "delivery_day": "last_day",
+          "delivery_time": "18:00",
+          "detailed_breakdown": true
+        }
+      }
+    }
+  },
+  
+  "notification_rules": {
+    "description": "Intelligent notification routing and filtering rules",
+    
+    "priority_routing": {
+      "enabled": true,
+      "escalation_enabled": true,
+      
+      "priority_levels": {
+        "critical": {
+          "channels": ["desktop", "sms", "whatsapp", "email"],
+          "immediate_delivery": true,
+          "bypass_dnd": true,
+          "escalation_delay_minutes": 5,
+          "max_escalations": 3
+        },
+        "high": {
+          "channels": ["desktop", "email", "sms"],
+          "immediate_delivery": true,
+          "respect_dnd": false,
+          "escalation_delay_minutes": 15,
+          "max_escalations": 2
+        },
+        "medium": {
+          "channels": ["desktop", "email"],
+          "batch_allowed": true,
+          "respect_dnd": true,
+          "escalation_delay_minutes": 30,
+          "max_escalations": 1
+        },
+        "low": {
+          "channels": ["desktop"],
+          "batch_processing": true,
+          "respect_dnd": true,
+          "no_escalation": true
+        }
+      }
+    },
+    
+    "time_based_rules": {
+      "enabled": true,
+      
+      "business_hours": {
+        "enabled": true,
+        "timezone": "Asia/Dubai",
+        "weekdays": {
+          "start_time": "09:00",
+          "end_time": "18:00",
+          "full_notifications": true
+        },
+        "weekends": {
+          "critical_only": true,
+          "reduced_channels": ["desktop", "email"]
+        }
+      },
+      
+      "trading_hours": {
+        "enabled": true,
+        "indian_market_hours": {
+          "start_time": "09:15",
+          "end_time": "15:30",
+          "timezone": "Asia/Kolkata",
+          "enhanced_notifications": true
+        },
+        "forex_hours": {
+          "24_7_coverage": true,
+          "peak_hours": ["12:00-16:00", "20:00-24:00"],
+          "reduced_notifications_off_peak": true
+        }
+      },
+      
+      "do_not_disturb": {
+        "enabled": false,
+        "start_time": "22:00",
+        "end_time": "06:00",
+        "timezone": "Asia/Dubai",
+        "critical_override": true,
+        "emergency_contacts": ["+971507423656"]
+      }
+    },
+    
+    "frequency_control": {
+      "enabled": true,
+      "duplicate_suppression": true,
+      "suppression_window_seconds": 60,
+      
+      "rate_limits": {
+        "per_minute": 10,
+        "per_hour": 100,
+        "per_day": 500,
+        "burst_allowance": 5,
+        "cooldown_period_minutes": 10
+      },
+      
+      "adaptive_throttling": {
+        "enabled": true,
+        "learn_user_patterns": false,
+        "auto_adjust_limits": false,
+        "peak_hour_adjustment": true
+      }
+    },
+    
+    "content_filtering": {
+      "enabled": true,
+      "keyword_filtering": false,
+      "sentiment_analysis": false,
+      "spam_detection": true,
+      
+      "filters": {
+        "duplicate_detection": true,
+        "similarity_threshold": 0.8,
+        "minimum_importance_score": 0.3,
+        "content_relevance": true
+      }
+    }
+  },
+  
+  "user_preferences": {
+    "description": "User-specific notification preferences",
+    
+    "preference_profiles": {
+      "enabled": true,
+      "active_profile": "balanced_trader",
+      
+      "profiles": {
+        "conservative_trader": {
+          "description": "Minimal notifications, risk-focused",
+          "notification_volume": "low",
+          "channels": ["desktop", "email"],
+          "priorities": ["critical", "high"],
+          "categories": ["risk", "system"]
+        },
+        "active_trader": {
+          "description": "Comprehensive notifications for active trading",
+          "notification_volume": "high",
+          "channels": ["desktop", "email", "sms"],
+          "priorities": ["critical", "high", "medium"],
+          "categories": ["trading", "risk", "system", "market"]
+        },
+        "balanced_trader": {
+          "description": "Balanced notification approach",
+          "notification_volume": "medium",
+          "channels": ["desktop", "email"],
+          "priorities": ["critical", "high", "medium"],
+          "categories": ["trading", "risk", "system"]
+        },
+        "scalper": {
+          "description": "High-frequency trading focused",
+          "notification_volume": "very_high",
+          "channels": ["desktop"],
+          "priorities": ["critical", "high"],
+          "categories": ["trading", "risk"],
+          "low_latency": true
+        }
+      }
+    },
+    
+    "customization_options": {
+      "custom_sounds": true,
+      "custom_templates": true,
+      "channel_priority_override": true,
+      "time_zone_customization": true,
+      "language_preferences": "english",
+      "accessibility_options": {
+        "high_contrast": false,
+        "large_text": false,
+        "screen_reader_support": false,
+        "keyboard_navigation": true
+      }
+    },
+    
+    "learning_preferences": {
+      "adaptive_notifications": false,
+      "usage_analytics": false,
+      "feedback_collection": true,
+      "preference_suggestions": false
+    }
+  },
+  
+  "delivery_optimization": {
+    "description": "Notification delivery optimization settings",
+    
+    "intelligent_routing": {
+      "enabled": true,
+      "context_aware_delivery": true,
+      "user_presence_detection": false,
+      "device_preference_learning": false,
+      "optimal_channel_selection": true
+    },
+    
+    "performance_optimization": {
+      "async_delivery": true,
+      "queue_management": true,
+      "batch_processing": true,
+      "compression": true,
+      "caching": true,
+      "connection_pooling": true
+    },
+    
+    "reliability_features": {
+      "delivery_confirmation": true,
+      "retry_mechanisms": true,
+      "failover_channels": true,
+      "dead_letter_queue": true,
+      "monitoring_and_alerting": true
+    },
+    
+    "scalability_settings": {
+      "horizontal_scaling": false,
+      "load_balancing": false,
+      "resource_pooling": true,
+      "auto_scaling": false
+    }
+  },
+  
+  "analytics_and_reporting": {
+    "description": "Notification analytics and reporting configuration",
+    
+    "metrics_collection": {
+      "enabled": true,
+      "delivery_metrics": true,
+      "engagement_metrics": true,
+      "performance_metrics": true,
+      "error_metrics": true,
+      "retention_days": 90
+    },
+    
+    "reporting": {
+      "daily_reports": false,
+      "weekly_summaries": false,
+      "monthly_analysis": false,
+      "real_time_dashboard": true,
+      "export_capabilities": true
+    },
+    
+    "optimization_insights": {
+      "effectiveness_analysis": true,
+      "channel_performance": true,
+      "user_engagement": true,
+      "cost_analysis": false,
+      "recommendations": false
+    }
+  },
+  
+  "security_and_privacy": {
+    "description": "Security and privacy settings for notifications",
+    
+    "data_protection": {
+      "encryption_in_transit": true,
+      "encryption_at_rest": true,
+      "pii_redaction": true,
+      "data_anonymization": false,
+      "gdpr_compliance": false
+    },
+    
+    "access_control": {
+      "authentication_required": false,
+      "authorization_levels": false,
+      "api_key_management": true,
+      "audit_logging": true
+    },
+    
+    "content_security": {
+      "sensitive_data_filtering": true,
+      "content_sanitization": true,
+      "malicious_link_detection": false,
+      "spam_prevention": true
+    }
+  },
+  
+  "integration_settings": {
+    "description": "Integration with external systems and services",
+    
+    "crm_integration": {
+      "enabled": false,
+      "system": "none",
+      "sync_contacts": false,
+      "activity_logging": false
+    },
+    
+    "calendar_integration": {
+      "enabled": false,
+      "system": "none",
+      "schedule_notifications": false,
+      "meeting_reminders": false
+    },
+    
+    "ticketing_integration": {
+      "enabled": false,
+      "system": "none",
+      "auto_ticket_creation": false,
+      "status_updates": false
+    }
+  }
+}
